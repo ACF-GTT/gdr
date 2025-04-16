@@ -2,12 +2,17 @@
 sous la forme de schémas itinéraires SI
 """
 import csv
+#import os
+import re
 from statistics import mean
+
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
-from const.grip import BALISE_RESULTS, correle
+from const.grip import DATE_REGEXP, TIME_REGEXP
+from const.grip import BALISE_RESULTS, BALISE_HEADER, correle
 from const.grip import POOR, GOOD, EXCELLENT, COLORS
+from const.grip import START_DATE, START_TIME
 from helpers.shared import pick_file
 
 TITLE = "CFT"
@@ -98,17 +103,35 @@ x_vals = []
 field_tops = {}
 
 file_name = pick_file()
+# TITLE = f"{TITLE} {os.path.basename(file_name).split('.')[0]}"
 
 ax = plt.subplot(211)
 
 with open(file_name, encoding="utf-8") as csvfile:
     csv_data = csv.reader(csvfile, delimiter=',')
     INDEX_START = None
+    INDEX_HEADER = None
     for i,row in enumerate(csv_data):
-        if i == 2:
-            section_name = row[21].rstrip().replace("\\n","")
-            TITLE = f"{TITLE} - {section_name} - {row[18]} - {row[19]}"
-            plt.title(TITLE)
+        if row[0].strip() == BALISE_HEADER:
+            INDEX_HEADER = i
+        if INDEX_HEADER is not None:
+            if i == INDEX_HEADER + 2:
+                #section_name = row[21].rstrip().replace("\\n","")
+                # normalement le file_name est le dernier champ....
+                TITLE = f"{TITLE} - {row[-1]}"
+                measure_date = re.search(
+                    DATE_REGEXP,
+                    "".join(row)
+                )
+                if measure_date:
+                    TITLE = f"{TITLE} - {measure_date[0]}"
+                measure_time = re.search(
+                    TIME_REGEXP,
+                    "".join(row)
+                )
+                if measure_time:
+                    TITLE = f"{TITLE} - {measure_time[0]}"
+                plt.title(TITLE)
         if row[0].strip() == BALISE_RESULTS:
             INDEX_START = i
         if INDEX_START and i > INDEX_START + 1:
@@ -142,8 +165,6 @@ while i < len(grip_numbers) - NB_PTS_MEAN_STEP:
     )
     i += NB_PTS_MEAN_STEP
     pos_in_meter += MEAN_STEP
-print(x_mean_values)
-print(mean_values)
 
 plt.ylim((0, YMAX))
 plt.grid(visible=True, axis="x", linestyle="--")
