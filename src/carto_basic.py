@@ -1,6 +1,5 @@
 """Produit une carte HTML
-Habillage d'un fichier de mesure GRIP
-avec de la donnée en provenance de la BDTOPO
+avec openstreetmap en fond de plan
 """
 import json
 import branca.colormap as cm
