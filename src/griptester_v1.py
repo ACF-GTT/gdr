@@ -9,7 +9,7 @@ from statistics import mean
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
-from const.grip import DATE_REGEXP, TIME_REGEXP
+from const.main import DATE_REGEXP, TIME_REGEXP
 from const.grip import BALISE_RESULTS, BALISE_HEADER, correle
 from const.grip import POOR, GOOD, EXCELLENT, COLORS
 from const.grip import START_DATE, START_TIME

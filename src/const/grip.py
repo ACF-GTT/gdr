@@ -1,14 +1,5 @@
 """constants for griptester mk2."""
-import re
 
-DATE_REGEXP = re.compile(
-    "[0-9]{2}/[0-9]{2}/[0-9]{4}"
-)
-TIME_REGEXP = re.compile(
-    "[0-9]{2}:[0-9]{2}:[0-9]{2}"
-)
-
-BPTOPO_GEOJSON = "BDTOPO_GEOJSON"
 BALISE_RESULTS = "<RESULTS>"
 BALISE_HEADER = "<HEADER>"
 START_DATE = "StartDate"
