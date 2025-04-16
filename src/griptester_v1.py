@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from const.main import DATE_REGEXP, TIME_REGEXP
 from const.grip import BALISE_RESULTS, BALISE_HEADER, correle
 from const.grip import POOR, GOOD, EXCELLENT, COLORS
-from const.grip import START_DATE, START_TIME
 from helpers.shared import pick_file
 
 TITLE = "CFT"
@@ -155,16 +154,16 @@ NB_PTS_MEAN_STEP = int(MEAN_STEP // STEP)
 print(f"nombre de points dans une zone homogène : {NB_PTS_MEAN_STEP}")
 
 i=0
-pos_in_meter = MEAN_STEP / 2
+POS_IN_METER = MEAN_STEP / 2
 mean_values = []
 x_mean_values = []
 while i < len(grip_numbers) - NB_PTS_MEAN_STEP:
-    x_mean_values.append(pos_in_meter)
+    x_mean_values.append(POS_IN_METER)
     mean_values.append(
         mean(grip_numbers[i:i+NB_PTS_MEAN_STEP])
     )
     i += NB_PTS_MEAN_STEP
-    pos_in_meter += MEAN_STEP
+    POS_IN_METER += MEAN_STEP
 
 plt.ylim((0, YMAX))
 plt.grid(visible=True, axis="x", linestyle="--")

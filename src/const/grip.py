@@ -2,8 +2,6 @@
 
 BALISE_RESULTS = "<RESULTS>"
 BALISE_HEADER = "<HEADER>"
-START_DATE = "StartDate"
-START_TIME = "StartTime"
 
 POOR = 50
 GOOD = 60
