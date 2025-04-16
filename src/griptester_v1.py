@@ -137,8 +137,8 @@ with open(file_name, encoding="utf-8") as csvfile:
         if INDEX_START and i > INDEX_START + 1:
             x_val = float(row[0])
             y_val = correle(float(row[1]))
-            if PR in row[-1].lower():
-                pr_nb = row[-1].split("@")[0].lower()
+            if PR in row[14].lower():
+                pr_nb = row[14].split("@")[0].lower()
                 pr_nb = pr_nb.replace(PR,"").replace(" ","")
                 field_tops[pr_nb] = (x_val, y_val)
             if START in row[14].lower():
