@@ -2,8 +2,9 @@
 avec openstreetmap en fond de plan
 """
 import json
-import branca.colormap as cm
+import os
 
+import branca.colormap as cm
 import folium
 from folium.plugins import MousePosition
 from folium.plugins import MeasureControl
@@ -13,7 +14,7 @@ from helpers.shared import pick_files
 
 file_names = pick_files(
     measure={
-        "folder_path": "datas",
+        "folder_path": f"{os.path.dirname(__file__)}/datas",
         "ext": "geojson",
         "message": "choix du fichier de mesure"
     }

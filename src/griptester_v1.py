@@ -2,7 +2,7 @@
 sous la forme de schémas itinéraires SI
 """
 import csv
-#import os
+import os
 import re
 from statistics import mean
 
@@ -43,7 +43,6 @@ BBOX_END = {
 
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = 200
-
 
 def color_map(y_data: list[float]):
     """Crée le tableau des couleurs pour l'histogramme."""
@@ -101,7 +100,7 @@ grip_numbers = []
 x_vals = []
 field_tops = {}
 
-file_name = pick_file()
+file_name = pick_file(f"{os.path.dirname(__file__)}/datas")
 # TITLE = f"{TITLE} {os.path.basename(file_name).split('.')[0]}"
 
 ax = plt.subplot(211)

@@ -5,6 +5,7 @@ altitude : colonne 9
 """
 import csv
 import json
+import os
 
 from const.grip import BALISE_RESULTS, correle, define_color
 from helpers.shared import pick_file
@@ -40,7 +41,7 @@ geojson_collection = {
     "features": []
 }
 
-file_name = pick_file("datas")
+file_name = pick_file(f"{os.path.dirname(__file__)}/datas")
 
 with open(file_name, encoding="utf-8") as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',')
