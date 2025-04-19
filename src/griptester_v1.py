@@ -115,7 +115,6 @@ class RoadMeasure():
         self.datas = datas
         self._tops = tops
         prs = self.prs()
-        self.pr: int = min(prs)
         # offset/décalage à appliquer en mètres
         self.offset = kwargs.get("offset", 0)
         self.sens: str = "D" if prs[0] < prs[1] else "G"
@@ -133,10 +132,6 @@ class RoadMeasure():
                 value[1]
             )
         return result
-
-    def index(self, top: str|int) -> int:
-        """retourne la position d'un top."""
-        return int(self._tops[str(top)][0] // self.step - 1)
 
     def abs(self) -> list[float]:
         """retourne les abscisses curvilignes en mètres."""
