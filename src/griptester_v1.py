@@ -265,11 +265,13 @@ measures: list[RoadMeasure] = []
 for name in file_names.values():
     measures.append(get_grip_datas(name))
 
-XRANGE = None
 ABS_REFERENCE = None
 
 for j, mes in enumerate(measures):
-    ax = plt.subplot(INDEX)
+    if j == 0:
+        ax = plt.subplot(INDEX)
+    else:
+        plt.subplot(INDEX, sharex=ax)
     plt.title(mes.title)
     if j == 0:
         legend = []
@@ -295,15 +297,14 @@ for j, mes in enumerate(measures):
         print(f"********offset {mes.offset}")
     print(mes.tops())
     draw_objects(mes.tops())
-
     plt.bar(
         mes.abs(),
         mes.datas,
         color = color_map(mes.datas),
         edgecolor = color_map(mes.datas)
     )
-
     INDEX += 1
+
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, YMAX))
     x_mean_values, mean_values = mes.produce_mean(MEAN_STEP)
@@ -322,10 +323,5 @@ for j, mes in enumerate(measures):
         )
     draw_objects(mes.tops())
     INDEX += 1
-
-    if XRANGE is not None:
-        ax.set_xlim(XRANGE)
-    if j == 0:
-        XRANGE = ax.get_xlim()
 
 plt.show()
