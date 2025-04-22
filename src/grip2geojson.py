@@ -10,7 +10,7 @@ import os
 from const.grip import BALISE_RESULTS, correle, define_color
 from helpers.shared import pick_file
 
-def create_point(value, **kwargs):
+def create_point(x_val, y_val, **kwargs):
     """coordinates should be an array 
     The first two elements are longitude and latitude,
     precisely in that order and using decimal numbers.
@@ -29,11 +29,13 @@ def create_point(value, **kwargs):
             "coordinates": [el_lon, el_lat, el_alt]
         },
         "properties": {
-            el_name: value
+            el_name: y_val,
+            "abs": x_val
         }
     }
     if el_color is not None:
         el_feature["properties"]["color"] = el_color
+    el_feature["properties"]["pr"] = -1
     return el_feature
 
 geojson_collection = {
@@ -56,6 +58,7 @@ with open(file_name, encoding="utf-8") as csvfile:
             lon = float(row[8])
             alt = float(row[9])
             feature = create_point(
+                x,
                 y,
                 lat=lat,
                 lon=lon,
