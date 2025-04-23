@@ -6,8 +6,10 @@ altitude : colonne 9
 import csv
 import json
 import os
+import re
 
-from const.grip import BALISE_RESULTS, correle, define_color
+from const.grip import BALISE_HEADER, BALISE_RESULTS, correle, define_color
+from const.main import DATE_REGEXP
 from helpers.shared import pick_file
 
 def create_point(x_val, y_val, **kwargs):
@@ -48,9 +50,20 @@ file_name = pick_file(f"{os.path.dirname(__file__)}/datas")
 with open(file_name, encoding="utf-8") as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',')
     INDEX_START = None
+    INDEX_HEADER = None
     for i,row in enumerate(spamreader):
+        if row[0].strip() == BALISE_HEADER:
+            INDEX_HEADER = i
         if row[0].strip() == BALISE_RESULTS:
             INDEX_START = i
+        if INDEX_HEADER is not None:
+            if i == INDEX_HEADER + 2:
+                pattern_found = re.search(
+                    DATE_REGEXP,
+                    "".join(row)
+                )
+                if pattern_found:
+                    geojson_collection["date"] = pattern_found[0]
         if INDEX_START and i > INDEX_START + 1:
             x = float(row[0])
             y = correle(float(row[1]))
