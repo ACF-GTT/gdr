@@ -157,19 +157,19 @@ WRITE = True
 if MODE == "a":
     with open(CSV_NAME, encoding="utf-8") as csv_file:
         csv_data = csv.reader(csv_file, delimiter=',')
-        for i,row in enumerate(csv_data):
-            exist = True
-            for i, el in enumerate(datas_in_prabs[0]):
-                if str(el) != row[i]:
-                    exist = False
+        for j,row in enumerate(csv_data):
+            EXIST = True
+            for j, el in enumerate(datas_in_prabs[0]):
+                if str(el) != row[j]:
+                    EXIST = False
                     break
-            if exist:
+            if EXIST:
                 WRITE = False
                 break
 if not WRITE:
     print("écriture dans le csv annulée pour cause de doublon")
 else:
-    with open(CSV_NAME, MODE, encoding="utf-8") as csv_file: 
+    with open(CSV_NAME, MODE, encoding="utf-8") as csv_file:
         writer = csv.writer(csv_file, lineterminator="\n")
         if MODE == "w":
             entete = ["PRD", "ABD", "PRF", "ABF", "CFT", "DATE", "SENS"]
