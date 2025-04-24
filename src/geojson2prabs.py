@@ -17,6 +17,7 @@ l'objet properties de chaque feature du geojson doit contenir les champs :
 }
 il faut au moins 2 PR
 """
+import argparse
 import csv
 import json
 import os
@@ -27,64 +28,152 @@ file_name = pick_file(
     ext="geojson"
 )
 
-with open(file_name, encoding="utf-8") as geojsonfile:
-    datas = json.load(geojsonfile)
-    _date = datas["date"]
-    tab_pr = []
-    features = datas["features"]
-    longueur = max(el["properties"]["abs"] for el in features)
-    # on est forcément dans le sens des abscisses curvilignes croissantes
-    step = features[1]["properties"]["abs"] - features[0]["properties"]["abs"]
-    print(f"on a mesuré {longueur} mètres au pas de {step} mètre(s)")
-    for feature in features:
-        prop = feature["properties"]
-        if prop["pr"] != -1:
-            tab_pr.append({
-                "pr": prop["pr"],
-                "abs": prop["abs"],
-                "CFT": prop["CFT"]
-            })
-    # est-on dans le sens des pr croissants ?
-    SENS = "D" if tab_pr[1]["pr"] - tab_pr[0]["pr"] > 0 else "G"
-    # si on n'est pas dans le sens des pr croissants, on renverse les abscisses curvilignes
-    if SENS == "G":
-        tab_pr.reverse()
-        for _pr in tab_pr:
-            _pr["abs"] = longueur - _pr["abs"]
-        for feature in features:
+class Geojson2PrAbs:
+    """transcodage d'un geojson en PR + abscisse."""
+    def __init__(self, name):
+        """Initialisation."""
+        with open(name, encoding="utf-8") as geojsonfile:
+            datas = json.load(geojsonfile)
+            self.date = datas["date"]
+            self.tab_pr = []
+            self.features = datas["features"]
+            self.longueur = max(
+                el["properties"]["abs"] for el in self.features
+            )
+            # Les abscisses curvilignes sont forcément croissantes
+            self.step = self._abs(1) - self._abs(0)
+            print(f"On a mesuré {self.longueur} mètres")
+            print(f"Le pas est de {self.step} mètre(s)")
+            for feature in self.features:
+                prop = feature["properties"]
+                if prop["pr"] != -1:
+                    self.tab_pr.append({
+                        "pr": prop["pr"],
+                        "abs": prop["abs"],
+                        "CFT": prop["CFT"]
+                    })
+            self.sens = "D" if self._pr(1) - self._pr(0) > 0 else "G"
+            if self.sens == "G":
+                self.reverse()
+            print(self.tab_pr)
+
+    def _abs(self, i):
+        """retourne l'abscisse curviligne à la position i.""" 
+        return self.features[i]["properties"]["abs"]
+
+    def _pr(self, i):
+        """Retourne le numéro du PR en position i."""
+        return self.tab_pr[i]["pr"]
+
+    def _prabs(self, i):
+        """retourne l'abscisse du PR en position i"""
+        return self.tab_pr[i]["abs"]
+
+    def reverse(self):
+        """renverse les abscisses curvilignes."""
+        self.tab_pr.reverse()
+        for pr in self.tab_pr:
+            pr["abs"] = self.longueur - pr["abs"]
+        for feature in self.features:
             abs_original = feature["properties"]["abs"]
-            feature["properties"]["abs"] = longueur - abs_original
-        features = reversed(list(features))
-    print(tab_pr)
-    INDEX = 0
-    NB_PR = len(tab_pr)
-    print(f"{NB_PR} points repères sont présents")
-    input("appuyer sur une touche pour créer le fichier csv en PR + abscisse")
-    csv_name = file_name.replace(".geojson", "_prabs.csv")
-    with open(csv_name, 'w', encoding="utf-8") as csv_file:
-        writer = csv.writer(csv_file, lineterminator="\n")
-        writer.writerow(["CFT", "PRD", "ABD", "PRF", "ABF", "SENS", "DATE"])
-        CFT = None
-        PRD = None
-        ABD = None
-        for feature in features:
+            feature["properties"]["abs"] = self.longueur - abs_original
+        self.features = reversed(list(self.features))
+
+    def complete(self, line: list, route: str=None):
+        """Ajoute les paramètres complémentaires"""
+        line.append(self.date)
+        line.append(self.sens)
+        if route is not None:
+            line.insert(0, route)
+        return line
+
+    def convert2prd_abd_prf_abf(self, route=None):
+        """Produit des tronçons avec les champs prd, abd, prf, abf."""
+        nb_pr = len(self.tab_pr)
+        print(f"{nb_pr} points repères")
+        index = 0
+        datas = []
+        cft = None
+        prd = None
+        abd = None
+        for feature in self.features:
             prop = feature["properties"]
-            if INDEX < NB_PR - 1 and prop["abs"] >= tab_pr[INDEX+1]["abs"]:
-                INDEX += 1
-            _prf = tab_pr[INDEX]["pr"]
-            _abf = prop["abs"] - tab_pr[INDEX]["abs"]
-            if SENS == "D" and PRD is None:
-                PRD = _prf
-                ABD = _abf - step
-            if SENS == "D":
-                CFT = prop["CFT"]
-            if None not in (CFT, PRD, ABD):
-                writer.writerow([CFT, PRD, ABD, _prf, _abf, SENS, _date])
-            if SENS == "G":
-                CFT = prop["CFT"]
-            PRD = _prf
-            ABD = _abf
-        if SENS == "G":
-            _prf = PRD
-            _abf = ABD + step
-            writer.writerow([CFT, PRD, ABD, _prf, _abf, SENS, _date])
+            if index < nb_pr - 1 and prop["abs"] >= self._prabs(index+1):
+                index += 1
+            prf = self._pr(index)
+            abf = prop["abs"] - self._prabs(index)
+            if self.sens == "D" and prd is None:
+                prd = prf
+                abd = abf - self.step
+            if self.sens == "D":
+                cft = prop["CFT"]
+            if None not in (cft, prd, abd):
+                line = [prd, abd, prf, abf, cft]
+                datas.append(
+                    self.complete(line, route=route)
+                )
+            if self.sens == "G":
+                cft = prop["CFT"]
+            prd = prf
+            abd = abf
+        if self.sens == "G":
+            prf = prd
+            abf = abd + self.step
+            line = [prd, abd, prf, abf, cft]
+            datas.append(
+                self.complete(line, route=route)
+            )
+        return datas
+
+parser = argparse.ArgumentParser(description='transcodage en PR+ABS')
+parser.add_argument(
+    "--nom_csv",
+    action="store",
+    help="nom du csv à utiliser",
+    default=None
+)
+parser.add_argument(
+    "--route",
+    action="store",
+    help="nom de la route",
+    default=None
+)
+args = parser.parse_args()
+
+transcoder = Geojson2PrAbs(file_name)
+datas_in_prabs = transcoder.convert2prd_abd_prf_abf(route=args.route)
+
+MODE = "w"
+if args.nom_csv is not None:
+    if args.nom_csv[-3:] != ".csv":
+        args.nom_csv = f"{args.nom_csv}.csv"
+    CSV_NAME = f"{os.path.dirname(__file__)}/{args.nom_csv}"
+    if os.path.isfile(CSV_NAME):
+        MODE = "a"
+else:
+    CSV_NAME = file_name.replace(".geojson", "_prabs.csv")
+
+WRITE = True
+if MODE == "a":
+    with open(CSV_NAME, encoding="utf-8") as csv_file:
+        csv_data = csv.reader(csv_file, delimiter=',')
+        for i,row in enumerate(csv_data):
+            exist = True
+            for i, el in enumerate(datas_in_prabs[0]):
+                if str(el) != row[i]:
+                    exist = False
+                    break
+            if exist:
+                WRITE = False
+                break
+if not WRITE:
+    print("écriture dans le csv annulée pour cause de doublon")
+else:
+    with open(CSV_NAME, MODE, encoding="utf-8") as csv_file: 
+        writer = csv.writer(csv_file, lineterminator="\n")
+        if MODE == "w":
+            entete = ["PRD", "ABD", "PRF", "ABF", "CFT", "DATE", "SENS"]
+            if args.route is not None:
+                entete.insert(0, "ROUTE")
+            writer.writerow(entete)
+        writer.writerows(datas_in_prabs)
