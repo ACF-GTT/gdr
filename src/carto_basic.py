@@ -9,13 +9,13 @@ import folium
 from folium.plugins import MousePosition
 from folium.plugins import MeasureControl
 
-from const.grip import POOR, GOOD, EXCELLENT, COLORS
+from helpers.consts import CFT_POOR, CFT_GOOD, CFT_EXCELLENT, CFT_COLORS
 from helpers.shared import pick_files
 
 file_names = pick_files(
     measure={
         "folder_path": f"{os.path.dirname(__file__)}/datas",
-        "ext": "geojson",
+        "ext": ["geojson"],
         "message": "choix du fichier de mesure"
     }
 )
@@ -47,10 +47,10 @@ with open(geojson_name, encoding="utf-8") as geojson_file:
     ).add_to(m)
     folium.LayerControl().add_to(m)
     legend = cm.StepColormap(
-        COLORS.values(),
+        CFT_COLORS.values(),
         vmin=0,
         vmax=100,
-        index=[0, POOR, GOOD, EXCELLENT, 100],
+        index=[0, CFT_POOR, CFT_GOOD, CFT_EXCELLENT, 100],
         caption="niveaux de CFT"
     )
     legend.add_to(m)

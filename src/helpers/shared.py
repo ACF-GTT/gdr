@@ -57,16 +57,16 @@ def pick_files(**kwargs) -> dict[str, str]:
         if "ext" not in question:
             continue
         folder_path = question["folder_path"]
-        ext = question["ext"]
         message = question.get(
             "message",
-            f"choix du fichier {ext}?"
+            "choix du fichier ?"
         )
         data_files = CheckForFiles()
-        data_files.filter_extension(
-            folder_path=folder_path,
-            ext=ext
-        )
+        for ext in question["ext"]:
+            data_files.filter_extension(
+                folder_path=folder_path,
+                ext=ext
+            )
         questions.append(
             inquirer.List(
                 question_key,
@@ -75,3 +75,28 @@ def pick_files(**kwargs) -> dict[str, str]:
             )
         )
     return inquirer.prompt(questions)
+
+def which_measure(file_name: str) -> str:
+    """retourne l'unité de mesure : PMP, CFT..."""
+    folder = os.path.dirname(file_name)
+    all_files = os.listdir(folder)
+    try:
+        cfg_name = [el for el in all_files if el.endswith(".CFG")][0]
+        cfg_name = f"{folder}/{cfg_name}"
+    except IndexError:
+        cfg_name = file_name
+    print(cfg_name)
+    encodings = ['utf-8', 'windows-1250', 'windows-1252']
+    for encoding in encodings:
+        try:
+            with open(cfg_name, encoding=encoding) as cfg_data:
+                data = cfg_data.read()
+        except UnicodeDecodeError:
+            print(f"got Unicode error with {encoding}, trying another one")
+        else:
+            print(f"opening the file in {encoding}")
+            if data.find("GTNumber") != -1:
+                return "CFT"
+            if data.find("RUGO") != -1:
+                return "PMP"
+    return None
