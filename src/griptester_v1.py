@@ -2,6 +2,7 @@
 sous la forme de schémas itinéraires SI
 """
 import argparse
+from collections import defaultdict
 import os
 
 import matplotlib.patches as mpatches
@@ -21,31 +22,57 @@ from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
 from helpers.road_mesure import RoadMeasure, START, END
 
-CFT_LEGENDS = {
-    "poor": f"CFT<={CFT_POOR}",
-    "fine": f"{CFT_POOR}<CFT<={CFT_GOOD}",
-    "good": f"{CFT_GOOD}<CFT<={CFT_EXCELLENT}",
-    "excellent": f"CFT>{CFT_EXCELLENT}"
+COLORS = {
+    "CFT": CFT_COLORS,
+    "PMP": PMP_COLORS
 }
-PMP_LEGENDS = {
-    "poor": f"PMP<={PMP_POOR}",
-    "fine": f"{PMP_POOR}<PMP<={PMP_GOOD}",
-    "excellent": f"PMP>{PMP_GOOD}"
+
+LEGENDS = {
+    "CFT": {
+        "poor": f"CFT<={CFT_POOR}",
+        "fine": f"{CFT_POOR}<CFT<={CFT_GOOD}",
+        "good": f"{CFT_GOOD}<CFT<={CFT_EXCELLENT}",
+        "excellent": f"CFT>{CFT_EXCELLENT}"
+    },
+    "PMP" : {
+        "poor": f"PMP<={PMP_POOR}",
+        "fine": f"{PMP_POOR}<PMP<={PMP_GOOD}",
+        "good": f"PMP>{PMP_GOOD}"
+    }
 }
-BBOX_PR = {
-    "boxstyle": "round",
-    "edgecolor": "gray",
-    "facecolor": "white"
+
+EVE_STD = {
+    "font": "red",
+    "line": "blue",
+    "bbox": {
+        "boxstyle": "round",
+        "edgecolor": "gray",
+        "facecolor": "white"
+    }
 }
-BBOX_START = {
-    "boxstyle": "round",
-    "edgecolor": "none",
-    "facecolor": "green"
+EVE_COLORS = defaultdict(lambda: EVE_STD)
+EVE_COLORS["D"] = {
+    "font": "white",
+    "line": "green",
+    "bbox": {
+        "boxstyle": "round",
+        "edgecolor": "none",
+        "facecolor": "green"
+    }
 }
-BBOX_END = {
-    "boxstyle": "round",
-    "edgecolor": "none",
-    "facecolor": "red"
+EVE_COLORS["F"] = {
+    "font": "white",
+    "line": "red",
+    "bbox": {
+        "boxstyle": "round",
+        "edgecolor": "none",
+        "facecolor": "red"
+    }
+}
+
+PRECISION = {
+    100: 0,
+    1: 2
 }
 
 # pas en mètres pour une analyse en zône homogène
@@ -78,9 +105,6 @@ def color_map(y_data: list[float], unit="CFT"):
 def draw_object(
         label: str,
         x_pos: float,
-        bbox: dict[str, str],
-        fontcolor: str,
-        linecolor: str,
         ymax: int
 ) -> None:
     """Ajoute un évènement ponctuel
@@ -89,14 +113,14 @@ def draw_object(
     plt.annotate(
         label,
         (x_pos, 0.9 * ymax),
-        bbox = bbox,
-        color = fontcolor
+        bbox = EVE_COLORS[label]["bbox"],
+        color = EVE_COLORS[label]["font"]
     )
     plt.vlines(
         x_pos,
         0,
         1.5 * ymax,
-        color = linecolor
+        color = EVE_COLORS[label]["line"]
     )
 
 
@@ -109,11 +133,11 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
     for key, value in tops.items():
         x , _ = value
         if key == START:
-            draw_object("D", x, BBOX_START, "white", "green", ymax)
+            draw_object("D", x, ymax)
         elif key == END:
-            draw_object("F", x, BBOX_END, "white", "red", ymax)
+            draw_object("F", x, ymax)
         else:
-            draw_object(key, x, BBOX_PR, "red", "blue", ymax)
+            draw_object(key, x, ymax)
 
 parser = argparse.ArgumentParser(description='GRIPTESTER MK2')
 parser.add_argument(
@@ -145,6 +169,7 @@ file_names = pick_files(
     **questions
 )
 
+# index du graphe
 INDEX = 2 * NB_MES * 100 + 11
 
 plt.subplots_adjust(hspace=0.5)
@@ -162,27 +187,29 @@ for name in file_names.values():
     print(f"done for {name} {mes_unit}")
 
 ABS_REFERENCE = None
+LEGENDED = []
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
     if j == 0:
         ax = plt.subplot(INDEX)
+        if PR_RECALAGE is not None:
+            ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
+            print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
     else:
         plt.subplot(INDEX, sharex=ax)
     plt.title(mes.title)
-    if j == 0:
+    if mes.unit not in LEGENDED:
         legend = []
-        for color_key,color_label in CFT_LEGENDS.items():
+        for color_key,color_label in LEGENDS[mes.unit].items():
             legend.append(
                 mpatches.Patch(
-                    color=CFT_COLORS[color_key],
+                    color=COLORS[mes.unit][color_key],
                     label=color_label
                 )
             )
         plt.legend(handles=legend)
-        if PR_RECALAGE is not None:
-            ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
-            print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
+        LEGENDED.append(mes.unit)
 
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")
@@ -215,7 +242,7 @@ for j, mes in enumerate(measures):
     )
     for jj, mean_value in enumerate(mean_values):
         plt.annotate(
-            round(mean_value),
+            round(mean_value, PRECISION[Y_MAX]),
             (x_mean_values[jj], mean_value)
         )
     draw_objects(mes.tops(), Y_MAX)
