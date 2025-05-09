@@ -24,7 +24,6 @@ exemple de structure pour le dossier `datas` à implanter dans le répertoire `s
 │   │   ├───pôle Craponne sur Arzon
 │   │   │       RD906 VOIE DROITE PR20 a 23+446.csv
 │   │   │       RD906 VOIE GAUCHE PR23+446 a 20.csv
-│   │   │
 │   │   └───pôle Le Puy en Velay
 │   │           RD136 VOIE DROITE PR0 a 4+153.csv
 │   │           RD136 VOIE GAUCHE PR4+153 a 0.csv
@@ -32,12 +31,10 @@ exemple de structure pour le dossier `datas` à implanter dans le répertoire `s
 │   │           RD902 N1 voie gauche PR11+186 a 3+072.csv
 │   │           RD902 N2 voie droite PR11+865 a 17+.csv
 │   │           RD902 N2 voie gauche PR17+030 a 11+865.csv
-|   |
 │   └───DIRMC
 │       └───Bessamorel
 │           │   N88 Bessamorel VL AXE.csv
 │           │   N88 Bessamorel VL TRACE DROITE.csv
-│           │
 │           └───RUGO
 │               ├───APO0122030190.SES
 │               │       APO0122030190.EV0
@@ -45,7 +42,6 @@ exemple de structure pour le dossier `datas` à implanter dans le répertoire `s
 │               │       APO220105.CFG
 │               │       APORUG0121030190.ME0
 │               │       APORUG0121030190.RE0
-│               │
 │               └───APO0122030200.SES
 │                       APO0122030200.EV0
 │                       APO0122030200.ID0
