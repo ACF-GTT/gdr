@@ -31,18 +31,12 @@ exemple de structure pour le dossier `datas` à implanter dans le répertoire `s
 │   │           RD902 N1 voie droite PR3+072 a 11+186.csv
 │   │           RD902 N1 voie gauche PR11+186 a 3+072.csv
 │   │           RD902 N2 voie droite PR11+865 a 17+.csv
-│   │           RD902 N2 voie droite PR11+865 a 17+.geojson
 │   │           RD902 N2 voie gauche PR17+030 a 11+865.csv
-│   │           RD902 N2 voie gauche PR17+030 a 11+865.geojson
-│   │           RD902 N2 voie gauche PR17+030 a 11+865_basic.html
 |   |
 │   └───DIRMC
 │       └───Bessamorel
 │           │   N88 Bessamorel VL AXE.csv
 │           │   N88 Bessamorel VL TRACE DROITE.csv
-│           │   N88_Bessamorel_VL_AXE.geojson
-│           │   N88_Bessamorel_VL_AXE.html
-│           │   N88_Bessamorel_VL_AXE_basic.html
 │           │
 │           └───RUGO
 │               ├───APO0122030190.SES
@@ -79,7 +73,7 @@ Pour recaler les données une fois qu'on a bien en tête le PR sur lequel on veu
 py .\src\griptester_v1.py --multi=2 --pr=20
 ```
 
-[](images/exemple_si.png)
+![](images/exemple_si.png)
 
 Les scripts peuvent aussi :
 - transcoder les données du griptester au format geojson, pour les utiliser dans un SIG comme QGIS
