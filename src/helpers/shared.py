@@ -9,7 +9,7 @@ class CheckForFiles:
         self.names: list[str] = []
 
     def get_names(self) -> list[str]:
-        "Return list of files paths."
+        """Return list of files paths."""
         return self.names
 
     def filter_extension(self, folder_path, ext="lite") -> None:
