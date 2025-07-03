@@ -10,7 +10,6 @@ def get_apo_datas(
     force_sens: str | None = None
 ) -> RoadMeasure:
     """ouvre un fichier de mesure de type APO"""
-    title = SITitle(unit)
     y_datas = []
     tops = {}
     step = None
@@ -38,6 +37,6 @@ def get_apo_datas(
         datas=y_datas,
         tops=tops,
         unit=unit,
-        title=title.title,
+        title=SITitle(unit).title,
         force_sens=force_sens
     )
