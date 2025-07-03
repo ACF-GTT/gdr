@@ -180,10 +180,15 @@ measures: list[RoadMeasure] = []
 for name in file_names.values():
     mes_unit = which_measure(name)
     print(mes_unit)
+    force_sens = None
+    if "droite" in name.lower():
+        force_sens = "D"
+    if "gauche" in name.lower():
+        force_sens = "G"
     if mes_unit == "CFT":
-        measures.append(get_grip_datas(name))
+        measures.append(get_grip_datas(name, force_sens=force_sens))
     if mes_unit == "PMP":
-        measures.append(get_apo_datas(name, unit="PMP"))
+        measures.append(get_apo_datas(name, unit="PMP", force_sens=force_sens))
     print(f"done for {name} {mes_unit}")
 
 ABS_REFERENCE = None

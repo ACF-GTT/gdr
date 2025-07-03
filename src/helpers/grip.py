@@ -9,7 +9,10 @@ from helpers.road_mesure import (
     RoadMeasure
 )
 
-def get_grip_datas(file_name: str) -> RoadMeasure:
+def get_grip_datas(
+    file_name: str,
+    force_sens: str | None = None
+) -> RoadMeasure:
     """ouvre un fichier de mesure du griptester mk2
     en extrait les mesures et les tops
     """
@@ -52,5 +55,6 @@ def get_grip_datas(file_name: str) -> RoadMeasure:
         datas=y_datas,
         tops=tops,
         unit="CFT",
-        title=title.title
+        title=title.title,
+        force_sens=force_sens
     )

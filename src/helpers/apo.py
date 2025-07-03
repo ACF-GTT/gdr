@@ -4,7 +4,11 @@ import os
 
 from helpers.road_mesure import SITitle, RoadMeasure, PR
 
-def get_apo_datas(file_name: str, unit="PMP") -> RoadMeasure:
+def get_apo_datas(
+    file_name: str,
+    unit="PMP",
+    force_sens: str | None = None
+) -> RoadMeasure:
     """ouvre un fichier de mesure de type APO"""
     title = SITitle(unit)
     y_datas = []
@@ -35,4 +39,5 @@ def get_apo_datas(file_name: str, unit="PMP") -> RoadMeasure:
         tops=tops,
         unit=unit,
         title=title.title,
+        force_sens=force_sens
     )

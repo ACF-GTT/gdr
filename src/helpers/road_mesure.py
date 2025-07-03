@@ -52,8 +52,11 @@ class RoadMeasure():
         prs = self.prs()
         # offset/décalage à appliquer en mètres
         self.offset = kwargs.get("offset", 0)
-        self.sens: str = "D" if prs[0] < prs[1] else "G"
-
+        try:
+            self.sens: str = "D" if prs[0] < prs[1] else "G"
+        except IndexError:
+            force_sens = kwargs.get("force_sens", None)
+            self.sens = force_sens if force_sens is not None else "D"
     def prs(self) -> list[str]:
         """retourne la liste des pr topés."""
         return [key for key in self._tops.keys() if key not in [START, END]]
