@@ -204,8 +204,33 @@ for j, mes in enumerate(measures):
     else:
         plt.subplot(INDEX, sharex=ax)
     plt.title(mes.title)
+
+    n = len(mes.datas)
+    print(f"il y a {n} lignes")
+
+    if n == 0:
+        continue
+
+    #  Ajout des % dans l'hystogramme en légende
+    legend = []
+    if mes.unit == "CFT" :
+        data = mes.datas
+        percentage: dict[str, float] = {}
+        percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
+        percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
+        percentage["good"] = sum(1 for v in data if CFT_GOOD < v <= CFT_EXCELLENT)
+        percentage["excellent"] = sum(1 for v in data if v > CFT_EXCELLENT)
+        for level in ["poor", "fine", "good", "excellent"]:
+            pct = 100 * percentage[level] / n
+            patch = mpatches.Patch(
+                color=COLORS["CFT"][level],
+                label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
+            )
+            legend.append(patch)
+        plt.legend(handles=legend)
+        LEGENDED.append(mes.unit)
+
     if mes.unit not in LEGENDED:
-        legend = []
         for color_key,color_label in LEGENDS[mes.unit].items():
             legend.append(
                 mpatches.Patch(
@@ -252,5 +277,6 @@ for j, mes in enumerate(measures):
         )
     draw_objects(mes.tops(), Y_MAX)
     INDEX += 1
+
 
 plt.show()
