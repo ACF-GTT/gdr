@@ -205,12 +205,9 @@ for j, mes in enumerate(measures):
         plt.subplot(INDEX, sharex=ax)
     plt.title(mes.title)
 
-    n = len(mes.datas)
-    print(f"il y a {n} lignes")
-
-    if n == 0:
+    if (n :=  len(mes.datas)) == 0:
         continue
-
+    print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     if mes.unit == "CFT" :
