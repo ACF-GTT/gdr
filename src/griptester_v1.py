@@ -162,7 +162,6 @@ args = parser.parse_args()
 questions = {}
 NB_MES = int(args.multi)
 PR_RECALAGE = args.pr
-show_legend = args.show_legend
 if PR_RECALAGE is None:
     print("Pas de pr de recalage fourni")
 for j in range(NB_MES):
@@ -220,7 +219,7 @@ for j, mes in enumerate(measures):
 
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    if mes.unit == "CFT" and show_legend :
+    if mes.unit == "CFT" and args.show_legend :
         data = mes.datas
         percentage: dict[str, float] = {}
         percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
