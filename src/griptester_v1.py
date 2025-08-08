@@ -152,6 +152,12 @@ parser.add_argument(
     help="pr de recalage",
     default=None
 )
+parser.add_argument(
+    "--show_legend",
+    action="store",
+    help="Afficher la légende avec les pourcentages"
+)
+
 args = parser.parse_args()
 questions = {}
 NB_MES = int(args.multi)
@@ -210,7 +216,7 @@ for j, mes in enumerate(measures):
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    if mes.unit == "CFT" :
+    if mes.unit == "CFT" and args.show_legend :
         data = mes.datas
         percentage: dict[str, float] = {}
         percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
