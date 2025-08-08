@@ -224,7 +224,7 @@ for j, mes in enumerate(measures):
                 label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
             )
             legend.append(patch)
-        plt.legend(handles=legend)
+        plt.legend(handles=legend, loc='upper right')
         LEGENDED.append(mes.unit)
 
     if mes.unit not in LEGENDED:
@@ -235,7 +235,7 @@ for j, mes in enumerate(measures):
                     label=color_label
                 )
             )
-        plt.legend(handles=legend)
+        plt.legend(handles=legend, loc='upper right')
         LEGENDED.append(mes.unit)
 
     plt.ylim((0, Y_MAX))
