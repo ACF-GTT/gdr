@@ -59,14 +59,14 @@ Dans cette structure de données exemple, on a :
 Pour faire un schéma itinéraire à partir de 2 sessions de mesure :
 
 ```
-py .\src\griptester_v1.py --multi=2
+py .\src\generate_si.py --multi=2
 ```
 On est ensuite invité à choisir les fichiers de mesure un par un.
 
 Pour recaler les données une fois qu'on a bien en tête le PR sur lequel on veut effectuer le recalage :
 
 ```
-py .\src\griptester_v1.py --multi=2 --pr=20
+py .\src\generate_si.py --multi=2 --pr=20
 ```
 
 ![](images/exemple_si.png)
