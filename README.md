@@ -6,6 +6,7 @@ traitement de fichiers de mesure routière
 
 - installer python stable : https://www.python.org/downloads/windows/
 - installer vscode : https://code.visualstudio.com/
+- installer github desktop si on ne souhaite pas utiliser git en ligne de commande : https://desktop.github.com/download/
 
 ```
 py -m pip install matplotlib
