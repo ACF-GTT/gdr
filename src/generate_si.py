@@ -227,7 +227,6 @@ for j, mes in enumerate(measures):
     if (n :=  len(mes.datas)) == 0:
         continue
     print(f"il y a {n} lignes")
-  
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     if mes.unit == "CFT" and args.show_legend :
@@ -295,7 +294,6 @@ for j, mes in enumerate(measures):
         )
     draw_objects(mes.tops(), Y_MAX)
     INDEX += 1
-    
 print(mes.tops())
 for mes in measures:
     print(mes.sens)
