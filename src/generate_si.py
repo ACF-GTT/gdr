@@ -157,6 +157,12 @@ parser.add_argument(
     action="store",
     help="Afficher la légende avec les pourcentages"
 )
+parser.add_argument(
+    "--bornes",
+    action="store",
+    help="Fixer manuellement les bornes d'affichage"
+)
+
 
 args = parser.parse_args()
 questions = {}
@@ -221,6 +227,7 @@ for j, mes in enumerate(measures):
     if (n :=  len(mes.datas)) == 0:
         continue
     print(f"il y a {n} lignes")
+  
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     if mes.unit == "CFT" and args.show_legend :
@@ -269,6 +276,7 @@ for j, mes in enumerate(measures):
     )
     INDEX += 1
 
+
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
     x_mean_values, mean_values = mes.produce_mean(MEAN_STEP)
@@ -287,6 +295,21 @@ for j, mes in enumerate(measures):
         )
     draw_objects(mes.tops(), Y_MAX)
     INDEX += 1
+    
+print(mes.tops())
+for mes in measures:
+    print(mes.sens)
+    print(mes.offset)
+    print(mes.abs())
+    print(mes.tops())
+    print("***************************")
+
+# zoom manuel sur D/F première mesure
+if args.bornes:
+    tops_mes = measures[0].tops()
+    start_x = tops_mes.get(START, (0, 0))[0]
+    end_x   = tops_mes.get(END, (max(measures[0].abs()), 0))[0]
+    plt.xlim(start_x, end_x)
 
 
 plt.show()
