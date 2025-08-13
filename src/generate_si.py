@@ -154,9 +154,15 @@ parser.add_argument(
 )
 parser.add_argument(
     "--show_legend",
-    action="store",
+    action="store_true",
     help="Afficher la légende avec les pourcentages"
 )
+parser.add_argument(
+    "--bornes",
+    action="store_true",
+    help="Fixer manuellement les bornes d'affichage"
+)
+
 
 args = parser.parse_args()
 questions = {}
@@ -269,6 +275,7 @@ for j, mes in enumerate(measures):
     )
     INDEX += 1
 
+
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
     x_mean_values, mean_values = mes.produce_mean(MEAN_STEP)
@@ -287,6 +294,18 @@ for j, mes in enumerate(measures):
         )
     draw_objects(mes.tops(), Y_MAX)
     INDEX += 1
+for mes in measures:
+    print(mes.sens)
+    print(mes.offset)
+    print(mes.abs())
+    print("***************************")
+
+# zoom manuel sur D/F première mesure
+if args.bornes:
+    tops_mes = measures[0].tops()
+    start_x = tops_mes.get(START, (0, 0))[0]
+    end_x   = tops_mes.get(END, (max(measures[0].abs()), 0))[0]
+    plt.xlim(start_x, end_x)
 
 
 plt.show()
