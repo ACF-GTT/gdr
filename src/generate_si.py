@@ -154,12 +154,12 @@ parser.add_argument(
 )
 parser.add_argument(
     "--show_legend",
-    action="store",
+    action="store_true",
     help="Afficher la légende avec les pourcentages"
 )
 parser.add_argument(
     "--bornes",
-    action="store",
+    action="store_true",
     help="Fixer manuellement les bornes d'affichage"
 )
 
