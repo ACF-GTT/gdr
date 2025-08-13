@@ -295,12 +295,6 @@ for j, mes in enumerate(measures):
     draw_objects(mes.tops(), Y_MAX)
     INDEX += 1
 print(mes.tops())
-for mes in measures:
-    print(mes.sens)
-    print(mes.offset)
-    print(mes.abs())
-    print(mes.tops())
-    print("***************************")
 
 # zoom manuel sur D/F première mesure
 if args.bornes:
