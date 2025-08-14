@@ -89,24 +89,27 @@ class RoadMeasure():
                 value[1]
             )
 
-    def produce_mean(
-        self,
-        mean_step: int,
-    ) -> tuple[list, list]:
-        """retourne les valeurs moyennes"""
-        i = 0
-        # pas de mesure en mètres
-        print(f"pas de mesure de l'appareil : {self.step} mètre(s)")
-        nb_pts_mean_step = int(mean_step // self.step)
-        print(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
-        pos_in_meter = mean_step / 2
-        x_means = []
-        y_means = []
-        while i < len(self.datas) - nb_pts_mean_step:
-            x_means.append(self.offset + pos_in_meter)
-            y_means.append(
-                mean(self.datas[i: i + nb_pts_mean_step])
-            )
-            i += nb_pts_mean_step
-            pos_in_meter += mean_step
-        return x_means, y_means
+def produce_mean(
+    self,
+    mean_step: int,
+    **kwargs
+) -> tuple[list, list]:
+    """retourne les valeurs moyennes"""
+    # récupération de l'indice de départ
+    start_index = kwargs.get("start_index", 0)
+    i = start_index
+    # pas de mesure en mètres
+    print(f"pas de mesure de l'appareil : {self.step} mètre(s)")
+    nb_pts_mean_step = int(mean_step // self.step)
+    print(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
+    pos_in_meter = mean_step / 2 
+    x_means = []
+    y_means = []
+    while i < len(self.datas) - nb_pts_mean_step:
+        x_means.append(self.offset + pos_in_meter)
+        y_means.append(
+            mean(self.datas[i: i + nb_pts_mean_step])
+        )
+        i += nb_pts_mean_step
+        pos_in_meter += mean_step
+    return x_means, y_means
