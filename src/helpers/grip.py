@@ -51,6 +51,7 @@ def get_grip_datas(
                     tops[END] = (x_val, y_val)
                 y_datas.append(y_val)
     if step is not None:
+        # pylint: disable=duplicate-code
         return RoadMeasure(
             step=step,
             datas=y_datas,
@@ -59,4 +60,5 @@ def get_grip_datas(
             title=title.title,
             force_sens=force_sens
         )
+        # pylint: enable=duplicate-code
     return None

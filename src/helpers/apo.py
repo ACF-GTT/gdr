@@ -33,6 +33,7 @@ def get_apo_datas(
                     step = float(row[1]) - float(row[0])
                 y_datas.append(float(row[unit_index]))
     if step is not None:
+        # pylint: disable=duplicate-code
         return RoadMeasure(
             step=step,
             datas=y_datas,
@@ -41,4 +42,5 @@ def get_apo_datas(
             title=SITitle(unit).title,
             force_sens=force_sens
         )
+        # pylint: enable=duplicate-code
     return None

@@ -52,8 +52,10 @@ class RoadMeasure():
         # - comme clé la saisie de l'opérateur,
         #  - comme valeur un tuple de 2 float
         # le premier float est l'abscisse curviligne
-        # le second float est soit 0.0 soit la valeur mesurée par l'appareil à cette abscisse curviligne
-        # celà peut servir pour procéder à des vérifications lorsqu'on a un bug :-)
+        # le second float est :
+        # - soit 0.0
+        # - soit la valeur mesurée par l'appareil à cette abscisse
+        # celà peut servir pour des vérifications lorsqu'on a un bug :-)
         self._tops = tops
         prs = self.prs()
         # offset/décalage à appliquer en mètres
