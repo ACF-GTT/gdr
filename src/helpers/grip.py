@@ -12,7 +12,7 @@ from helpers.road_mesure import (
 def get_grip_datas(
     file_name: str,
     force_sens: str | None = None
-) -> RoadMeasure:
+) -> RoadMeasure | None:
     """ouvre un fichier de mesure du griptester mk2
     en extrait les mesures et les tops
     """
@@ -50,11 +50,13 @@ def get_grip_datas(
                 if END in row[14].lower():
                     tops[END] = (x_val, y_val)
                 y_datas.append(y_val)
-    return RoadMeasure(
-        step=step,
-        datas=y_datas,
-        tops=tops,
-        unit="CFT",
-        title=title.title,
-        force_sens=force_sens
-    )
+    if step is not None:
+        return RoadMeasure(
+            step=step,
+            datas=y_datas,
+            tops=tops,
+            unit="CFT",
+            title=title.title,
+            force_sens=force_sens
+        )
+    return None

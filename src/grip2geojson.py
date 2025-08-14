@@ -7,6 +7,7 @@ import csv
 import json
 import os
 import re
+from typing import Any
 
 from helpers.consts import BALISE_HEADER, BALISE_RESULTS, correle, define_color
 from helpers.road_mesure import DATE_REGEXP
@@ -40,10 +41,11 @@ def create_point(x_val, y_val, **kwargs):
     el_feature["properties"]["pr"] = -1
     return el_feature
 
-geojson_collection = {
+geojson_collection: dict[str, Any] = {
     "type":"FeatureCollection",
-    "features": []
+    "features": list
 }
+geojson_collection["features"] = []
 
 file_name = pick_file(f"{os.path.dirname(__file__)}/datas")
 
