@@ -76,7 +76,7 @@ def pick_files(**kwargs) -> dict[str, str]:
         )
     return inquirer.prompt(questions)
 
-def which_measure(file_name: str) -> str:
+def which_measure(file_name: str) -> str | None:
     """retourne l'unité de mesure : PMP, CFT..."""
     folder = os.path.dirname(file_name)
     all_files = os.listdir(folder)

@@ -50,7 +50,7 @@ EVE_STD = {
         "facecolor": "white"
     }
 }
-EVE_COLORS = defaultdict(lambda: EVE_STD)
+EVE_COLORS: dict[str, dict] = defaultdict(lambda: EVE_STD)
 EVE_COLORS["D"] = {
     "font": "white",
     "line": "green",
@@ -197,10 +197,13 @@ for name in file_names.values():
         FORCE_SENS = "D"
     if "gauche" in name.lower():
         FORCE_SENS = "G"
+    datas : RoadMeasure | None = None
     if mes_unit == "CFT":
-        measures.append(get_grip_datas(name, force_sens=FORCE_SENS))
+        datas = get_grip_datas(name, force_sens=FORCE_SENS)
     if mes_unit == "PMP":
-        measures.append(get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS))
+        datas = get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS)
+    if datas is not None:
+        measures.append(datas)
     print(f"done for {name} {mes_unit}")
 
 ABS_REFERENCE = None
@@ -215,7 +218,8 @@ for j, mes in enumerate(measures):
             print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
     else:
         plt.subplot(INDEX, sharex=ax)
-    plt.title(mes.title)
+    if mes.title is not None:
+        plt.title(mes.title)
 
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
@@ -246,7 +250,7 @@ for j, mes in enumerate(measures):
         plt.legend(handles=legend, loc='upper right')
         LEGENDED.append(mes.unit)
 
-    if mes.unit not in LEGENDED:
+    if mes.unit not in LEGENDED and mes.unit is not None:
         for color_key,color_label in LEGENDS[mes.unit].items():
             legend.append(
                 mpatches.Patch(

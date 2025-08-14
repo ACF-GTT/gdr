@@ -21,6 +21,8 @@ import argparse
 import csv
 import json
 import os
+from typing import Literal
+
 from helpers.shared import pick_file
 
 file_name = pick_file(
@@ -79,7 +81,7 @@ class Geojson2PrAbs:
             feature["properties"]["abs"] = self.longueur - abs_original
         self.features = reversed(list(self.features))
 
-    def complete(self, line: list, route: str=None):
+    def complete(self, line: list, route: str | None = None):
         """Ajoute les paramètres complémentaires"""
         line.append(self.date)
         line.append(self.sens)
@@ -143,7 +145,7 @@ args = parser.parse_args()
 transcoder = Geojson2PrAbs(file_name)
 datas_in_prabs = transcoder.convert2prd_abd_prf_abf(route=args.route)
 
-MODE = "w"
+MODE : Literal["w", "a"] = "w"
 if args.nom_csv is not None:
     if args.nom_csv[-3:] != ".csv":
         args.nom_csv = f"{args.nom_csv}.csv"

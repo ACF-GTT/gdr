@@ -47,7 +47,7 @@ with open(geojson_name, encoding="utf-8") as geojson_file:
     ).add_to(m)
     folium.LayerControl().add_to(m)
     legend = cm.StepColormap(
-        CFT_COLORS.values(),
+        list(CFT_COLORS.values()),
         vmin=0,
         vmax=100,
         index=[0, CFT_POOR, CFT_GOOD, CFT_EXCELLENT, 100],

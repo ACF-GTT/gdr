@@ -8,7 +8,7 @@ def get_apo_datas(
     file_name: str,
     unit="PMP",
     force_sens: str | None = None
-) -> RoadMeasure:
+) -> RoadMeasure | None:
     """ouvre un fichier de mesure de type APO"""
     y_datas = []
     tops = {}
@@ -21,7 +21,7 @@ def get_apo_datas(
             csv.reader(evefile, delimiter='\t')
         ):
             if row[0].lower() == PR:
-                tops[row[2]] = (float(row[1]), 0)
+                tops[row[2]] = (float(row[1]), 0.0)
     with open(file_name, encoding="utf-8") as datafile:
         data = csv.reader(datafile, delimiter='\t')
         unit_index = None
@@ -32,11 +32,15 @@ def get_apo_datas(
                 if step is None:
                     step = float(row[1]) - float(row[0])
                 y_datas.append(float(row[unit_index]))
-    return RoadMeasure(
-        step=step,
-        datas=y_datas,
-        tops=tops,
-        unit=unit,
-        title=SITitle(unit).title,
-        force_sens=force_sens
-    )
+    if step is not None:
+        # pylint: disable=duplicate-code
+        return RoadMeasure(
+            step=step,
+            datas=y_datas,
+            tops=tops,
+            unit=unit,
+            title=SITitle(unit).title,
+            force_sens=force_sens
+        )
+        # pylint: enable=duplicate-code
+    return None

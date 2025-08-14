@@ -44,10 +44,18 @@ class RoadMeasure():
         **kwargs
     ) -> None:
         """initialisation"""
-        self.title = kwargs.get("title", None)
-        self.unit = kwargs.get("unit", None)
+        self.title : str | None = kwargs.get("title", None)
+        self.unit : str | None = kwargs.get("unit", None)
         self.step = step
         self.datas = datas
+        # tops est un dictionnaire avec :
+        # - comme clé la saisie de l'opérateur,
+        #  - comme valeur un tuple de 2 float
+        # le premier float est l'abscisse curviligne
+        # le second float est :
+        # - soit 0.0
+        # - soit la valeur mesurée par l'appareil à cette abscisse
+        # celà peut servir pour des vérifications lorsqu'on a un bug :-)
         self._tops = tops
         prs = self.prs()
         # offset/décalage à appliquer en mètres
