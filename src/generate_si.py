@@ -139,7 +139,7 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
-parser = argparse.ArgumentParser(description='GRIPTESTER MK2')
+parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
     "--multi",
     action="store",
