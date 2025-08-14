@@ -1,4 +1,4 @@
-name: Pylint
+name: ci
 
 on: 
   workflow_dispatch:
@@ -28,10 +28,14 @@ jobs:
         python3 -m pip install inquirer
         python3 -m pip install folium
         python3 -m pip install geopandas
-        python3 -m pip install pylint
+        python3 -m pip install pylint mypy
         python3 -m pip list
         
     - name: Analysing the code with pylint
       run: |
         pylint *.py
         pylint src
+
+    - name: Checking types with mypy
+      run: |
+        mypy src
