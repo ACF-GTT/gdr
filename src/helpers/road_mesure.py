@@ -65,6 +65,7 @@ class RoadMeasure():
         except IndexError:
             force_sens = kwargs.get("force_sens", None)
             self.sens = force_sens if force_sens is not None else "D"
+
     def prs(self) -> list[str]:
         """retourne la liste des pr topés."""
         return [key for key in self._tops.keys() if key not in [START, END]]
@@ -109,9 +110,9 @@ class RoadMeasure():
         print(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
         # récupération de l'indice de départ
         start_index = kwargs.get("start_index", 0)
-        print(f"saisie_utilisateur : {start_index}")
-        start_index-= (start_index// nb_pts_mean_step) * nb_pts_mean_step
-        print(f"recalcul_code : {start_index}")
+        print(f"indice de départ zh - saisie utilisateur ou valeur par défaut : {start_index}")
+        start_index -= (start_index// nb_pts_mean_step) * nb_pts_mean_step
+        print(f"indice de départ zh - recalcul code : {start_index}")
         i = start_index
         pos_in_meter = mean_step / 2 + self.step * start_index
         x_means = []
