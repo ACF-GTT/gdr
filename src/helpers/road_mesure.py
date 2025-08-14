@@ -102,7 +102,7 @@ def produce_mean(
     print(f"pas de mesure de l'appareil : {self.step} mètre(s)")
     nb_pts_mean_step = int(mean_step // self.step)
     print(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
-    pos_in_meter = mean_step / 2 
+    pos_in_meter = mean_step / 2
     x_means = []
     y_means = []
     while i < len(self.datas) - nb_pts_mean_step:
