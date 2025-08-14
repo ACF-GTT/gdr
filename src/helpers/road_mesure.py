@@ -79,10 +79,10 @@ class RoadMeasure():
             )
         return result
 
-    def abs(self) -> list[float]:
+    def abs(self, offset=1) -> list[float]:
         """retourne les abscisses curvilignes en mètres."""
         nb_pts = len(self.datas)
-        return [(i + 1) * self.step + self.offset for i in range(nb_pts)]
+        return [(i + offset) * self.step + self.offset for i in range(nb_pts)]
 
     def longueur(self) -> float:
         """longueur de mesure en mètres"""
@@ -100,14 +100,20 @@ class RoadMeasure():
     def produce_mean(
         self,
         mean_step: int,
+        **kwargs
     ) -> tuple[list, list]:
         """retourne les valeurs moyennes"""
-        i = 0
         # pas de mesure en mètres
         print(f"pas de mesure de l'appareil : {self.step} mètre(s)")
         nb_pts_mean_step = int(mean_step // self.step)
         print(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
-        pos_in_meter = mean_step / 2
+        # récupération de l'indice de départ
+        start_index = kwargs.get("start_index", 0)
+        print(f"saisie_utilisateur : {start_index}")
+        start_index-= (start_index// nb_pts_mean_step) * nb_pts_mean_step
+        print(f"recalcul_code : {start_index}")
+        i = start_index
+        pos_in_meter = mean_step / 2 + self.step * start_index
         x_means = []
         y_means = []
         while i < len(self.datas) - nb_pts_mean_step:

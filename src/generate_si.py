@@ -162,7 +162,11 @@ parser.add_argument(
     action="store_true",
     help="Fixer manuellement les bornes d'affichage"
 )
-
+parser.add_argument(
+    "--rec_zh",
+    default=None,
+    help="événement pour le recalage des zones homogènes"
+)
 
 args = parser.parse_args()
 questions = {}
@@ -282,8 +286,10 @@ for j, mes in enumerate(measures):
 
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
-    x_mean_values, mean_values = mes.produce_mean(MEAN_STEP)
-
+    x_mean_values, mean_values = mes.produce_mean(
+        MEAN_STEP,
+        start_index=mes.abs(offset=0).index(mes.tops()[args.rec_zh][0]) if args.rec_zh else 0
+    )
     plt.bar(
         x_mean_values,
         mean_values,
