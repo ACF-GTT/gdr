@@ -195,7 +195,7 @@ measures: list[RoadMeasure] = []
 
 for name in file_names.values():
     mes_unit = which_measure(name)
-    print(mes_unit)
+    print(f"{name} > unité de mesure : {mes_unit}")
     FORCE_SENS = None
     if "droite" in name.lower():
         FORCE_SENS = "D"
@@ -208,13 +208,13 @@ for name in file_names.values():
         datas = get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS)
     if datas is not None:
         measures.append(datas)
-    print(f"done for {name} {mes_unit}")
 
 ABS_REFERENCE = None
 LEGENDED = []
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
+    print(f"mesure {j}")
     if j == 0:
         ax = plt.subplot(INDEX)
         if PR_RECALAGE is not None:
@@ -268,12 +268,13 @@ for j, mes in enumerate(measures):
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")
     plt.grid(visible=True, axis="y")
+    print(f"tops avant offset {mes.tops()}")
     if j != 0 and mes.sens != measures[0].sens:
         mes.reverse()
     if j != 0 and ABS_REFERENCE is not None:
         mes.offset = ABS_REFERENCE - mes.tops()[PR_RECALAGE][0]
-        print(f"********offset {mes.offset}")
-    print(mes.tops())
+        print(f"on applique un offset {mes.offset}")
+        print(f"tops après offset : {mes.tops()}")
     draw_objects(mes.tops(), Y_MAX)
     plt.bar(
         mes.abs(),
@@ -304,11 +305,20 @@ for j, mes in enumerate(measures):
         )
     draw_objects(mes.tops(), Y_MAX)
     INDEX += 1
-for mes in measures:
-    print(mes.sens)
-    print(mes.offset)
-    print(mes.abs())
-    print("***************************")
+
+def summarize(list_of_measures):
+    """affiche des éléments synthétiques sur les mesures."""
+    for index, measure in enumerate(list_of_measures):
+        msg = f"""
+        SUMMARY mesure {index}
+        sens {measure.sens}
+        offset {measure.offset}
+        abscisse départ {measure.abs()[0]}
+        abscisse fin {measure.abs()[-1]}
+        """
+        print(msg)
+
+summarize(measures)
 
 # zoom manuel sur D/F première mesure
 if args.bornes:
