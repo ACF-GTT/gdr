@@ -111,9 +111,9 @@ class RoadMeasure():
     ) -> tuple[list, list]:
         """retourne les valeurs moyennes"""
         # pas de mesure en mètres
-        LOGGER.debug(f"pas de mesure de l'appareil : {self.step} mètre(s)")
+        LOGGER.debug("pas de mesure de l'appareil : %s mètre(s)", self.step)
         nb_pts_mean_step = int(mean_step // self.step)
-        LOGGER.debug(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
+        LOGGER.debug("nombre de points dans une zone homogène : %s", nb_pts_mean_step)
         # récupération de l'indice de départ
         start_index = 0
         if rec_zh is not None:
@@ -123,11 +123,11 @@ class RoadMeasure():
             abs_top = (abs_top // self.step) * self.step
             abscisses = self.abs(offset=False)
             start_index = abscisses.index(abs_top)
-            LOGGER.debug(f"indice du top : {start_index}")
+            LOGGER.debug("indice du top : %s", start_index)
             # combien de zônes homogènes "complètes"
             # y a t'il entre l'extrémité gauche de la mesure et le top?
             start_index -= (start_index // nb_pts_mean_step) * nb_pts_mean_step
-            LOGGER.debug(f"indice de départ zh : {start_index}")
+            LOGGER.debug("indice de départ zh : %s", start_index)
         i = start_index
         pos_in_meter = mean_step / 2 + self.step * start_index
         x_means = []
