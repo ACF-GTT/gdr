@@ -1,4 +1,10 @@
 """constants."""
+import logging
+
+FORMAT = "%(asctime)-15s %(levelname)-8s %(module)-15s %(funcName)s :%(lineno)-8s %(message)s"
+logging.basicConfig(format=FORMAT)
+LOGGER = logging.getLogger("gdr")
+LOGGER.setLevel("DEBUG")
 
 BALISE_RESULTS = "<RESULTS>"
 BALISE_HEADER = "<HEADER>"

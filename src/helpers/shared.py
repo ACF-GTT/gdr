@@ -2,6 +2,8 @@
 import os
 import inquirer
 
+from helpers.consts import LOGGER
+
 class CheckForFiles:
     """Recherche fichiers suivant extension"""
     def __init__(self) -> None:
@@ -85,16 +87,17 @@ def which_measure(file_name: str) -> str | None:
         cfg_name = f"{folder}/{cfg_name}"
     except IndexError:
         cfg_name = file_name
-    print(cfg_name)
     encodings = ['utf-8', 'windows-1250', 'windows-1252']
     for encoding in encodings:
         try:
             with open(cfg_name, encoding=encoding) as cfg_data:
                 data = cfg_data.read()
         except UnicodeDecodeError:
-            print(f"got Unicode error with {encoding}, trying another one")
+            message = f"got Unicode error with {encoding}, trying another one"
+            LOGGER.error(message)
         else:
-            print(f"opening the file in {encoding}")
+            message = f"opening the file in {encoding}"
+            LOGGER.info(message)
             if data.find("GTNumber") != -1:
                 return "CFT"
             if data.find("RUGO") != -1:
