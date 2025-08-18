@@ -289,7 +289,7 @@ for j, mes in enumerate(measures):
     plt.ylim((0, Y_MAX))
     x_mean_values, mean_values = mes.produce_mean(
         MEAN_STEP,
-        start_index=mes.abs(offset=0).index(mes.tops()[args.rec_zh][0]) if args.rec_zh else 0
+        rec_zh=args.rec_zh
     )
     plt.bar(
         x_mean_values,

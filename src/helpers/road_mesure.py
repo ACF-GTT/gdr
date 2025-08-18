@@ -49,7 +49,7 @@ class RoadMeasure():
         self.step = step
         self.datas = datas
         # tops est un dictionnaire avec :
-        # - comme clé la saisie de l'opérateur,
+        #  - comme clé la saisie de l'opérateur,
         #  - comme valeur un tuple de 2 float
         # le premier float est l'abscisse curviligne
         # le second float est :
@@ -70,20 +70,25 @@ class RoadMeasure():
         """retourne la liste des pr topés."""
         return [key for key in self._tops.keys() if key not in [START, END]]
 
-    def tops(self) -> dict[str, tuple[float, float]]:
+    def tops(self, offset=True) -> dict[str, tuple[float, float]]:
         """retourne les tops."""
         result = {}
+        decalage = self.offset if offset else 0
         for key, value in self._tops.items():
             result[key] = (
-                self.offset + value[0],
+                decalage + value[0],
                 value[1]
             )
         return result
 
-    def abs(self, offset=1) -> list[float]:
-        """retourne les abscisses curvilignes en mètres."""
+    def abs(self, index_start=0, offset=True) -> list[float]:
+        """retourne les abscisses curvilignes en mètres.
+        avec ou sans offset
+        on peut décider de commencer à step et non à 0 (cf griptester)
+        """
         nb_pts = len(self.datas)
-        return [(i + offset) * self.step + self.offset for i in range(nb_pts)]
+        decalage = self.offset if offset else 0
+        return [(i + index_start) * self.step + decalage for i in range(nb_pts)]
 
     def longueur(self) -> float:
         """longueur de mesure en mètres"""
@@ -101,18 +106,31 @@ class RoadMeasure():
     def produce_mean(
         self,
         mean_step: int,
-        **kwargs
+        rec_zh = None
     ) -> tuple[list, list]:
         """retourne les valeurs moyennes"""
         # pas de mesure en mètres
-        print(f"pas de mesure de l'appareil : {self.step} mètre(s)")
+        message = f"pas de mesure de l'appareil : {self.step} mètre(s)"
+        print(message)
         nb_pts_mean_step = int(mean_step // self.step)
-        print(f"nombre de points dans une zone homogène : {nb_pts_mean_step}")
+        message = f"nombre de points dans une zone homogène : {nb_pts_mean_step}"
+        print(message)
         # récupération de l'indice de départ
-        start_index = kwargs.get("start_index", 0)
-        print(f"indice de départ zh - saisie utilisateur ou valeur par défaut : {start_index}")
-        start_index -= (start_index// nb_pts_mean_step) * nb_pts_mean_step
-        print(f"indice de départ zh - recalcul code : {start_index}")
+        start_index = 0
+        if rec_zh is not None:
+            abs_top = self.tops(offset=False)[rec_zh][0]
+            # les tops peuvent être enregistrés à une précision centrimétrique
+            # on arrondit à la précision du relevé (step)
+            abs_top = (abs_top // self.step) * self.step
+            abscisses = self.abs(offset=False)
+            start_index = abscisses.index(abs_top)
+            message = f"indice du top : {start_index}"
+            print(message)
+            # combien de zônes homogènes "complètes"
+            # y a t'il entre l'extrémité gauche de la mesure et le top?
+            start_index -= (start_index // nb_pts_mean_step) * nb_pts_mean_step
+            message = f"indice de départ zh : {start_index}"
+            print(message)
         i = start_index
         pos_in_meter = mean_step / 2 + self.step * start_index
         x_means = []
