@@ -1,7 +1,7 @@
 """Représentation de mesures routières."""
 import re
 from statistics import mean
-from .consts import LOGGER
+from helpers.consts import LOGGER
 
 START = "start"
 END = "end"
