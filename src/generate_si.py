@@ -243,7 +243,7 @@ for j, mes in enumerate(measures):
             start_x = mes.tops().get(START, (0, 0))[0]
             end_x   = mes.tops().get(END, (max(mes.abs()), 0))[0]
             data = [y for x , y in zip(mes.abs(), mes.datas) if start_x <= x <= end_x]
-            #zip pour recupérer les paires (x, y) filtrées par les bornes 
+            #zip pour recupérer les paires (x, y) filtrées par les bornes
         n = len(data)
         percentage: dict[str, float] = {}
         percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
