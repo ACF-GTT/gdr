@@ -239,6 +239,11 @@ for j, mes in enumerate(measures):
     legend = []
     if mes.unit == "CFT" and args.show_legend :
         data = mes.datas
+        if args.bornes:
+            start_x = mes.tops().get(START, (0, 0))[0]
+            end_x   = mes.tops().get(END, (max(mes.abs()), 0))[0]
+            data = [y for x , y in zip(mes.abs(), mes.datas) if start_x <= x <= end_x] #zip pour recupérer les paires (x, y) filtrées par les bornes     
+        n = len(data)
         percentage: dict[str, float] = {}
         percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
         percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
