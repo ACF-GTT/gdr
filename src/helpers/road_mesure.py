@@ -75,7 +75,7 @@ class RoadMeasure():
 
     def top_abs(self, top_string: str) -> None | float:
         """retourne l'absisse du top"""
-        if top_string not in self.prs(all=True):
+        if top_string not in self.prs(all_events=True):
             return None
         return self._tops[top_string][0] + self.offset
 
