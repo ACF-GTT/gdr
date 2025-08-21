@@ -68,7 +68,7 @@ class RoadMeasure():
             self.sens = force_sens if force_sens is not None else "D"
 
     def prs(self, all=False) -> list[str]:
-        """retourne la liste des PR topés, si all=True, retourne tous les évenements topés dont start,end """
+        """retourne la liste des PR topés, si all=True, retourne tous les évenements"""
         if not all:
             return [key for key in self._tops.keys() if key not in [START, END]]
         return list(self._tops.keys())
