@@ -328,15 +328,16 @@ def summarize(list_of_measures):
 summarize(measures)
 
 def apply_zoom_bornes(mesure: RoadMeasure, bornes: list[str] | None):
+    """Applique un zoom sur les bornes fournies."""
     if bornes is None:
         # Pas de zoom, on affiche tout
         return
 
     if len(bornes) == 0:
         # Aucun argument donc zoom sur start/end
-        start_x = mesure.top_abs(START) or 0
-        end_x = mesure.top_abs(END) or max(mesure.abs())
-        plt.xlim(start_x, end_x)
+        start = mesure.top_abs(START) or 0
+        end = mesure.top_abs(END) or max(mesure.abs())
+        plt.xlim(start, end)
         return
 
     if len(bornes) == 2:
@@ -349,9 +350,9 @@ def apply_zoom_bornes(mesure: RoadMeasure, bornes: list[str] | None):
             # si les 2 PR existent on applique le zoom
             plt.xlim(pr1_abs, pr2_abs)
             return
-        
+
 if measures :
     # si des mesures existent, on applique le zoom
     apply_zoom_bornes(measures[0], args.bornes)
-    
+
 plt.show()
