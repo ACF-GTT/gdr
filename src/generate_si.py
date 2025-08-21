@@ -159,7 +159,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--bornes",
-    action="store_true",
+    nargs= "*",
+    default=None,
     help="Fixer manuellement les bornes d'affichage"
 )
 parser.add_argument(
@@ -326,12 +327,31 @@ def summarize(list_of_measures):
 
 summarize(measures)
 
-# zoom manuel sur D/F première mesure
-if args.bornes:
-    tops_mes = measures[0].tops()
-    start_x = measures[0].top_abs(START) or 0
-    end_x   = measures[0].top_abs(END) or max(measures[0].abs())
-    plt.xlim(start_x, end_x)
+def apply_zoom_bornes(mesure: RoadMeasure, bornes: list[str] | None):
+    if bornes is None:
+        # Pas de zoom, on affiche tout
+        return
 
+    if len(bornes) == 0:
+        # Aucun argument donc zoom sur start/end
+        start_x = mesure.top_abs(START) or 0
+        end_x = mesure.top_abs(END) or max(mesure.abs())
+        plt.xlim(start_x, end_x)
+        return
 
+    if len(bornes) == 2:
+        # Deux bornes fournies, on zoom sur ces bornes
+        pr1, pr2 = bornes
+        pr1_abs = mesure.top_abs(pr1)
+        pr2_abs = mesure.top_abs(pr2)
+
+        if pr1_abs is not None and pr2_abs is not None:
+            # si les 2 PR existent on applique le zoom
+            plt.xlim(pr1_abs, pr2_abs)
+            return
+        
+if measures :
+    # si des mesures existent, on applique le zoom
+    apply_zoom_bornes(measures[0], args.bornes)
+    
 plt.show()
