@@ -67,9 +67,17 @@ class RoadMeasure():
             force_sens = kwargs.get("force_sens", None)
             self.sens = force_sens if force_sens is not None else "D"
 
-    def prs(self) -> list[str]:
-        """retourne la liste des pr topés."""
-        return [key for key in self._tops.keys() if key not in [START, END]]
+    def prs(self, all=False) -> list[str]:
+        """retourne la liste des PR topés, si all=True, retourne tous les évenements topés dont start,end """
+        if not all:
+            return [key for key in self._tops.keys() if key not in [START, END]]
+        return list(self._tops.keys())
+
+    def top_abs(self, top_string: str) -> None | float:
+        """retourne l'absisse du top"""
+        if top_string not in self.prs(all=True):
+            return None
+        return self._tops[top_string][0] + self.offset
 
     def tops(self, offset=True) -> dict[str, tuple[float, float]]:
         """retourne les tops."""

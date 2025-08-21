@@ -239,6 +239,12 @@ for j, mes in enumerate(measures):
     legend = []
     if mes.unit == "CFT" and args.show_legend :
         data = mes.datas
+        if args.bornes:
+            start_x = mes.top_abs(START) or 0
+            end_x   = mes.top_abs(END) or max(mes.abs())
+            data = [y for x , y in zip(mes.abs(), mes.datas) if start_x <= x <= end_x]
+            #zip pour recupérer les paires (x, y) filtrées
+        n = len(data)
         percentage: dict[str, float] = {}
         percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
         percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
@@ -323,8 +329,8 @@ summarize(measures)
 # zoom manuel sur D/F première mesure
 if args.bornes:
     tops_mes = measures[0].tops()
-    start_x = tops_mes.get(START, (0, 0))[0]
-    end_x   = tops_mes.get(END, (max(measures[0].abs()), 0))[0]
+    start_x = measures[0].top_abs(START) or 0
+    end_x   = measures[0].top_abs(END) or max(measures[0].abs())
     plt.xlim(start_x, end_x)
 
 
