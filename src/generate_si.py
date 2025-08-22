@@ -139,7 +139,7 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
-def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None) -> tuple[list[float],list[float]]:
+def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
     """Filtre les données de la mesure en fonction des bornes fournies."""
     xs, ys= mesure.abs(), mesure.datas
     if bornes is None:
@@ -148,13 +148,25 @@ def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None) -> tuple[list[
     if not bornes : # Aucun argument donc bornes start/end
         start = mesure.top_abs(START) or 0
         end = mesure.top_abs(END) or max(mesure.abs())
-        return zip(*[(x,y) for x, y in zip(xs, ys) if start <= x <= end])
+        if start is None :
+            start = 0
+        if end is None :
+            end = max(xs)
+        filtered_1 = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
+        if filtered_1:
+            xs_filtre, ys_filtre = zip(*filtered_1)
+            return list(xs_filtre), list(ys_filtre)
+        return [], []
     # bornes fournies
     prs_abs = [mesure.top_abs(pr) for pr in bornes]
     prs_abs = [p for p in prs_abs if p is not None]
     if len(prs_abs) >= 2:
         start, end = min(prs_abs), max(prs_abs)
-        return zip(*[(x,y) for x, y in zip(xs, ys) if start <= x <= end])
+        filtered_2 = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
+        if filtered_2:
+            xs_filtre, ys_filtre = zip(*filtered_2)
+            return list(xs_filtre), list(ys_filtre)
+        return [], []
     return xs, ys
 
 parser = argparse.ArgumentParser(description='linear diagrams')
