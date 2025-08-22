@@ -139,17 +139,15 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
-def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None) :
+def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None) -> tuple[list[float],list[float]]:
     """Filtre les données de la mesure en fonction des bornes fournies."""
     xs, ys= mesure.abs(), mesure.datas
     if bornes is None:
         # Pas de bornes, on retourne tout
         return xs, ys
     if not bornes : # Aucun argument donc bornes start/end
-        start_abs = mesure.top_abs(START) or 0
-        end_abs = mesure.top_abs(END) or max(mesure.abs())
-        start = start_abs if start_abs is not None else 0
-        end = end_abs if end_abs is not None else max(mesure.abs())
+        start = mesure.top_abs(START) or 0
+        end = mesure.top_abs(END) or max(mesure.abs())
         return zip(*[(x,y) for x, y in zip(xs, ys) if start <= x <= end])
     # bornes fournies
     prs_abs = [mesure.top_abs(pr) for pr in bornes]
@@ -358,9 +356,6 @@ summarize(measures)
 if measures :
     # si des mesures existent, on applique le zoom
     xs_zoom, _ = filtre_bornes(measures[0], args.bornes)
-    # Si xs_zoom contient des None, on les enlève car min()/max() ne prenent pas en compte les None
-    xs_zoom_filtered = [x for x in xs_zoom if x is not None]
-    if xs_zoom_filtered:
-        plt.xlim((min(xs_zoom_filtered), max(xs_zoom_filtered)))
-
+    if xs_zoom:
+        plt.xlim((min(xs_zoom), max(xs_zoom)))
 plt.show()
