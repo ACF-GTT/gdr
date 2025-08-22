@@ -147,28 +147,18 @@ def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
         return xs, ys
     if not bornes : # Aucun argument donc bornes start/end
         start = mesure.top_abs(START) or 0
-        end = mesure.top_abs(END) or max(mesure.abs())
-        if start is None :
-            start = 0
-        if end is None :
-            end = max(xs)
-        filtered_1 = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
-        if filtered_1:
-            xs_filtre, ys_filtre = zip(*filtered_1)
-            return list(xs_filtre), list(ys_filtre)
-        return [], []
-    # bornes fournies
-    prs_abs = [mesure.top_abs(pr) for pr in bornes]
-    prs_abs = [p for p in prs_abs if p is not None]
-    assert all(p is not None for p in prs_abs)
-    if len(prs_abs) >= 2:
+        end = mesure.top_abs(END) or max(xs)
+    else:
+        prs_abs = [mesure.top_abs(pr) for pr in bornes if mesure.top_abs(pr) is not None]
+        if len(prs_abs) < 2:
+            return xs, ys
         start, end = min(prs_abs), max(prs_abs)
-        filtered_2 = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
-        if filtered_2:
-            xs_filtre, ys_filtre = zip(*filtered_2)
-            return list(xs_filtre), list(ys_filtre)
+    # on filtre
+    filtered = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
+    if not filtered:
         return [], []
-    return xs, ys
+    xs_f, ys_f = zip(*filtered)
+    return list(xs_f), list(ys_f)
 
 parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
@@ -270,7 +260,7 @@ for j, mes in enumerate(measures):
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     if args.show_legend :
-        _, data = filtre_bornes(mes, args.bornes)
+        absiccse, data = filtre_bornes(mes, args.bornes)
         n = len(data)
         if n > 0 : # pas de division par 0
             percentage: dict[str, float] = {}
