@@ -146,8 +146,8 @@ def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
         # Pas de bornes, on retourne tout
         return xs, ys
     if not bornes : # Aucun argument donc bornes start/end
-        start = mesure.top_abs(START) or 0
-        end = mesure.top_abs(END) or max(xs)
+        start = mesure.top_abs(START) or xs[0]
+        end = mesure.top_abs(END) or xs[-1]
     else:
         prs_abs = []
         for pr in bornes:
@@ -237,6 +237,7 @@ for name in file_names.values():
 
 ABS_REFERENCE = None
 LEGENDED = []
+ABSCISSES = None
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
@@ -264,7 +265,7 @@ for j, mes in enumerate(measures):
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     if args.show_legend :
-        abscisses, data = filtre_bornes(mes, args.bornes)
+        ABSCISSES, data = filtre_bornes(mes, args.bornes)
         n = len(data)
         if n > 0 : # pas de division par 0
             percentage: dict[str, float] = {}
@@ -362,6 +363,6 @@ summarize(measures)
 
 if measures :
     # si des mesures existent, on applique le zoom
-    if abscisses : 
-        plt.xlim(min(abscisses), max(abscisses))
+    if ABSCISSES :
+        plt.xlim(min(ABSCISSES), max(ABSCISSES))
 plt.show()
