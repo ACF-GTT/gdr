@@ -264,7 +264,7 @@ for j, mes in enumerate(measures):
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     if args.show_legend :
-        absiccse, data = filtre_bornes(mes, args.bornes)
+        abscisses, data = filtre_bornes(mes, args.bornes)
         n = len(data)
         if n > 0 : # pas de division par 0
             percentage: dict[str, float] = {}
@@ -362,7 +362,6 @@ summarize(measures)
 
 if measures :
     # si des mesures existent, on applique le zoom
-    xs_zoom, _ = filtre_bornes(measures[0], args.bornes)
-    if xs_zoom:
-        plt.xlim((min(xs_zoom), max(xs_zoom)))
+    if abscisses : 
+        plt.xlim(min(abscisses), max(abscisses))
 plt.show()
