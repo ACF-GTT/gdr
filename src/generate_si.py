@@ -139,6 +139,24 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
+def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None) :
+    """Filtre les données de la mesure en fonction des bornes fournies."""
+    xs, ys= mesure.abs(), mesure.datas
+    if bornes is None:
+        # Pas de bornes, on retourne tout
+        return xs, ys
+    if not bornes : # Aucun argument donc bornes start/end
+        start = mesure.top_abs(START) or 0
+        end = mesure.top_abs(END) or max(mesure.abs())
+        return zip(*[(x,y) for x, y in zip(xs, ys) if start <= x <= end])
+    # bornes fournies
+    prs_abs = [mesure.top_abs(pr) for pr in bornes]
+    prs_abs = [p for p in prs_abs if p is not None]
+    if len(prs_abs) >= 2:
+        start, end = min(prs_abs), max(prs_abs)
+        return zip(*[(x,y) for x, y in zip(xs, ys) if start <= x <= end])
+    return xs, ys
+
 parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
     "--multi",
@@ -238,28 +256,36 @@ for j, mes in enumerate(measures):
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    if mes.unit == "CFT" and args.show_legend :
-        data = mes.datas
-        if args.bornes:
-            start_x = mes.top_abs(START) or 0
-            end_x   = mes.top_abs(END) or max(mes.abs())
-            data = [y for x , y in zip(mes.abs(), mes.datas) if start_x <= x <= end_x]
-            #zip pour recupérer les paires (x, y) filtrées
+    if args.show_legend :
+        data = filtre_bornes(mes, args.bornes)
         n = len(data)
-        percentage: dict[str, float] = {}
-        percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
-        percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
-        percentage["good"] = sum(1 for v in data if CFT_GOOD < v <= CFT_EXCELLENT)
-        percentage["excellent"] = sum(1 for v in data if v > CFT_EXCELLENT)
-        for level in ["poor", "fine", "good", "excellent"]:
-            pct = 100 * percentage[level] / n
-            patch = mpatches.Patch(
-                color=COLORS["CFT"][level],
-                label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
-            )
-            legend.append(patch)
-        plt.legend(handles=legend, loc='upper right')
-        LEGENDED.append(mes.unit)
+        if n > 0 : # pas de division par 0
+            percentage: dict[str, float] = {}
+            if mes.unit == "CFT" :
+                percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
+                percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
+                percentage["good"] = sum(1 for v in data if CFT_GOOD < v <= CFT_EXCELLENT)
+                percentage["excellent"] = sum(1 for v in data if v > CFT_EXCELLENT)
+                for level in ["poor", "fine", "good", "excellent"]:
+                    pct = 100 * percentage[level] / n
+                    patch = mpatches.Patch(
+                        color=COLORS["CFT"][level],
+                        label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
+                    )
+                    legend.append(patch)
+            elif mes.unit == "PMP":
+                percentage["poor"] = sum(1 for v in data if v <= PMP_POOR)
+                percentage["fine"] = sum(1 for v in data if PMP_POOR < v <= PMP_GOOD)
+                percentage["good"] = sum(1 for v in data if v > PMP_GOOD)
+                for level in ["poor", "fine", "good"]:
+                    pct = 100 * percentage[level] / n
+                    patch = mpatches.Patch(
+                        color=COLORS["PMP"][level],
+                        label=f"{LEGENDS['PMP'][level]} ({pct:.1f}%)"
+                    )
+                    legend.append(patch)
+            plt.legend(handles=legend, loc='upper right')
+            LEGENDED.append(mes.unit)
 
     if mes.unit not in LEGENDED and mes.unit is not None:
         for color_key,color_label in LEGENDS[mes.unit].items():
@@ -327,32 +353,10 @@ def summarize(list_of_measures):
 
 summarize(measures)
 
-def apply_zoom_bornes(mesure: RoadMeasure, bornes: list[str] | None):
-    """Applique un zoom sur les bornes fournies."""
-    if bornes is None:
-        # Pas de zoom, on affiche tout
-        return
-
-    if len(bornes) == 0:
-        # Aucun argument donc zoom sur start/end
-        start = mesure.top_abs(START) or 0
-        end = mesure.top_abs(END) or max(mesure.abs())
-        plt.xlim(start, end)
-        return
-
-    if len(bornes) == 2:
-        # Deux bornes fournies, on zoom sur ces bornes
-        pr1, pr2 = bornes
-        pr1_abs = mesure.top_abs(pr1)
-        pr2_abs = mesure.top_abs(pr2)
-
-        if pr1_abs is not None and pr2_abs is not None:
-            # si les 2 PR existent on applique le zoom
-            plt.xlim(pr1_abs, pr2_abs)
-            return
-
 if measures :
     # si des mesures existent, on applique le zoom
-    apply_zoom_bornes(measures[0], args.bornes)
+    xs_zoom,_ = filtre_bornes(measures[0], args.bornes)
+    if xs_zoom:
+        plt.xlim((min(xs_zoom), max(xs_zoom)))
 
 plt.show()
