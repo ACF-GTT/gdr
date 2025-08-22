@@ -160,6 +160,7 @@ def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
     # bornes fournies
     prs_abs = [mesure.top_abs(pr) for pr in bornes]
     prs_abs = [p for p in prs_abs if p is not None]
+    assert all(p is not None for p in prs_abs)
     if len(prs_abs) >= 2:
         start, end = min(prs_abs), max(prs_abs)
         filtered_2 = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
