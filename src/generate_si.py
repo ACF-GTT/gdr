@@ -156,7 +156,7 @@ def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
                 prs_abs.append(val)
         if len(prs_abs) < 2:
             return xs, ys
-        start, end = min(prs_abs), max(prs_abs)
+        start, end = prs_abs[0], prs_abs[-1]
     # on filtre
     filtered = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
     if not filtered:
