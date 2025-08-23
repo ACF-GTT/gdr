@@ -139,6 +139,31 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
+def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
+    """Filtre les données de la mesure en fonction des bornes fournies."""
+    xs, ys= mesure.abs(), mesure.datas
+    if bornes is None:
+        # Pas de bornes, on retourne tout
+        return xs, ys
+    if not bornes : # Aucun argument donc bornes start/end
+        start = mesure.top_abs(START) or xs[0]
+        end = mesure.top_abs(END) or xs[-1]
+    else:
+        prs_abs = []
+        for pr in bornes:
+            val = mesure.top_abs(pr)
+            if val is not None:
+                prs_abs.append(val)
+        if len(prs_abs) < 2:
+            return xs, ys
+        start, end = prs_abs[0], prs_abs[-1]
+    # on filtre
+    filtered = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
+    if not filtered:
+        return [], []
+    xs_f, ys_f = zip(*filtered)
+    return list(xs_f), list(ys_f)
+
 parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
     "--multi",
@@ -159,7 +184,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--bornes",
-    action="store_true",
+    nargs= "*",
+    default=None,
     help="Fixer manuellement les bornes d'affichage"
 )
 parser.add_argument(
@@ -211,6 +237,7 @@ for name in file_names.values():
 
 ABS_REFERENCE = None
 LEGENDED = []
+ABSCISSES = None
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
@@ -237,22 +264,36 @@ for j, mes in enumerate(measures):
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    if mes.unit == "CFT" and args.show_legend :
-        data = mes.datas
-        percentage: dict[str, float] = {}
-        percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
-        percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
-        percentage["good"] = sum(1 for v in data if CFT_GOOD < v <= CFT_EXCELLENT)
-        percentage["excellent"] = sum(1 for v in data if v > CFT_EXCELLENT)
-        for level in ["poor", "fine", "good", "excellent"]:
-            pct = 100 * percentage[level] / n
-            patch = mpatches.Patch(
-                color=COLORS["CFT"][level],
-                label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
-            )
-            legend.append(patch)
-        plt.legend(handles=legend, loc='upper right')
-        LEGENDED.append(mes.unit)
+    if args.show_legend :
+        ABSCISSES, data = filtre_bornes(mes, args.bornes)
+        n = len(data)
+        if n > 0 : # pas de division par 0
+            percentage: dict[str, float] = {}
+            if mes.unit == "CFT" :
+                percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
+                percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
+                percentage["good"] = sum(1 for v in data if CFT_GOOD < v <= CFT_EXCELLENT)
+                percentage["excellent"] = sum(1 for v in data if v > CFT_EXCELLENT)
+                for level in ["poor", "fine", "good", "excellent"]:
+                    pct = 100 * percentage[level] / n
+                    patch = mpatches.Patch(
+                        color=COLORS["CFT"][level],
+                        label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
+                    )
+                    legend.append(patch)
+            elif mes.unit == "PMP":
+                percentage["poor"] = sum(1 for v in data if v <= PMP_POOR)
+                percentage["fine"] = sum(1 for v in data if PMP_POOR < v <= PMP_GOOD)
+                percentage["good"] = sum(1 for v in data if v > PMP_GOOD)
+                for level in ["poor", "fine", "good"]:
+                    pct = 100 * percentage[level] / n
+                    patch = mpatches.Patch(
+                        color=COLORS["PMP"][level],
+                        label=f"{LEGENDS['PMP'][level]} ({pct:.1f}%)"
+                    )
+                    legend.append(patch)
+            plt.legend(handles=legend, loc='upper right')
+            LEGENDED.append(mes.unit)
 
     if mes.unit not in LEGENDED and mes.unit is not None:
         for color_key,color_label in LEGENDS[mes.unit].items():
@@ -320,12 +361,8 @@ def summarize(list_of_measures):
 
 summarize(measures)
 
-# zoom manuel sur D/F première mesure
-if args.bornes:
-    tops_mes = measures[0].tops()
-    start_x = tops_mes.get(START, (0, 0))[0]
-    end_x   = tops_mes.get(END, (max(measures[0].abs()), 0))[0]
-    plt.xlim(start_x, end_x)
-
-
+if measures :
+    # si des mesures existent, on applique le zoom
+    if ABSCISSES :
+        plt.xlim(min(ABSCISSES), max(ABSCISSES))
 plt.show()
