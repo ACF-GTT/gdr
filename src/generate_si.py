@@ -280,14 +280,14 @@ for j, mes in enumerate(measures):
 
     if mes.unit is not None:
         for level, color_label in LEGENDS[mes.unit].items():
-            label = color_label
+            legend_text = color_label
             if level in family_counts:
                 pct = 100 * family_counts[level] / n
-                label = f"{label} ({pct:.1f}%)"
+                legend_text = f"{legend_text} ({pct:.1f}%)"
             legend.append(
                 mpatches.Patch(
                     color=COLORS[mes.unit][level],
-                    label=label
+                    label=legend_text
                 )
             )
         plt.legend(handles=legend, loc='upper right')
