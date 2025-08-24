@@ -258,7 +258,7 @@ for j, mes in enumerate(measures):
     legend = []
     if args.show_legend :
         data = mes.datas
-        percentage: dict[str, float] = {}
+        family_counts: dict[str, float] = {}
         if mes.unit is None:
             continue
         if mes.unit not in LEVELS:
@@ -271,14 +271,14 @@ for j, mes in enumerate(measures):
                 lower = bounds[LOWER]
                 if UPPER in bounds.keys():
                     upper = bounds[UPPER]
-                    percentage[level] = sum(1 for v in data if lower < v <= upper)
+                    family_counts[level] = sum(1 for v in data if lower < v <= upper)
                 else:
-                    percentage[level] = sum(1 for v in data if v > lower)
+                    family_counts[level] = sum(1 for v in data if v > lower)
             else:
                 upper = bounds[UPPER]
-                percentage[level] = sum(1 for v in data if v <= upper)
-        for level, percent in percentage.items():
-            pct = 100 * percent / n
+                family_counts[level] = sum(1 for v in data if v <= upper)
+        for level, family_count in family_counts.items():
+            pct = 100 * family_count / n
             patch = mpatches.Patch(
                 color=COLORS[mes.unit][level],
                 label=f"{LEGENDS[mes.unit][level]} ({pct:.1f}%)"
