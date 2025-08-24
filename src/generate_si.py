@@ -269,7 +269,7 @@ for j, mes in enumerate(measures):
                 continue
             if LOWER in bounds:
                 lower = bounds[LOWER]
-                if UPPER in bounds.keys():
+                if UPPER in bounds:
                     upper = bounds[UPPER]
                     family_counts[level] = sum(1 for v in data if lower < v <= upper)
                 else:
@@ -288,10 +288,10 @@ for j, mes in enumerate(measures):
         LEGENDED.append(mes.unit)
 
     if mes.unit not in LEGENDED and mes.unit is not None:
-        for color_key,color_label in LEGENDS[mes.unit].items():
+        for level, color_label in LEGENDS[mes.unit].items():
             legend.append(
                 mpatches.Patch(
-                    color=COLORS[mes.unit][color_key],
+                    color=COLORS[mes.unit][level],
                     label=color_label
                 )
             )
