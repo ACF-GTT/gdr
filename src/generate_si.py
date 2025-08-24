@@ -30,7 +30,7 @@ COLORS = {
 UPPER = "upper"
 LOWER = "lower"
 
-LEVELS = {
+LEVELS: dict[str, dict[str, dict[str, int | float]]] = {
     "CFT": {
         "poor": {UPPER: CFT_POOR},
         "fine": {LOWER: CFT_POOR, UPPER: CFT_GOOD},
@@ -259,17 +259,24 @@ for j, mes in enumerate(measures):
     if args.show_legend :
         data = mes.datas
         percentage: dict[str, float] = {}
-        levels_description = LEVELS.get(mes.unit)
+        if mes.unit is None:
+            continue
+        if mes.unit not in LEVELS:
+            continue
+        levels_description = LEVELS[mes.unit]
         for level, bounds in levels_description.items():
-            lower = bounds.get(LOWER)
-            upper = bounds.get(UPPER)
-            if lower is None and upper is not None:
+            if LOWER not in bounds and UPPER not in bounds:
+                continue
+            if LOWER in bounds:
+                lower = bounds[LOWER]
+                if UPPER in bounds.keys():
+                    upper = bounds[UPPER]
+                    percentage[level] = sum(1 for v in data if lower < v <= upper)
+                else:
+                    percentage[level] = sum(1 for v in data if v > lower)
+            else:
+                upper = bounds[UPPER]
                 percentage[level] = sum(1 for v in data if v <= upper)
-                continue
-            if lower is not None and upper is None:
-                percentage[level] = sum(1 for v in data if v > lower)
-                continue
-            percentage[level] = sum(1 for v in data if lower < v <= upper)
         for level, percent in percentage.items():
             pct = 100 * percent / n
             patch = mpatches.Patch(
