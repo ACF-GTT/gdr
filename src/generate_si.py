@@ -256,9 +256,9 @@ for j, mes in enumerate(measures):
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
+    family_counts: dict[str, float] = {}
     if args.show_legend :
         data = mes.datas
-        family_counts: dict[str, float] = {}
         if mes.unit is None:
             continue
         if mes.unit not in LEVELS:
@@ -277,22 +277,17 @@ for j, mes in enumerate(measures):
             else:
                 upper = bounds[UPPER]
                 family_counts[level] = sum(1 for v in data if v <= upper)
-        for level, family_count in family_counts.items():
-            pct = 100 * family_count / n
-            patch = mpatches.Patch(
-                color=COLORS[mes.unit][level],
-                label=f"{LEGENDS[mes.unit][level]} ({pct:.1f}%)"
-            )
-            legend.append(patch)
-        plt.legend(handles=legend, loc='upper right')
-        LEGENDED.append(mes.unit)
 
-    if mes.unit not in LEGENDED and mes.unit is not None:
+    if mes.unit is not None:
         for level, color_label in LEGENDS[mes.unit].items():
+            label = color_label
+            if level in family_counts:
+                pct = 100 * family_counts[level] / n
+                label = f"{label} ({pct:.1f}%)"
             legend.append(
                 mpatches.Patch(
                     color=COLORS[mes.unit][level],
-                    label=color_label
+                    label=label
                 )
             )
         plt.legend(handles=legend, loc='upper right')
