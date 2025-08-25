@@ -273,10 +273,10 @@ for j, mes in enumerate(measures):
 
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
-        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.3)
-        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.3)
-        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.3)
-        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.3)
+        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.4)
+        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.4)
+        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.4)
+        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.4)
 
     if (n :=  len(mes.datas)) == 0:
         continue
