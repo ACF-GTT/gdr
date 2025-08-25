@@ -123,13 +123,13 @@ class RoadMeasure():
         LOGGER.debug("nombre de points dans une zone homogène : %s", nb_pts_mean_step)
         # récupération de l'indice de départ
         start_index = 0
-        if rec_zh is not None:
-            abs_top = self.tops(offset=False)[rec_zh][0]
+        top_abs = self.top_abs(rec_zh)
+        if top_abs is not None:
             # les tops peuvent être enregistrés à une précision centrimétrique
             # on arrondit à la précision du relevé (step)
-            abs_top = (abs_top // self.step) * self.step
+            top_abs = (top_abs // self.step) * self.step
             abscisses = self.abs(offset=False)
-            start_index = abscisses.index(abs_top)
+            start_index = abscisses.index(top_abs)
             LOGGER.debug("indice du top : %s", start_index)
             # combien de zônes homogènes "complètes"
             # y a t'il entre l'extrémité gauche de la mesure et le top?
