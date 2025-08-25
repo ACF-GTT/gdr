@@ -27,19 +27,38 @@ COLORS = {
     "PMP": PMP_COLORS
 }
 
-LEGENDS = {
+UPPER = "upper"
+LOWER = "lower"
+
+LEVELS: dict[str, dict[str, dict[str, int | float]]] = {
     "CFT": {
-        "poor": f"CFT<={CFT_POOR}",
-        "fine": f"{CFT_POOR}<CFT<={CFT_GOOD}",
-        "good": f"{CFT_GOOD}<CFT<={CFT_EXCELLENT}",
-        "excellent": f"CFT>{CFT_EXCELLENT}"
+        "poor": {UPPER: CFT_POOR},
+        "fine": {LOWER: CFT_POOR, UPPER: CFT_GOOD},
+        "good": {LOWER: CFT_GOOD, UPPER: CFT_EXCELLENT},
+        "excellent": {LOWER: CFT_EXCELLENT}
     },
-    "PMP" : {
-        "poor": f"PMP<={PMP_POOR}",
-        "fine": f"{PMP_POOR}<PMP<={PMP_GOOD}",
-        "good": f"PMP>{PMP_GOOD}"
+    "PMP": {
+        "poor": {UPPER: PMP_POOR},
+        "fine": {LOWER: PMP_POOR, UPPER: PMP_GOOD},
+        "good": {LOWER: PMP_GOOD}
     }
 }
+
+LEGENDS: dict[str, dict[str, str]] = {}
+
+for metric, levels_description in LEVELS.items():
+    if metric not in LEGENDS:
+        LEGENDS[metric] = {}
+    for level, bounds in levels_description.items():
+        lower = bounds.get(LOWER)
+        upper = bounds.get(UPPER)
+        if lower is None and upper is not None:
+            LEGENDS[metric][level] = f"{metric}<={upper}"
+            continue
+        if lower is not None and upper is None:
+            LEGENDS[metric][level] = f"{metric}>{lower}"
+            continue
+        LEGENDS[metric][level] = f"{lower}<{metric}<={upper}"
 
 EVE_STD = {
     "font": "red",
@@ -237,29 +256,38 @@ for j, mes in enumerate(measures):
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    if mes.unit == "CFT" and args.show_legend :
+    family_counts: dict[str, float] = {}
+    if args.show_legend :
         data = mes.datas
-        percentage: dict[str, float] = {}
-        percentage["poor"] = sum(1 for v in data if v <= CFT_POOR)
-        percentage["fine"] = sum(1 for v in data if CFT_POOR < v <= CFT_GOOD)
-        percentage["good"] = sum(1 for v in data if CFT_GOOD < v <= CFT_EXCELLENT)
-        percentage["excellent"] = sum(1 for v in data if v > CFT_EXCELLENT)
-        for level in ["poor", "fine", "good", "excellent"]:
-            pct = 100 * percentage[level] / n
-            patch = mpatches.Patch(
-                color=COLORS["CFT"][level],
-                label=f"{LEGENDS['CFT'][level]} ({pct:.1f}%)"
-            )
-            legend.append(patch)
-        plt.legend(handles=legend, loc='upper right')
-        LEGENDED.append(mes.unit)
+        if mes.unit is None:
+            continue
+        if mes.unit not in LEVELS:
+            continue
+        levels_description = LEVELS[mes.unit]
+        for level, bounds in levels_description.items():
+            if LOWER not in bounds and UPPER not in bounds:
+                continue
+            if LOWER in bounds:
+                lower = bounds[LOWER]
+                if UPPER in bounds:
+                    upper = bounds[UPPER]
+                    family_counts[level] = sum(1 for v in data if lower < v <= upper)
+                else:
+                    family_counts[level] = sum(1 for v in data if v > lower)
+            else:
+                upper = bounds[UPPER]
+                family_counts[level] = sum(1 for v in data if v <= upper)
 
-    if mes.unit not in LEGENDED and mes.unit is not None:
-        for color_key,color_label in LEGENDS[mes.unit].items():
+    if mes.unit is not None:
+        for level, color_label in LEGENDS[mes.unit].items():
+            legend_text = color_label
+            if level in family_counts:
+                pct = 100 * family_counts[level] / n
+                legend_text = f"{legend_text} ({pct:.1f}%)"
             legend.append(
                 mpatches.Patch(
-                    color=COLORS[mes.unit][color_key],
-                    label=color_label
+                    color=COLORS[mes.unit][level],
+                    label=legend_text
                 )
             )
         plt.legend(handles=legend, loc='upper right')
