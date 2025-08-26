@@ -262,6 +262,11 @@ for j, mes in enumerate(measures):
     if mes.title is not None:
         plt.title(mes.title)
 
+    x_mean_values, mean_values = mes.produce_mean(
+        MEAN_STEP,
+        rec_zh=args.rec_zh
+    )
+
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
         plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.4)
@@ -329,10 +334,6 @@ for j, mes in enumerate(measures):
 
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
-    x_mean_values, mean_values = mes.produce_mean(
-        MEAN_STEP,
-        rec_zh=args.rec_zh
-    )
     plt.bar(
         x_mean_values,
         mean_values,
