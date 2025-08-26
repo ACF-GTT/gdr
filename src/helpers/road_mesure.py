@@ -1,3 +1,4 @@
+# pylint: disable=too-many-instance-attributes
 """Représentation de mesures routières."""
 import re
 from statistics import mean
@@ -100,9 +101,10 @@ class RoadMeasure():
         # Si le zoom actif, on retourne la partie start/end
         start, end = self.zoom
         return base[start:end]
-    
+
     @property # on transforme une méthode en attribut, pas besoin des ()
     def datas_zoomed(self) -> list[float]:
+        """retourne les données en fonction du zoom"""
         if self.zoom == (None, None):
             return self.datas
         start, end = self.zoom
@@ -120,7 +122,7 @@ class RoadMeasure():
                 self.longueur() - value[0],
                 value[1]
             )
-            
+
     def set_zoom_by_abs(self, start_abs: float | None, end_abs: float | None) -> None:
         """Définit le zoom à partir des abscisses (mètres)."""
         abs_list = self.abs(offset=False)
