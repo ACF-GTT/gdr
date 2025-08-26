@@ -160,28 +160,19 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
 
 def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
     """Filtre les données de la mesure en fonction des bornes fournies."""
-    xs, ys= mesure.abs(), mesure.datas
     if bornes is None:
-        # Pas de bornes, on retourne tout
-        return xs, ys
-    if not bornes : # Aucun argument donc bornes start/end
-        start = mesure.top_abs(START) or xs[0]
-        end = mesure.top_abs(END) or xs[-1]
-    else:
-        prs_abs = []
-        for pr in bornes:
-            val = mesure.top_abs(pr)
-            if val is not None:
-                prs_abs.append(val)
-        if len(prs_abs) < 2:
-            return xs, ys
-        start, end = prs_abs[0], prs_abs[-1]
-    # on filtre
-    filtered = [(x,y) for x, y in zip(xs, ys) if start <= x <= end]
-    if not filtered:
-        return [], []
-    xs_f, ys_f = zip(*filtered)
-    return list(xs_f), list(ys_f)
+        mesure.clear_zoom()
+        return mesure.abs(), mesure.datas_zoomed
+    if not bornes:
+        mesure.apply_zoom_from_prs(START, END)
+        return mesure.abs(), mesure.datas_zoomed
+    if len(bornes) >= 2:
+        mesure.apply_zoom_from_prs(bornes[0], bornes[-1])
+        return mesure.abs(), mesure.datas_zoomed
+    # fallback si bornes inexploitables
+    mesure.clear_zoom()
+    return mesure.abs(), mesure.datas_zoomed
+
 
 parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
@@ -328,10 +319,10 @@ for j, mes in enumerate(measures):
         print(f"tops après offset : {mes.tops()}")
     draw_objects(mes.tops(), Y_MAX)
     plt.bar(
-        mes.abs(),
-        mes.datas,
-        color = color_map(mes.datas, unit=mes.unit),
-        edgecolor = color_map(mes.datas, unit=mes.unit)
+        ABSCISSES,
+        data,
+        color = color_map(data, unit=mes.unit),
+        edgecolor = color_map(data, unit=mes.unit)
     )
     INDEX += 1
 
