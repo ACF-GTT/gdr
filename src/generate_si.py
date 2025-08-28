@@ -158,6 +158,22 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
+def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
+    """Filtre les données de la mesure en fonction des bornes fournies."""
+    if bornes is None:
+        mesure.clear_zoom()
+        return mesure.abs(), mesure.datas_zoomed
+    if not bornes:
+        mesure.apply_zoom_from_prs(START, END)
+        return mesure.abs(), mesure.datas_zoomed
+    if len(bornes) >= 2:
+        mesure.apply_zoom_from_prs(bornes[0], bornes[-1])
+        return mesure.abs(), mesure.datas_zoomed
+    # fallback si bornes inexploitables
+    mesure.clear_zoom()
+    return mesure.abs(), mesure.datas_zoomed
+
+
 parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
     "--multi",
@@ -172,13 +188,14 @@ parser.add_argument(
     default=None
 )
 parser.add_argument(
-    "--show_legend",
+    "--add_percent",
     action="store_true",
     help="Afficher la légende avec les pourcentages"
 )
 parser.add_argument(
     "--bornes",
-    action="store_true",
+    nargs = "*",
+    default=None,
     help="Fixer manuellement les bornes d'affichage"
 )
 parser.add_argument(
@@ -230,6 +247,7 @@ for name in file_names.values():
 
 ABS_REFERENCE = None
 LEGENDED = []
+ABSCISSES = None
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
@@ -237,61 +255,66 @@ for j, mes in enumerate(measures):
     if j == 0:
         ax = plt.subplot(INDEX)
         if PR_RECALAGE is not None:
-            ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
-            print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
+            try:
+                ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
+                print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
+            except KeyError:
+                print(f"Attention le PR saisi '{PR_RECALAGE}' est inexistant : pas de recalage")
+                ABS_REFERENCE = None
     else:
         plt.subplot(INDEX, sharex=ax)
     if mes.title is not None:
         plt.title(mes.title)
 
+    x_mean_values, mean_values = mes.produce_mean(
+        MEAN_STEP,
+        rec_zh=args.rec_zh
+    )
+
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
-        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.1)
-        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.1)
-        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.1)
-        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.1)
+        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.4)
+        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.4)
+        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.4)
+        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.4)
 
     if (n :=  len(mes.datas)) == 0:
         continue
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    family_counts: dict[str, float] = {}
-    if args.show_legend :
-        data = mes.datas
-        if mes.unit is None:
-            continue
-        if mes.unit not in LEVELS:
-            continue
-        levels_description = LEVELS[mes.unit]
-        for level, bounds in levels_description.items():
-            if LOWER not in bounds and UPPER not in bounds:
-                continue
-            if LOWER in bounds:
-                lower = bounds[LOWER]
-                if UPPER in bounds:
-                    upper = bounds[UPPER]
-                    family_counts[level] = sum(1 for v in data if lower < v <= upper)
-                else:
+    ABSCISSES, data = filtre_bornes(mes, args.bornes)
+    n = len(data)
+    if n > 0 and mes.unit in LEVELS:
+        family_counts: dict[str, float] = {}
+        if args.add_percent:
+            levels_description = LEVELS[mes.unit]
+            for level, bounds in levels_description.items():
+                lower = bounds.get(LOWER)
+                upper = bounds.get(UPPER)
+                if lower is None and upper is not None:
+                    family_counts[level] = sum(1 for v in data if v <= upper)
+                    continue
+                if lower is not None and upper is None:
                     family_counts[level] = sum(1 for v in data if v > lower)
-            else:
-                upper = bounds[UPPER]
-                family_counts[level] = sum(1 for v in data if v <= upper)
+                    continue
+                family_counts[level] = sum(1 for v in data if lower < v <= upper)
 
-    if mes.unit is not None:
-        for level, color_label in LEGENDS[mes.unit].items():
-            legend_text = color_label
-            if level in family_counts:
-                pct = 100 * family_counts[level] / n
-                legend_text = f"{legend_text} ({pct:.1f}%)"
-            legend.append(
-                mpatches.Patch(
+        # Création légende
+        if mes.unit in LEGENDS:
+            for level, color_label in LEGENDS[mes.unit].items():
+                if args.add_percent and level in family_counts:
+                    pct = 100 * family_counts[level] / n
+                    legend_text = f"{color_label} ({pct:.1f}%)"
+                else:
+                    legend_text = color_label  # affichage simple sans %
+                patch = mpatches.Patch(
                     color=COLORS[mes.unit][level],
                     label=legend_text
                 )
-            )
-        plt.legend(handles=legend, loc='upper right')
-        LEGENDED.append(mes.unit)
+                legend.append(patch)
+            plt.legend(handles=legend, loc="upper right")
+            LEGENDED.append(mes.unit)
 
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")
@@ -305,20 +328,16 @@ for j, mes in enumerate(measures):
         print(f"tops après offset : {mes.tops()}")
     draw_objects(mes.tops(), Y_MAX)
     plt.bar(
-        mes.abs(),
-        mes.datas,
-        color = color_map(mes.datas, unit=mes.unit),
-        edgecolor = color_map(mes.datas, unit=mes.unit)
+        ABSCISSES,
+        data,
+        color = color_map(data, unit=mes.unit),
+        edgecolor = color_map(data, unit=mes.unit)
     )
     INDEX += 1
 
 
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
-    x_mean_values, mean_values = mes.produce_mean(
-        MEAN_STEP,
-        rec_zh=args.rec_zh
-    )
     plt.bar(
         x_mean_values,
         mean_values,
@@ -348,12 +367,8 @@ def summarize(list_of_measures):
 
 summarize(measures)
 
-# zoom manuel sur D/F première mesure
-if args.bornes:
-    tops_mes = measures[0].tops()
-    start_x = tops_mes.get(START, (0, 0))[0]
-    end_x   = tops_mes.get(END, (max(measures[0].abs()), 0))[0]
-    plt.xlim(start_x, end_x)
-
-
+if measures :
+    # si des mesures existent, on applique le zoom
+    if ABSCISSES :
+        plt.xlim(min(ABSCISSES), max(ABSCISSES))
 plt.show()
