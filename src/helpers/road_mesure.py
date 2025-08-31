@@ -71,12 +71,13 @@ class RoadMeasure():
         """retourne la liste des pr topés."""
         return [key for key in self._tops.keys() if key not in [START, END]]
 
-    def top_abs(self, top_string: str) -> None | float:
+    def top_abs(self, top_string: str, offset=True) -> None | float:
         """retourne l'abscisse du top"""
         top_strings = list(self._tops.keys())
         if top_string not in top_strings:
             return None
-        return self._tops[top_string][0] + self.offset
+        decalage = self.offset if offset else 0
+        return self._tops[top_string][0] + decalage
 
     def tops(self, offset=True) -> dict[str, tuple[float, float]]:
         """retourne les tops."""
@@ -123,7 +124,7 @@ class RoadMeasure():
         LOGGER.debug("nombre de points dans une zone homogène : %s", nb_pts_mean_step)
         # récupération de l'indice de départ
         start_index = 0
-        top_abs = self.top_abs(rec_zh)
+        top_abs = self.top_abs(rec_zh, offset=False)
         if top_abs is not None:
             # les tops peuvent être enregistrés à une précision centrimétrique
             # on arrondit à la précision du relevé (step)
