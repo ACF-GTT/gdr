@@ -1,4 +1,3 @@
-# pylint: disable=too-many-instance-attributes
 """Représentation de mesures routières."""
 import re
 from statistics import mean
@@ -36,7 +35,7 @@ class SITitle():
             self.add(pattern_found[0])
 
 
-class RoadMeasure():
+class RoadMeasure():# pylint: disable=too-many-instance-attributes
     """représentation d'une mesure routière"""
     def __init__(
         self,
@@ -50,7 +49,7 @@ class RoadMeasure():
         self.unit : str | None = kwargs.get("unit", None)
         self.step = step
         self.datas = datas
-        self.zoom: tuple[int | None, int | None] = (None, None)
+        self.zoom: tuple[int, int] | None = None
         # tops est un dictionnaire avec :
         #  - comme clé la saisie de l'opérateur,
         #  - comme valeur un tuple de 2 float
@@ -73,8 +72,10 @@ class RoadMeasure():
         """retourne la liste des pr topés."""
         return [key for key in self._tops.keys() if key not in [START, END]]
 
-    def top_abs(self, top_string: str, offset=True) -> None | float:
+    def top_abs(self, top_string: str | None, offset=True) -> None | float:
         """retourne l'abscisse du top"""
+        if top_string is None :
+            return None
         top_strings = list(self._tops.keys())
         if top_string not in top_strings:
             return None
@@ -94,19 +95,19 @@ class RoadMeasure():
 
     def abs(self, index_start: int = 0, offset: bool = True) -> list[float]:
         """Liste des abscisses (avec ou sans offset), zoomées si applicable."""
-        # Pour chaque indice i dans self.datas, on calcule son abscisse sans décalage
-        base = [(i + index_start) * self.step for i in range(len(self.datas))]
-        base = [x + (self.offset if offset else 0) for x in base]
-        if self.zoom == (None, None):
+        nb_pts = len(self.datas)
+        decalage = self.offset if offset else 0
+        base = [(i + index_start) * self.step + decalage for i in range(nb_pts)]
+        if self.zoom is None :
             return base
-        # Si le zoom actif, on retourne la partie start/end
         start, end = self.zoom
         return base[start:end]
+
 
     @property # on transforme une méthode en attribut, pas besoin des ()
     def datas_zoomed(self) -> list[float]:
         """retourne les données en fonction du zoom"""
-        if self.zoom == (None, None):
+        if self.zoom is None :
             return self.datas
         start, end = self.zoom
         return self.datas[start:end]
@@ -126,32 +127,20 @@ class RoadMeasure():
 
     def set_zoom_by_abs(self, start_abs: float | None, end_abs: float | None) -> None:
         """Définit le zoom à partir des abscisses (mètres)."""
-        abs_list = self.abs(offset=False)
-        start_idx, end_idx = 0, len(self.datas)
-
-        if start_abs is not None:
-            # On parcourt abs_list jusqu'à trouver le premier point dont l’abscisse >= start_abs
-            for i, val in enumerate(abs_list):
-                if val >= start_abs:
-                    start_idx = i
-                    break
-        if end_abs is not None:
-            # On cherche en partant de la fin le dernier point inférieur ou égal à end_abs
-            for i in reversed(range(len(abs_list))):
-                if abs_list[i] <= end_abs:
-                    end_idx = i + 1
-                    break
+        abs_list = self.abs()
+        start_idx = abs_list.index(start_abs) if start_abs is not None else 0
+        end_idx = abs_list.index(end_abs) + 1 if end_abs is not None else len(self.datas)
         self.zoom = (start_idx, end_idx)
 
     def apply_zoom_from_prs(self, start_pr: str | None, end_pr: str | None) -> None:
         """Applique un zoom en se basant sur deux PR (ou None)."""
-        start_abs = self.top_abs(start_pr) if start_pr else None
-        end_abs = self.top_abs(end_pr) if end_pr else None
+        start_abs = self.top_abs(start_pr)
+        end_abs = self.top_abs(end_pr)
         self.set_zoom_by_abs(start_abs, end_abs)
 
     def clear_zoom(self) -> None:
         """Supprime le zoom (affiche tout)."""
-        self.zoom = (None, None)
+        self.zoom = None
 
     def produce_mean(
         self,

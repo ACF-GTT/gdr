@@ -160,17 +160,12 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
 
 def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
     """Filtre les données de la mesure en fonction des bornes fournies."""
-    if bornes is None:
+    if not bornes or bornes is None:
         mesure.clear_zoom()
-        return mesure.abs(), mesure.datas_zoomed
-    if not bornes:
-        mesure.apply_zoom_from_prs(START, END)
-        return mesure.abs(), mesure.datas_zoomed
-    if len(bornes) >= 2:
+    elif len(bornes) == 1:
+        mesure.apply_zoom_from_prs(bornes[0], None)
+    elif len(bornes) >= 2:
         mesure.apply_zoom_from_prs(bornes[0], bornes[-1])
-        return mesure.abs(), mesure.datas_zoomed
-    # fallback si bornes inexploitables
-    mesure.clear_zoom()
     return mesure.abs(), mesure.datas_zoomed
 
 
@@ -262,10 +257,20 @@ for j, mes in enumerate(measures):
     if mes.title is not None:
         plt.title(mes.title)
 
-    x_mean_values, mean_values = mes.produce_mean(
-        MEAN_STEP,
-        rec_zh=args.rec_zh
-    )
+    print(f"tops avant offset {mes.tops()}")
+    if j != 0 and mes.sens != measures[0].sens:
+        mes.reverse()
+    if j != 0 and ABS_REFERENCE is not None:
+        mes.offset = ABS_REFERENCE - mes.tops()[PR_RECALAGE][0]
+        print(f"on applique un offset {mes.offset}")
+        print(f"tops après offset : {mes.tops()}")
+
+    ABSCISSES, data = filtre_bornes(mes, args.bornes)
+    if args.bornes and j==0:
+        plt.xlim(min(ABSCISSES), max(ABSCISSES))
+    n = len(data)
+    if n == 0:
+        continue
 
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
@@ -274,27 +279,23 @@ for j, mes in enumerate(measures):
         plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.4)
         plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.4)
 
-    if (n :=  len(mes.datas)) == 0:
-        continue
+
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    ABSCISSES, data = filtre_bornes(mes, args.bornes)
-    n = len(data)
-    if n > 0 and mes.unit in LEVELS:
+    if mes.unit in LEVELS and args.add_percent :
         family_counts: dict[str, float] = {}
-        if args.add_percent:
-            levels_description = LEVELS[mes.unit]
-            for level, bounds in levels_description.items():
-                lower = bounds.get(LOWER)
-                upper = bounds.get(UPPER)
-                if lower is None and upper is not None:
-                    family_counts[level] = sum(1 for v in data if v <= upper)
-                    continue
-                if lower is not None and upper is None:
-                    family_counts[level] = sum(1 for v in data if v > lower)
-                    continue
-                family_counts[level] = sum(1 for v in data if lower < v <= upper)
+        levels_description = LEVELS[mes.unit]
+        for level, bounds in levels_description.items():
+            lower = bounds.get(LOWER)
+            upper = bounds.get(UPPER)
+            if lower is None and upper is not None:
+                family_counts[level] = sum(1 for v in data if v <= upper)
+                continue
+            if lower is not None and upper is None:
+                family_counts[level] = sum(1 for v in data if v > lower)
+                continue
+            family_counts[level] = sum(1 for v in data if lower < v <= upper)
 
         # Création légende
         if mes.unit in LEGENDS:
@@ -315,13 +316,6 @@ for j, mes in enumerate(measures):
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")
     plt.grid(visible=True, axis="y")
-    print(f"tops avant offset {mes.tops()}")
-    if j != 0 and mes.sens != measures[0].sens:
-        mes.reverse()
-    if j != 0 and ABS_REFERENCE is not None:
-        mes.offset = ABS_REFERENCE - mes.tops()[PR_RECALAGE][0]
-        print(f"on applique un offset {mes.offset}")
-        print(f"tops après offset : {mes.tops()}")
     draw_objects(mes.tops(), Y_MAX)
     plt.bar(
         ABSCISSES,
@@ -334,6 +328,10 @@ for j, mes in enumerate(measures):
 
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
+    x_mean_values, mean_values = mes.produce_mean(
+    MEAN_STEP,
+    rec_zh=args.rec_zh
+)
     plt.bar(
         x_mean_values,
         mean_values,
@@ -363,8 +361,5 @@ def summarize(list_of_measures):
 
 summarize(measures)
 
-if measures :
-    # si des mesures existent, on applique le zoom
-    if ABSCISSES :
-        plt.xlim(min(ABSCISSES), max(ABSCISSES))
+
 plt.show()
