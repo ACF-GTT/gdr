@@ -73,6 +73,7 @@ class RoadMeasure():# pylint: disable=too-many-instance-attributes
         return [key for key in self._tops.keys() if key not in [START, END]]
 
     def top_abs(self, top_string: str | None, offset=True) -> None | float:
+
         """retourne l'abscisse du top"""
         if top_string is None :
             return None
