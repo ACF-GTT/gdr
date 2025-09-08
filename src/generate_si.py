@@ -281,11 +281,13 @@ for j, mes in enumerate(measures):
 
 
     print(f"il y a {n} lignes")
+    if mes.unit is None:
+        continue
     #  Ajout des % dans l'hystogramme en légende
     legend = []
     family_counts: dict[str, float] = {}
     if args.add_percent :
-        levels_description = LEVELS.get(mes.unit, {})
+        levels_description = LEVELS[mes.unit]
         for level, bounds in levels_description.items():
             lower = bounds.get(LOWER)
             upper = bounds.get(UPPER)
@@ -298,7 +300,7 @@ for j, mes in enumerate(measures):
             family_counts[level] = sum(1 for v in data if lower < v <= upper)
 
     # Création légende
-    for level, color_label in LEGENDS.get(mes.unit, {}).items():
+    for level, color_label in LEGENDS[mes.unit].items():
         if args.add_percent and level in family_counts:
             pct = 100 * family_counts[level] / n
             legend_text = f"{color_label} ({pct:.1f}%)"
