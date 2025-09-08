@@ -73,7 +73,6 @@ class RoadMeasure():# pylint: disable=too-many-instance-attributes
         return [key for key in self._tops.keys() if key not in [START, END]]
 
     def top_abs(self, top_string: str | None, offset=True) -> None | float:
-
         """retourne l'abscisse du top"""
         if top_string is None :
             return None
@@ -95,15 +94,18 @@ class RoadMeasure():# pylint: disable=too-many-instance-attributes
         return result
 
     def abs(self, index_start: int = 0, offset: bool = True) -> list[float]:
-        """Liste des abscisses (avec ou sans offset), zoomées si applicable."""
+        """Liste des abscisses (avec ou sans offset)"""
         nb_pts = len(self.datas)
         decalage = self.offset if offset else 0
-        base = [(i + index_start) * self.step + decalage for i in range(nb_pts)]
+        return [(i + index_start) * self.step + decalage for i in range(nb_pts)]
+
+    def abs_zoomed(self, index_start: int = 0, offset: bool = True) -> list[float]:
+        """Liste des abscisses (avec ou sans offset), zoomées si applicable."""
+        base = self.abs(index_start, offset)
         if self.zoom is None :
             return base
         start, end = self.zoom
         return base[start:end]
-
 
     @property # on transforme une méthode en attribut, pas besoin des ()
     def datas_zoomed(self) -> list[float]:

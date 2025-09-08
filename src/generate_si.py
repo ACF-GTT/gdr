@@ -166,7 +166,7 @@ def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
         mesure.apply_zoom_from_prs(bornes[0], None)
     elif len(bornes) >= 2:
         mesure.apply_zoom_from_prs(bornes[0], bornes[-1])
-    return mesure.abs(), mesure.datas_zoomed
+    return mesure.abs_zoomed(), mesure.datas_zoomed
 
 
 parser = argparse.ArgumentParser(description='linear diagrams')
@@ -283,36 +283,34 @@ for j, mes in enumerate(measures):
     print(f"il y a {n} lignes")
     #  Ajout des % dans l'hystogramme en légende
     legend = []
-    if mes.unit in LEVELS :
-        family_counts: dict[str, float] = {}
-        if args.add_percent :
-            levels_description = LEVELS[mes.unit]
-            for level, bounds in levels_description.items():
-                lower = bounds.get(LOWER)
-                upper = bounds.get(UPPER)
-                if lower is None and upper is not None:
-                    family_counts[level] = sum(1 for v in data if v <= upper)
-                    continue
-                if lower is not None and upper is None:
-                    family_counts[level] = sum(1 for v in data if v > lower)
-                    continue
-                family_counts[level] = sum(1 for v in data if lower < v <= upper)
+    family_counts: dict[str, float] = {}
+    if args.add_percent :
+        levels_description = LEVELS.get(mes.unit, {})
+        for level, bounds in levels_description.items():
+            lower = bounds.get(LOWER)
+            upper = bounds.get(UPPER)
+            if lower is None and upper is not None:
+                family_counts[level] = sum(1 for v in data if v <= upper)
+                continue
+            if lower is not None and upper is None:
+                family_counts[level] = sum(1 for v in data if v > lower)
+                continue
+            family_counts[level] = sum(1 for v in data if lower < v <= upper)
 
-        # Création légende
-        if mes.unit in LEGENDS:
-            for level, color_label in LEGENDS[mes.unit].items():
-                if args.add_percent and level in family_counts:
-                    pct = 100 * family_counts[level] / n
-                    legend_text = f"{color_label} ({pct:.1f}%)"
-                else:
-                    legend_text = color_label  # affichage simple sans %
-                patch = mpatches.Patch(
-                    color=COLORS[mes.unit][level],
-                    label=legend_text
-                )
-                legend.append(patch)
-            plt.legend(handles=legend, loc="upper right")
-            LEGENDED.append(mes.unit)
+    # Création légende
+    for level, color_label in LEGENDS.get(mes.unit, {}).items():
+        if args.add_percent and level in family_counts:
+            pct = 100 * family_counts[level] / n
+            legend_text = f"{color_label} ({pct:.1f}%)"
+        else:
+            legend_text = color_label  # affichage simple sans %
+        patch = mpatches.Patch(
+            color=COLORS[mes.unit][level],
+            label=legend_text
+        )
+        legend.append(patch)
+    plt.legend(handles=legend, loc="upper right")
+    LEGENDED.append(mes.unit)
 
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")
@@ -330,9 +328,9 @@ for j, mes in enumerate(measures):
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
     x_mean_values, mean_values = mes.produce_mean(
-    MEAN_STEP,
-    rec_zh=args.rec_zh
-)
+        MEAN_STEP,
+        rec_zh=args.rec_zh
+    )
     plt.bar(
         x_mean_values,
         mean_values,
