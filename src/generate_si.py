@@ -326,7 +326,6 @@ for j, mes in enumerate(measures):
     )
     INDEX += 1
 
-
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
     x_mean_values, mean_values = mes.produce_mean(
@@ -361,6 +360,5 @@ def summarize(list_of_measures):
         print(msg)
 
 summarize(measures)
-
 
 plt.show()
