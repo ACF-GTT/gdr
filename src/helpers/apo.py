@@ -2,7 +2,8 @@
 import csv
 import os
 
-from helpers.road_mesure import SITitle, RoadMeasure, PR
+from helpers.consts import PR
+from helpers.road_mesure import SITitle, RoadMeasure
 
 def get_apo_datas(
     file_name: str,

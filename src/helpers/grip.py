@@ -1,9 +1,8 @@
 """Traitement des fichiers griptester MK2"""
 import csv
 
-from helpers.consts import BALISE_RESULTS, BALISE_HEADER, correle
+from helpers.consts import BALISE_RESULTS, BALISE_HEADER, correle, START, END, PR
 from helpers.road_mesure import (
-    START, END, PR,
     DATE_REGEXP, TIME_REGEXP,
     SITitle,
     RoadMeasure

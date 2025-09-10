@@ -9,7 +9,7 @@ import os
 import re
 from typing import Any
 
-from helpers.consts import BALISE_HEADER, BALISE_RESULTS, correle, define_color
+from helpers.consts import BALISE_HEADER, BALISE_RESULTS, correle, get_color
 from helpers.road_mesure import DATE_REGEXP
 from helpers.shared import pick_file
 
@@ -78,7 +78,7 @@ with open(file_name, encoding="utf-8") as csvfile:
                 lat=lat,
                 lon=lon,
                 alt=alt,
-                color=define_color(y)
+                color=get_color(y)
             )
             geojson_collection["features"].append(feature)
 
