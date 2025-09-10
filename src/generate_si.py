@@ -2,7 +2,6 @@
 sous la forme de schémas itinéraires SI
 """
 import argparse
-from collections import defaultdict
 import os
 
 import matplotlib.patches as mpatches
@@ -10,84 +9,17 @@ import matplotlib.pyplot as plt
 
 from helpers.consts import (
     CFT_COLORS,
-    CFT_POOR,
-    CFT_GOOD,
-    CFT_EXCELLENT,
+    CFT_POOR, CFT_GOOD, CFT_EXCELLENT,
     PMP_COLORS,
-    PMP_POOR,
-    PMP_GOOD
+    PMP_POOR, PMP_GOOD,
+    UPPER, LOWER,
+    LEVELS, LEGENDS,
+    EVE_COLORS, COLORS
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
 from helpers.road_mesure import RoadMeasure, START, END
-
-COLORS = {
-    "CFT": CFT_COLORS,
-    "PMP": PMP_COLORS
-}
-
-UPPER = "upper"
-LOWER = "lower"
-
-LEVELS: dict[str, dict[str, dict[str, int | float]]] = {
-    "CFT": {
-        "poor": {UPPER: CFT_POOR},
-        "fine": {LOWER: CFT_POOR, UPPER: CFT_GOOD},
-        "good": {LOWER: CFT_GOOD, UPPER: CFT_EXCELLENT},
-        "excellent": {LOWER: CFT_EXCELLENT}
-    },
-    "PMP": {
-        "poor": {UPPER: PMP_POOR},
-        "fine": {LOWER: PMP_POOR, UPPER: PMP_GOOD},
-        "good": {LOWER: PMP_GOOD}
-    }
-}
-
-LEGENDS: dict[str, dict[str, str]] = {}
-
-for metric, levels_description in LEVELS.items():
-    if metric not in LEGENDS:
-        LEGENDS[metric] = {}
-    for level, bounds in levels_description.items():
-        lower = bounds.get(LOWER)
-        upper = bounds.get(UPPER)
-        if lower is None and upper is not None:
-            LEGENDS[metric][level] = f"{metric}<={upper}"
-            continue
-        if lower is not None and upper is None:
-            LEGENDS[metric][level] = f"{metric}>{lower}"
-            continue
-        LEGENDS[metric][level] = f"{lower}<{metric}<={upper}"
-
-EVE_STD = {
-    "font": "red",
-    "line": "blue",
-    "bbox": {
-        "boxstyle": "round",
-        "edgecolor": "gray",
-        "facecolor": "white"
-    }
-}
-EVE_COLORS: dict[str, dict] = defaultdict(lambda: EVE_STD)
-EVE_COLORS["D"] = {
-    "font": "white",
-    "line": "green",
-    "bbox": {
-        "boxstyle": "round",
-        "edgecolor": "none",
-        "facecolor": "green"
-    }
-}
-EVE_COLORS["F"] = {
-    "font": "white",
-    "line": "red",
-    "bbox": {
-        "boxstyle": "round",
-        "edgecolor": "none",
-        "facecolor": "red"
-    }
-}
 
 PRECISION = {
     100: 0,
