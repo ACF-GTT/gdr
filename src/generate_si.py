@@ -10,11 +10,9 @@ import matplotlib.pyplot as plt
 from helpers.consts import (
     CFT_COLORS,
     CFT_POOR, CFT_GOOD, CFT_EXCELLENT,
-    PMP_COLORS,
-    PMP_POOR, PMP_GOOD,
     UPPER, LOWER,
     LEVELS, LEGENDS,
-    EVE_COLORS, COLORS
+    EVE_COLORS, COLORS, UNKNOWN_COLOR
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
@@ -29,29 +27,18 @@ PRECISION = {
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = 200
 
+def get_color(val: float, unit: str = "CFT") -> str:
+    """Couleur du couple (valeur, type de mesure)."""
+    for level, bounds in LEVELS[unit].items():
+        lower = bounds.get(LOWER, float("-inf"))
+        upper = bounds.get(UPPER, float("inf"))
+        if lower < val <= upper:
+            return COLORS[unit][level]
+    return UNKNOWN_COLOR
 
-def color_map(y_data: list[float], unit="CFT"):
+def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
     """Crée le tableau des couleurs pour l'histogramme."""
-    if unit=="PMP":
-        return list(
-            map(
-                lambda val:
-                    PMP_COLORS["poor"] if val <= PMP_POOR
-                    else PMP_COLORS["fine"] if PMP_POOR < val <=PMP_GOOD
-                    else PMP_COLORS["good"],
-                y_data
-            )
-        )
-    return list(
-        map(
-            lambda val:
-                CFT_COLORS["poor"] if val <= CFT_POOR
-                else CFT_COLORS["fine"] if CFT_POOR < val <= CFT_GOOD
-                else CFT_COLORS["good"] if CFT_GOOD <= val <= CFT_EXCELLENT
-                else CFT_COLORS["excellent"],
-            y_data
-        )
-    )
+    return [get_color(val, unit) for val in y_data]
 
 def draw_object(
         label: str,
@@ -221,14 +208,8 @@ for j, mes in enumerate(measures):
     if args.add_percent :
         levels_description = LEVELS[mes.unit]
         for level, bounds in levels_description.items():
-            lower = bounds.get(LOWER)
-            upper = bounds.get(UPPER)
-            if lower is None and upper is not None:
-                family_counts[level] = sum(1 for v in data if v <= upper)
-                continue
-            if lower is not None and upper is None:
-                family_counts[level] = sum(1 for v in data if v > lower)
-                continue
+            lower = bounds.get(LOWER, float("-inf"))
+            upper = bounds.get(UPPER, float("inf"))
             family_counts[level] = sum(1 for v in data if lower < v <= upper)
 
     # Création légende
