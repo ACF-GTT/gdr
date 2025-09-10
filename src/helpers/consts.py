@@ -10,6 +10,16 @@ LOGGER.setLevel("DEBUG")
 BALISE_RESULTS = "<RESULTS>"
 BALISE_HEADER = "<HEADER>"
 
+POOR = "poor"
+FINE = "fine"
+GOOD = "good"
+EXCELLENT = "excellent"
+
+START = "start"
+END = "end"
+
+PR = "pr"
+
 ############
 # GRIPTESTER
 ############
@@ -17,10 +27,10 @@ CFT_POOR = 50
 CFT_GOOD = 60
 CFT_EXCELLENT = 70
 CFT_COLORS = {
-    "poor": "#ea1256",
-    "fine": "#ee7a0e",
-    "good": "#e7dc0c",
-    "excellent": "#38e70c"
+    POOR: "#ea1256",
+    FINE: "#ee7a0e",
+    GOOD: "#e7dc0c",
+    EXCELLENT: "#38e70c"
 }
 
 # droite de corrélation obtenue lors des essais croisés
@@ -34,11 +44,12 @@ PMP_POOR = 0.4
 PMP_GOOD = 0.8
 
 PMP_COLORS = {
-    "poor": "#30383a",
-    "fine": "#a2b3a3",
-    "good": "#409f48"
+    POOR: "#30383a",
+    FINE: "#a2b3a3",
+    GOOD: "#409f48"
 }
 
+UNKNOWN_COLOR = "#cccccc"
 COLORS = {
     "CFT": CFT_COLORS,
     "PMP": PMP_COLORS
@@ -52,15 +63,15 @@ LOWER = "lower"
 
 LEVELS: dict[str, dict[str, dict[str, int | float]]] = {
     "CFT": {
-        "poor": {UPPER: CFT_POOR},
-        "fine": {LOWER: CFT_POOR, UPPER: CFT_GOOD},
-        "good": {LOWER: CFT_GOOD, UPPER: CFT_EXCELLENT},
-        "excellent": {LOWER: CFT_EXCELLENT}
+        POOR: {UPPER: CFT_POOR},
+        FINE: {LOWER: CFT_POOR, UPPER: CFT_GOOD},
+        GOOD: {LOWER: CFT_GOOD, UPPER: CFT_EXCELLENT},
+        EXCELLENT: {LOWER: CFT_EXCELLENT}
     },
     "PMP": {
-        "poor": {UPPER: PMP_POOR},
-        "fine": {LOWER: PMP_POOR, UPPER: PMP_GOOD},
-        "good": {LOWER: PMP_GOOD}
+        POOR: {UPPER: PMP_POOR},
+        FINE: {LOWER: PMP_POOR, UPPER: PMP_GOOD},
+        GOOD: {LOWER: PMP_GOOD}
     }
 }
 

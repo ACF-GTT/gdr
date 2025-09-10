@@ -1,11 +1,7 @@
 """Représentation de mesures routières."""
 import re
 from statistics import mean
-from helpers.consts import LOGGER
-
-START = "start"
-END = "end"
-PR = "pr"
+from helpers.consts import LOGGER, START, END
 
 DATE_REGEXP = re.compile(
     "[0-9]{2}/[0-9]{2}/[0-9]{4}"
