@@ -90,6 +90,17 @@ def draw_objects(tops : dict[str, tuple], ymax: int):
         else:
             draw_object(key, x, ymax)
 
+def filtre_bornes(mesure : RoadMeasure, bornes: list[str] | None):
+    """Filtre les données de la mesure en fonction des bornes fournies."""
+    if not bornes or bornes is None:
+        mesure.clear_zoom()
+    elif len(bornes) == 1:
+        mesure.apply_zoom_from_prs(bornes[0], None)
+    elif len(bornes) >= 2:
+        mesure.apply_zoom_from_prs(bornes[0], bornes[-1])
+    return mesure.abs_zoomed(), mesure.datas_zoomed
+
+
 parser = argparse.ArgumentParser(description='linear diagrams')
 parser.add_argument(
     "--multi",
@@ -104,13 +115,14 @@ parser.add_argument(
     default=None
 )
 parser.add_argument(
-    "--show_legend",
+    "--add_percent",
     action="store_true",
     help="Afficher la légende avec les pourcentages"
 )
 parser.add_argument(
     "--bornes",
-    action="store_true",
+    nargs = "*",
+    default=None,
     help="Fixer manuellement les bornes d'affichage"
 )
 parser.add_argument(
@@ -162,6 +174,7 @@ for name in file_names.values():
 
 ABS_REFERENCE = None
 LEGENDED = []
+ABSCISSES = None
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
@@ -176,58 +189,6 @@ for j, mes in enumerate(measures):
     if mes.title is not None:
         plt.title(mes.title)
 
-    # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
-    if mes.unit == "CFT":
-        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.1)
-        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.1)
-        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.1)
-        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.1)
-
-    if (n :=  len(mes.datas)) == 0:
-        continue
-    print(f"il y a {n} lignes")
-    #  Ajout des % dans l'hystogramme en légende
-    legend = []
-    family_counts: dict[str, float] = {}
-    if args.show_legend :
-        data = mes.datas
-        if mes.unit is None:
-            continue
-        if mes.unit not in LEVELS:
-            continue
-        levels_description = LEVELS[mes.unit]
-        for level, bounds in levels_description.items():
-            if LOWER not in bounds and UPPER not in bounds:
-                continue
-            if LOWER in bounds:
-                lower = bounds[LOWER]
-                if UPPER in bounds:
-                    upper = bounds[UPPER]
-                    family_counts[level] = sum(1 for v in data if lower < v <= upper)
-                else:
-                    family_counts[level] = sum(1 for v in data if v > lower)
-            else:
-                upper = bounds[UPPER]
-                family_counts[level] = sum(1 for v in data if v <= upper)
-
-    if mes.unit is not None:
-        for level, color_label in LEGENDS[mes.unit].items():
-            legend_text = color_label
-            if level in family_counts:
-                pct = 100 * family_counts[level] / n
-                legend_text = f"{legend_text} ({pct:.1f}%)"
-            legend.append(
-                mpatches.Patch(
-                    color=COLORS[mes.unit][level],
-                    label=legend_text
-                )
-            )
-        plt.legend(handles=legend, loc='upper right')
-        LEGENDED.append(mes.unit)
-
-    plt.ylim((0, Y_MAX))
-    plt.grid(visible=True, axis="x", linestyle="--")
-    plt.grid(visible=True, axis="y")
     print(f"tops avant offset {mes.tops()}")
     if j != 0 and mes.sens != measures[0].sens:
         mes.reverse()
@@ -235,15 +196,67 @@ for j, mes in enumerate(measures):
         mes.offset = ABS_REFERENCE - mes.tops()[PR_RECALAGE][0]
         print(f"on applique un offset {mes.offset}")
         print(f"tops après offset : {mes.tops()}")
+
+    ABSCISSES, data = filtre_bornes(mes, args.bornes)
+    if args.bornes and j==0:
+        plt.xlim(min(ABSCISSES), max(ABSCISSES))
+    n = len(data)
+    if n == 0:
+        continue
+
+    # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
+    if mes.unit == "CFT":
+        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.4)
+        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.4)
+        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.4)
+        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.4)
+
+
+    print(f"il y a {n} lignes")
+    if mes.unit is None:
+        continue
+    #  Ajout des % dans l'hystogramme en légende
+    legend = []
+    family_counts: dict[str, float] = {}
+    if args.add_percent :
+        levels_description = LEVELS[mes.unit]
+        for level, bounds in levels_description.items():
+            lower = bounds.get(LOWER)
+            upper = bounds.get(UPPER)
+            if lower is None and upper is not None:
+                family_counts[level] = sum(1 for v in data if v <= upper)
+                continue
+            if lower is not None and upper is None:
+                family_counts[level] = sum(1 for v in data if v > lower)
+                continue
+            family_counts[level] = sum(1 for v in data if lower < v <= upper)
+
+    # Création légende
+    for level, color_label in LEGENDS[mes.unit].items():
+        if args.add_percent and level in family_counts:
+            pct = 100 * family_counts[level] / n
+            legend_text = f"{color_label} ({pct:.1f}%)"
+        else:
+            legend_text = color_label  # affichage simple sans %
+        patch = mpatches.Patch(
+            color=COLORS[mes.unit][level],
+            label=legend_text
+        )
+        legend.append(patch)
+    plt.legend(handles=legend, loc="upper right")
+    LEGENDED.append(mes.unit)
+
+    plt.ylim((0, Y_MAX))
+    plt.grid(visible=True, axis="x", linestyle="--")
+    plt.grid(visible=True, axis="y")
     draw_objects(mes.tops(), Y_MAX)
     plt.bar(
-        mes.abs(),
-        mes.datas,
-        color = color_map(mes.datas, unit=mes.unit),
-        edgecolor = color_map(mes.datas, unit=mes.unit)
+        ABSCISSES,
+        data,
+        color = color_map(data, unit=mes.unit),
+        edgecolor = color_map(data, unit=mes.unit)
     )
     INDEX += 1
-
 
     plt.subplot(INDEX, sharex=ax)
     plt.ylim((0, Y_MAX))
@@ -279,13 +292,5 @@ def summarize(list_of_measures):
         print(msg)
 
 summarize(measures)
-
-# zoom manuel sur D/F première mesure
-if args.bornes:
-    tops_mes = measures[0].tops()
-    start_x = tops_mes.get(START, (0, 0))[0]
-    end_x   = tops_mes.get(END, (max(measures[0].abs()), 0))[0]
-    plt.xlim(start_x, end_x)
-
 
 plt.show()
