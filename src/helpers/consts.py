@@ -78,21 +78,25 @@ LEVELS: dict[str, dict[str, dict[str, int | float]]] = {
 #####################
 # LEGENDS (AUTOMATIC)
 #####################
-LEGENDS: dict[str, dict[str, str]] = {}
+def produce_legend() -> dict[str, dict[str, str]]:
+    """production des bases pour les légendes."""
+    legends : dict[str, dict[str, str]] = {}
+    for metric, levels_description in LEVELS.items():
+        if metric not in legends:
+            legends[metric] = {}
+        for level, bounds in levels_description.items():
+            lower = bounds.get(LOWER)
+            upper = bounds.get(UPPER)
+            if lower is None and upper is not None:
+                legends[metric][level] = f"{metric}<={upper}"
+                continue
+            if lower is not None and upper is None:
+                legends[metric][level] = f"{metric}>{lower}"
+                continue
+            legends[metric][level] = f"{lower}<{metric}<={upper}"
+    return legends
 
-for metric, levels_description in LEVELS.items():
-    if metric not in LEGENDS:
-        LEGENDS[metric] = {}
-    for level, bounds in levels_description.items():
-        lower = bounds.get(LOWER)
-        upper = bounds.get(UPPER)
-        if lower is None and upper is not None:
-            LEGENDS[metric][level] = f"{metric}<={upper}"
-            continue
-        if lower is not None and upper is None:
-            LEGENDS[metric][level] = f"{metric}>{lower}"
-            continue
-        LEGENDS[metric][level] = f"{lower}<{metric}<={upper}"
+LEGENDS = produce_legend()
 
 #############
 # MANUAL TOPS
@@ -130,12 +134,11 @@ def correle(gt_value):
     """Applique la corrélation issue des essais croisés."""
     return 100*(CFT_PENTE * gt_value + CFT_DECALAGE)
 
-def define_color(cft_value):
-    """Retourne la couleur de la classe de la valeur de CFT"""
-    if cft_value <= CFT_POOR:
-        return CFT_COLORS["poor"]
-    if CFT_POOR < cft_value <= CFT_GOOD:
-        return CFT_COLORS["fine"]
-    if CFT_GOOD <= cft_value <= CFT_EXCELLENT:
-        return CFT_COLORS["good"]
-    return CFT_COLORS["excellent"]
+def get_color(val: float, unit: str = "CFT") -> str:
+    """Couleur du couple (valeur, type de mesure)."""
+    for level, bounds in LEVELS[unit].items():
+        lower = bounds.get(LOWER, float("-inf"))
+        upper = bounds.get(UPPER, float("inf"))
+        if lower < val <= upper:
+            return COLORS[unit][level]
+    return UNKNOWN_COLOR

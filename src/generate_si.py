@@ -12,7 +12,7 @@ from helpers.consts import (
     CFT_POOR, CFT_GOOD, CFT_EXCELLENT,
     UPPER, LOWER,
     LEVELS, LEGENDS,
-    EVE_COLORS, COLORS, UNKNOWN_COLOR
+    EVE_COLORS, COLORS, get_color
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
@@ -27,14 +27,7 @@ PRECISION = {
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = 200
 
-def get_color(val: float, unit: str = "CFT") -> str:
-    """Couleur du couple (valeur, type de mesure)."""
-    for level, bounds in LEVELS[unit].items():
-        lower = bounds.get(LOWER, float("-inf"))
-        upper = bounds.get(UPPER, float("inf"))
-        if lower < val <= upper:
-            return COLORS[unit][level]
-    return UNKNOWN_COLOR
+
 
 def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
     """Crée le tableau des couleurs pour l'histogramme."""
