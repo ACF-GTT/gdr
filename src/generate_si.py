@@ -162,8 +162,12 @@ for j, mes in enumerate(measures):
     if j == 0:
         ax = plt.subplot(INDEX)
         if PR_RECALAGE is not None:
-            ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
-            print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
+            try:
+                ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
+                print(f"abscisse du pr {PR_RECALAGE} dans cette mesure : {ABS_REFERENCE}")
+            except KeyError:
+                print(f"Attention le PR saisi '{PR_RECALAGE}' est inexistant : pas de recalage")
+                ABS_REFERENCE = None
     else:
         plt.subplot(INDEX, sharex=ax)
     if mes.title is not None:
