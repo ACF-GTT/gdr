@@ -3,14 +3,12 @@ sous la forme de schémas itinéraires SI
 """
 import argparse
 import os
-import yaml
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 from helpers.consts import (
     CFT_COLORS,
-    CFT_POOR, CFT_GOOD, CFT_EXCELLENT,
     UPPER, LOWER,
     LEVELS, LEGENDS,
     EVE_COLORS, COLORS, get_color
@@ -19,6 +17,7 @@ from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
 from helpers.road_mesure import RoadMeasure, START, END
+from helpers.tools_file import CheckConf
 
 PRECISION = {
     100: 0,
@@ -157,12 +156,7 @@ ABS_REFERENCE = None
 LEGENDED = []
 ABSCISSES = None
 
-# Charger la config YAML
-CFG_PATH = f"{os.path.dirname(__file__)}/colors.yml"
-with open(CFG_PATH, "r", encoding="utf-8") as f:
-    yaml_cfg = yaml.safe_load(f)
-# Dictionnaire des alpha
-BG_ALPHA = yaml_cfg["background_alpha"]
+YAML_CONF = CheckConf()
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
@@ -198,10 +192,15 @@ for j, mes in enumerate(measures):
 
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
-        plt.axhspan(0, CFT_POOR,color=CFT_COLORS["poor"], alpha=BG_ALPHA["poor"])
-        plt.axhspan(CFT_POOR, CFT_GOOD,color=CFT_COLORS["fine"], alpha=BG_ALPHA["fine"])
-        plt.axhspan(CFT_GOOD, CFT_EXCELLENT,color=CFT_COLORS["good"], alpha=BG_ALPHA["good"])
-        plt.axhspan(CFT_EXCELLENT, Y_MAX,color=CFT_COLORS["excellent"], alpha=BG_ALPHA["excellent"])
+        for level, val in LEVELS["CFT"].items():
+            lower = val.get(LOWER, float("-inf"))
+            upper = val.get(UPPER, float("inf"))
+            plt.axhspan(
+                lower,
+                upper,
+                color=CFT_COLORS[level],
+                alpha=YAML_CONF.get_backgound_alpha(level)
+            )
 
     print(f"il y a {n} lignes")
     if mes.unit is None:
