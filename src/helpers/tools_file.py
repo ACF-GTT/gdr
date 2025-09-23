@@ -20,7 +20,6 @@ class CheckConf():
         if os.path.exists(yaml_path):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.yaml = dict(yaml.safe_load(f))
-        print(self.yaml)
 
     def get_keys(self) -> list:
         """Retourne toutes les clés présentes dans le yaml."""

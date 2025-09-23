@@ -193,8 +193,8 @@ for j, mes in enumerate(measures):
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
         for level, val in LEVELS["CFT"].items():
-            lower = val.get(LOWER, float("-inf"))
-            upper = val.get(UPPER, float("inf"))
+            lower = val.get(LOWER, 0)
+            upper = val.get(UPPER, Y_MAX)
             plt.axhspan(
                 lower,
                 upper,
