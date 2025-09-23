@@ -13,6 +13,7 @@ py -m pip install matplotlib
 py -m pip install inquirer
 py -m pip install folium
 py -m pip install geopandas
+py -m pip install pyyaml
 ```
 
 ## organisation des répertoires de données
