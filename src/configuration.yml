@@ -1,0 +1,8 @@
+background_alpha:
+  poor: 0.1
+  fine: 0.3
+  good: 0.4
+  excellent: 0.4
+
+logging:
+  gdr: "info"

@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 
 from helpers.consts import (
     CFT_COLORS,
-    CFT_POOR, CFT_GOOD, CFT_EXCELLENT,
     UPPER, LOWER,
     LEVELS, LEGENDS,
     EVE_COLORS, COLORS, get_color
@@ -18,6 +17,7 @@ from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
 from helpers.road_mesure import RoadMeasure, START, END
+from helpers.tools_file import CheckConf
 
 PRECISION = {
     100: 0,
@@ -156,6 +156,8 @@ ABS_REFERENCE = None
 LEGENDED = []
 ABSCISSES = None
 
+YAML_CONF = CheckConf()
+
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
     print(f"mesure {j}")
@@ -190,11 +192,15 @@ for j, mes in enumerate(measures):
 
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
     if mes.unit == "CFT":
-        plt.axhspan(0, CFT_POOR, color=CFT_COLORS["poor"], alpha=0.4)
-        plt.axhspan(CFT_POOR, CFT_GOOD, color=CFT_COLORS["fine"], alpha=0.4)
-        plt.axhspan(CFT_GOOD, CFT_EXCELLENT, color=CFT_COLORS["good"], alpha=0.4)
-        plt.axhspan(CFT_EXCELLENT, Y_MAX, color=CFT_COLORS["excellent"], alpha=0.4)
-
+        for level, val in LEVELS["CFT"].items():
+            lower = val.get(LOWER, 0)
+            upper = val.get(UPPER, Y_MAX)
+            plt.axhspan(
+                lower,
+                upper,
+                color=CFT_COLORS[level],
+                alpha=YAML_CONF.get_backgound_alpha(level)
+            )
 
     print(f"il y a {n} lignes")
     if mes.unit is None:
