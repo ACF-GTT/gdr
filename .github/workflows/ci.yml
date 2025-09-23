@@ -30,6 +30,7 @@ jobs:
         python3 -m pip install geopandas
         python3 -m pip install pylint mypy
         python3 -m pip list
+        python3 -m pip install pyyaml
         
     - name: Analysing the code with pylint
       run: |
