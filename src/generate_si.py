@@ -120,7 +120,7 @@ if PR_RECALAGE is None:
     print("Pas de pr de recalage fourni")
 for j in range(NB_MES):
     questions[f"measure_{j}"] = {
-        "folder_path": f"{os.path.dirname(__file__)}/datas",
+        "folder_path": f"{os.path.dirname(__file__)}/{YAML_CONF.get_datas_folder()}",
         "ext": ["csv", "RE0"],
         "message": f"fichier de mesure {j}"
     }

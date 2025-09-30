@@ -7,4 +7,9 @@ background_alpha:
 logging:
   gdr: "info"
 
-mean_step: 0
+# pas pour le calcul des moyennes
+mean_step:
+
+# le nom d'un sous-répertoire de datas
+# pour réduire la liste des fichiers affichés
+datas:

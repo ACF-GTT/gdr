@@ -27,7 +27,10 @@ class CheckConf():
 
     def get_mean_step(self) -> int:
         """retourne mean_step"""
-        return self.yaml.get("mean_step", 200)
+        mean_step = self.yaml.get("mean_step")
+        if mean_step is not None:
+            return mean_step
+        return 200
 
     def get_log_level(self, name: str) -> str:
         """Retourne le niveau de logging pour le module."""
@@ -38,3 +41,10 @@ class CheckConf():
         """Retourne la transparence d'un niveau"""
         conf = dict(self.yaml.get("background_alpha", {}))
         return float(conf.get(level, 0))
+
+    def get_datas_folder(self) -> str:
+        """retourne le path vers les datas"""
+        sub_folder = self.yaml.get("datas")
+        if sub_folder is not None:
+            return f"datas/{sub_folder}"
+        return "datas"
