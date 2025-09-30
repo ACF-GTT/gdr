@@ -6,3 +6,5 @@ background_alpha:
 
 logging:
   gdr: "info"
+
+mean_step: 0

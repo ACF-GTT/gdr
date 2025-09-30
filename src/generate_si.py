@@ -20,15 +20,15 @@ from helpers.scrim import get_scrim_datas
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
 
+YAML_CONF = CheckConf()
+
 PRECISION = {
     100: 0,
     1: 2
 }
 
 # pas en mètres pour une analyse en zône homogène
-MEAN_STEP = 200
-
-
+MEAN_STEP = YAML_CONF.get_mean_step()
 
 def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
     """Crée le tableau des couleurs pour l'histogramme."""
@@ -156,8 +156,6 @@ INDEX= 1
 ABS_REFERENCE = None
 LEGENDED = []
 ABSCISSES = None
-
-YAML_CONF = CheckConf()
 
 for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1

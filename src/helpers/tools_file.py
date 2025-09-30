@@ -24,6 +24,10 @@ class CheckConf():
     def get_keys(self) -> list:
         """Retourne toutes les clés présentes dans le yaml."""
         return list(self.yaml.keys())
+    
+    def get_mean_step(self) -> int:
+        """retourne mean_step"""
+        return self.yaml.get("mean_step", 200)
 
     def get_log_level(self, name: str) -> str:
         """Retourne le niveau de logging pour le module."""
