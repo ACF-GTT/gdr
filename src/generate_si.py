@@ -151,7 +151,7 @@ for name in file_names.values():
         datas = get_scrim_datas(name, force_sens=FORCE_SENS)
     if datas is not None:
         measures.append(datas)
-NB_MES = len(measures)
+NB_GRAPHES = len(measures) if MEAN_STEP == 0 else 2*len(measures)
 INDEX= 1
 ABS_REFERENCE = None
 LEGENDED = []
@@ -161,7 +161,7 @@ for j, mes in enumerate(measures):
     Y_MAX = 100 if mes.unit == "CFT" else 1
     print(f"mesure {j}")
     if j == 0:
-        ax = plt.subplot(NB_MES,1,INDEX)
+        ax = plt.subplot(NB_GRAPHES,1,INDEX)
         if PR_RECALAGE is not None:
             try:
                 ABS_REFERENCE = mes.tops()[PR_RECALAGE][0]
@@ -170,7 +170,7 @@ for j, mes in enumerate(measures):
                 print(f"Attention le PR saisi '{PR_RECALAGE}' est inexistant : pas de recalage")
                 ABS_REFERENCE = None
     else:
-        plt.subplot(NB_MES,1,INDEX, sharex=ax)
+        plt.subplot(NB_GRAPHES,1,INDEX, sharex=ax)
     if mes.title is not None:
         plt.title(mes.title)
 
@@ -243,7 +243,7 @@ for j, mes in enumerate(measures):
     INDEX += 1
 
     if MEAN_STEP :
-        plt.subplot(NB_MES,1,INDEX, sharex=ax)
+        plt.subplot(NB_GRAPHES,1,INDEX, sharex=ax)
         plt.ylim((0, Y_MAX))
         x_mean_values, mean_values = mes.produce_mean(
             MEAN_STEP,
