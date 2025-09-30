@@ -16,6 +16,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
+from helpers.scrim import get_scrim_datas 
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
 
@@ -146,6 +147,8 @@ for name in file_names.values():
         datas = get_grip_datas(name, force_sens=FORCE_SENS)
     if mes_unit == "PMP":
         datas = get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS)
+    if mes_unit == "SCRIM":
+        datas = get_scrim_datas(name, force_sens=FORCE_SENS)
     if datas is not None:
         measures.append(datas)
 NB_MES = len(measures)

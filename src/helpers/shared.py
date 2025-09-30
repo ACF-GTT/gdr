@@ -79,7 +79,7 @@ def pick_files(**kwargs) -> dict[str, str]:
     return inquirer.prompt(questions)
 
 def which_measure(file_name: str) -> str | None:
-    """retourne l'unité de mesure : PMP, CFT..."""
+    """retourne l'unité de mesure : PMP, CFT, SCRIM"""
     folder = os.path.dirname(file_name)
     all_files = os.listdir(folder)
     try:
@@ -102,4 +102,7 @@ def which_measure(file_name: str) -> str | None:
                 return "CFT"
             if data.find("RUGO") != -1:
                 return "PMP"
+    # 2. Détection spéciale SCRIM (nom du fichier comporte 'Scrim')
+    if "scrim" in file_name.lower():
+        return "SCRIM"
     return None
