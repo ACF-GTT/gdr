@@ -154,7 +154,6 @@ for name in file_names.values():
 NB_GRAPHES = len(measures) if MEAN_STEP == 0 else 2*len(measures)
 INDEX= 1
 ABS_REFERENCE = None
-LEGENDED = []
 ABSCISSES = None
 
 for j, mes in enumerate(measures):
@@ -227,7 +226,6 @@ for j, mes in enumerate(measures):
         )
         legend.append(patch)
     plt.legend(handles=legend, loc="upper right")
-    LEGENDED.append(mes.unit)
 
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")
