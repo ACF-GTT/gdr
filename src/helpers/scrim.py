@@ -15,6 +15,7 @@ def get_scrim_datas(
     y_datas = []
     abscisses = []
     step = None
+    tops = {}
 
     with open(file_name, encoding="utf-8") as csvfile:
         csv_data = csv.reader(csvfile, delimiter=';')  # séparateur ;
@@ -25,6 +26,8 @@ def get_scrim_datas(
             try:
                 x_val = float(row[0])
                 y_val = float(row[1])
+                if len(row) >= 3:
+                    tops[str(row[2]).lower()] = (x_val, 0)
             except (ValueError, IndexError):
                 continue  # ignore lignes invalides
 
@@ -45,7 +48,7 @@ def get_scrim_datas(
     return RoadMeasure(
         step=step,
         datas=y_datas,
-        tops={},          # pas de tops pour l’instant
+        tops=tops,
         unit="CFT",       # unité SCRIM
         title=title.title,
         force_sens=force_sens
