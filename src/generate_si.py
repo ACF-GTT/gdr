@@ -213,19 +213,20 @@ for j, mes in enumerate(measures):
             upper = bounds.get(UPPER, float("inf"))
             family_counts[level] = sum(1 for v in data if lower < v <= upper)
 
-    # Création légende
-    for level, color_label in LEGENDS[mes.unit].items():
-        if args.add_percent and level in family_counts:
-            pct = 100 * family_counts[level] / n
-            legend_text = f"{color_label} ({pct:.1f}%)"
-        else:
-            legend_text = color_label  # affichage simple sans %
-        patch = mpatches.Patch(
-            color=COLORS[mes.unit][level],
-            label=legend_text
-        )
-        legend.append(patch)
-    plt.legend(handles=legend, loc="upper right")
+    if YAML_CONF.view_legend():
+        # Création légende
+        for level, color_label in LEGENDS[mes.unit].items():
+            if args.add_percent and level in family_counts:
+                pct = 100 * family_counts[level] / n
+                legend_text = f"{color_label} ({pct:.1f}%)"
+            else:
+                legend_text = color_label  # affichage simple sans %
+            patch = mpatches.Patch(
+                color=COLORS[mes.unit][level],
+                label=legend_text
+            )
+            legend.append(patch)
+        plt.legend(handles=legend, loc="upper right")
 
     plt.ylim((0, Y_MAX))
     plt.grid(visible=True, axis="x", linestyle="--")

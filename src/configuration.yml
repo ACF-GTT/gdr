@@ -16,3 +16,9 @@ mean_step:
 # si on ne précise rien, la valeur est datas
 # si on précise sub1/sub2, la valeur est datas/sub1/sub2 
 datas:
+
+# affichage des légendes
+# si on précise rien, les légendes sont affichées
+# si on met true ou 1, c'est pareil
+# si on met false ou 0, les légendes ne sont pas affichées
+legend:

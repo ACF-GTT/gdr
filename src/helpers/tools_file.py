@@ -48,3 +48,11 @@ class CheckConf():
         if sub_folder is not None:
             return f"datas/{sub_folder}"
         return "datas"
+
+    def view_legend(self) -> bool:
+        """Affiche les légendes ou non."""
+        show = self.yaml.get("legend")
+        if show is not None:
+            return bool(show)
+        return True
+
