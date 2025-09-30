@@ -8,8 +8,11 @@ logging:
   gdr: "info"
 
 # pas pour le calcul des moyennes
+# si on ne précise rien, la valeur est 200
 mean_step:
 
 # le nom d'un sous-répertoire de datas
 # pour réduire la liste des fichiers affichés
+# si on ne précise rien, la valeur est datas
+# si on précise sub1/sub2, la valeur est datas/sub1/sub2 
 datas:
