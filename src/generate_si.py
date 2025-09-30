@@ -16,7 +16,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
-from helpers.scrim import get_scrim_datas 
+from helpers.scrim import get_scrim_datas
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
 
@@ -242,7 +242,6 @@ for j, mes in enumerate(measures):
     )
     INDEX += 1
 
-    
     if MEAN_STEP :
         plt.subplot(NB_MES,1,INDEX, sharex=ax)
         plt.ylim((0, Y_MAX))
