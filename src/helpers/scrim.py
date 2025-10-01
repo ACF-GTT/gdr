@@ -4,7 +4,7 @@ import csv
 import os
 from helpers.road_mesure import SITitle, RoadMeasure
 
-def get_scrim_datas(
+def data_csv_scrim_modifiee(
     file_name: str,
     force_sens: str | None = None
 ) -> RoadMeasure | None:
