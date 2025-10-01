@@ -145,7 +145,7 @@ for name in file_names.values():
     if mes_unit == "CFL":
         datas = get_grip_datas(name, force_sens=FORCE_SENS)
     if mes_unit == "PMP":
-        datas = get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS)
+        datas = get_apo_datas(name, unit=mes_unit, force_sens=FORCE_SENS)
     if mes_unit == "CFT":
         datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=FORCE_SENS)
     if datas is not None:
