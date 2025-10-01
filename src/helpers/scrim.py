@@ -28,7 +28,7 @@ def get_generic_absdatatop_csv(
                 x_val = float(row[0])
                 y_val = float(row[1])
                 if len(row) >= 3:
-                    tops[str(row[2]).lower()] = (x_val, 0)
+                    tops[str(row[2]).lower()] = (x_val, 0.0)
             except (ValueError, IndexError):
                 continue  # ignore lignes invalides
 
