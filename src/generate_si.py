@@ -8,7 +8,6 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 from helpers.consts import (
-    CFT_COLORS,
     UPPER, LOWER,
     LEVELS, LEGENDS,
     EVE_COLORS, COLORS, get_color
@@ -16,7 +15,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
-from helpers.scrim import get_scrim_datas
+from helpers.scrim import data_csv_scrim_modifiee
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
 
@@ -143,12 +142,12 @@ for name in file_names.values():
     if "gauche" in name.lower():
         FORCE_SENS = "G"
     datas : RoadMeasure | None = None
-    if mes_unit == "CFT":
+    if mes_unit == "CFL":
         datas = get_grip_datas(name, force_sens=FORCE_SENS)
     if mes_unit == "PMP":
         datas = get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS)
-    if mes_unit == "SCRIM":
-        datas = get_scrim_datas(name, force_sens=FORCE_SENS)
+    if mes_unit == "CFT":
+        datas = data_csv_scrim_modifiee(name, force_sens=FORCE_SENS)
     if datas is not None:
         measures.append(datas)
 NB_GRAPHES = len(measures) if MEAN_STEP == 0 else 2*len(measures)
@@ -157,7 +156,7 @@ ABS_REFERENCE = None
 ABSCISSES = None
 
 for j, mes in enumerate(measures):
-    Y_MAX = 100 if mes.unit == "CFT" else 1
+    Y_MAX = 100 if mes.unit in  ("CFT","CFL") else 1
     print(f"mesure {j}")
     if j == 0:
         ax = plt.subplot(NB_GRAPHES,1,INDEX)
@@ -189,14 +188,14 @@ for j, mes in enumerate(measures):
         continue
 
     # Ajout des bandes colorées en arrière-plan avec la fonction axhspan
-    if mes.unit == "CFT":
-        for level, val in LEVELS["CFT"].items():
+    if mes.unit in ("CFT", "CFL"):
+        for level, val in LEVELS[mes.unit].items():
             lower = val.get(LOWER, 0)
             upper = val.get(UPPER, Y_MAX)
             plt.axhspan(
                 lower,
                 upper,
-                color=CFT_COLORS[level],
+                color=COLORS[mes.unit][level],
                 alpha=YAML_CONF.get_backgound_alpha(level)
             )
 
