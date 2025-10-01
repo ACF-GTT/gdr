@@ -1,4 +1,10 @@
-"""Traitement des fichiers SCRIM (abscisse, CFT)."""
+"""Traitement de fichiers csv génériques
+ce fichier n'est pas un fichier constructeur comme grip.py ou apo.py !!
+première ligne avec des entêtes ou vide
+colonne 0 : abscisses
+colonne 1 : données mesurées
+colonne 2 : les tops enregistrés (de type texte comme start ou des numéros de pr 1, 2, 3)
+"""
 
 import csv
 import os
@@ -22,7 +28,7 @@ def get_generic_absdatatop_csv(
         csv_data = csv.reader(csvfile, delimiter=';')  # séparateur ;
         for i, row in enumerate(csv_data):
             if i == 0:
-                # ligne d'entête ("abscisses;CFT") → on skip
+                # ligne d'entête → on skip
                 continue
             try:
                 x_val = float(row[0])
@@ -42,8 +48,8 @@ def get_generic_absdatatop_csv(
     if step is None or not y_datas:
         return None
 
-    # titre = SCRIM + nom fichier
-    title = SITitle("CFT")
+    # titre = unité de mesure + nom fichier
+    title = SITitle(unit)
     title.add(os.path.basename(file_name))
 
     return RoadMeasure(

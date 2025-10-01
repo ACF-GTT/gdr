@@ -15,7 +15,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
-from helpers.scrim import get_generic_absdatatop_csv
+from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
 
