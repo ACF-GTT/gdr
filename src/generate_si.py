@@ -15,7 +15,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
-from helpers.scrim import data_csv_scrim_modifiee
+from helpers.scrim import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
 
@@ -147,7 +147,7 @@ for name in file_names.values():
     if mes_unit == "PMP":
         datas = get_apo_datas(name, unit="PMP", force_sens=FORCE_SENS)
     if mes_unit == "CFT":
-        datas = data_csv_scrim_modifiee(name, force_sens=FORCE_SENS)
+        datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=FORCE_SENS)
     if datas is not None:
         measures.append(datas)
 NB_GRAPHES = len(measures) if MEAN_STEP == 0 else 2*len(measures)

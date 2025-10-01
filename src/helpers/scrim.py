@@ -4,8 +4,9 @@ import csv
 import os
 from helpers.road_mesure import SITitle, RoadMeasure
 
-def data_csv_scrim_modifiee(
+def get_generic_absdatatop_csv(
     file_name: str,
+    unit: str = "CFT",
     force_sens: str | None = None
 ) -> RoadMeasure | None:
     """
@@ -49,7 +50,7 @@ def data_csv_scrim_modifiee(
         step=step,
         datas=y_datas,
         tops=tops,
-        unit="CFT",       # unité SCRIM
+        unit=unit,
         title=title.title,
         force_sens=force_sens
     )
