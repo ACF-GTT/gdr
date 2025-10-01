@@ -9,7 +9,7 @@ import os
 import re
 from typing import Any
 
-from helpers.consts import BALISE_HEADER, BALISE_RESULTS, correle, get_color
+from helpers.consts import BALISE_HEADER, BALISE_RESULTS, get_color
 from helpers.road_mesure import DATE_REGEXP
 from helpers.shared import pick_file
 
@@ -68,7 +68,7 @@ with open(file_name, encoding="utf-8") as csvfile:
                     geojson_collection["date"] = pattern_found[0]
         if INDEX_START and i > INDEX_START + 1:
             x = float(row[0])
-            y = correle(float(row[1]))
+            y = float(row[1]) *100
             lat = float(row[7])
             lon = float(row[8])
             alt = float(row[9])
