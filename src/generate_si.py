@@ -15,6 +15,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
+from helpers.apl import get_apl_datas
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
@@ -120,7 +121,7 @@ if PR_RECALAGE is None:
 for j in range(NB_MES):
     questions[f"measure_{j}"] = {
         "folder_path": f"{os.path.dirname(__file__)}/{YAML_CONF.get_datas_folder()}",
-        "ext": ["csv", "RE0"],
+        "ext": ["csv", "RE0", "SBO"],
         "message": f"fichier de mesure {j}"
     }
 
@@ -133,6 +134,8 @@ plt.rcParams.update({'font.size': 6})
 
 measures: list[RoadMeasure] = []
 
+NB_GRAPHES = 1
+INDEX = 1
 for name in file_names.values():
     mes_unit = which_measure(name)
     print(f"{name} > unité de mesure : {mes_unit}")
@@ -148,6 +151,30 @@ for name in file_names.values():
         datas = get_apo_datas(name, unit=mes_unit, force_sens=FORCE_SENS)
     if mes_unit == "CFT":
         datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=FORCE_SENS)
+    if mes_unit == "APL":
+        mes = get_apl_datas(name, force_sens=FORCE_SENS)
+        UNITS = ["PO", "MO", "GO"]
+        NB_GRAPHES = len(UNITS)
+        INDEX = 1
+
+        for unite in UNITS:
+            plt.subplot(NB_GRAPHES, 1, INDEX)
+            plt.title(f"{unite} - Gauche / Droite")
+
+            ABSCISSES = [i * mes.step for i in range(len(mes.datas[unite]["Gauche"]))]
+
+            plt.step(ABSCISSES, mes.datas[unite]["Gauche"], label="Gauche", color="tab:blue")
+            plt.step(ABSCISSES, mes.datas[unite]["Droite"], label="Droite", color="tab:orange")
+            plt.xlabel("Abscisse (m)")
+            plt.ylabel(unite)
+            plt.grid(True, linestyle="--", alpha=0.5)
+            plt.legend()
+            plt.ylim(-10,10)
+
+            INDEX += 1
+
+        plt.tight_layout() # Ajuste automatiquement les espacements
+
     if datas is not None:
         measures.append(datas)
 NB_GRAPHES = len(measures) if MEAN_STEP == 0 else 2*len(measures)
