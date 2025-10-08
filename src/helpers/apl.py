@@ -1,32 +1,32 @@
+"""Traitement des fichiers apl"""
 import csv
 from helpers.road_mesure import RoadMeasure
 
 # Lecture du fichier APL avec différents encodages possibles car il y avait un pb avec utf-8
 ENCODINGS = ["utf-8", "windows-1250", "windows-1252"]
 
-def get_apl_datas(file_name: str, unit: str | None = None, force_sens: str | None = None) -> RoadMeasure | None:
-    UNIT_COLUMNS = {
+def get_apl_datas(file_name:str,force_sens: str|None = None) -> RoadMeasure|None: # pylint: disable=too-many-locals
+    """ouvre un fichier de mesure.SBO"""
+    unit_column = {
         "PO": {"Gauche": 1, "Droite": 2},
         "MO": {"Gauche": 3, "Droite": 4},
         "GO": {"Gauche": 5, "Droite": 6},
     }
 
     # chaque unité a deux colonnes : gauche et droite
-    datas = {u: {"Gauche": [], "Droite": []} for u in UNIT_COLUMNS}
+    datas = {u: {"Gauche": [], "Droite": []} for u in unit_column}
     abscisses = []
 
-    # Lecture du fichier avec différents encodages possibles, dès qu'un encodage fonctionne, on sort de la boucle
+    # Lecture du fichier avec ≠ encodages possibles
     for encoding in ENCODINGS:
         try:
             with open(file_name, encoding=encoding, newline="") as csvfile:
                 reader = csv.reader(csvfile, delimiter=";")
                 next(reader, None)  # on passe les en-têtes
-                
                 # Lecture des données, si une ligne est mal formée, on l'ignore
                 for row in reader:
                     if len(row) == 0:
                         continue
-                    
                     # Extraction de l'abscisse
                     try:
                         abscisse = float(row[0])
@@ -36,11 +36,12 @@ def get_apl_datas(file_name: str, unit: str | None = None, force_sens: str | Non
                     abscisses.append(abscisse)
 
                     # Extraction des valeurs pour chaque unité et chaque sens
-                    for onde, sens in UNIT_COLUMNS.items():
+                    for onde, sens in unit_column.items():
                         for direction, column_index in sens.items():
                             # On Vérifie que la colonne à lire existe bien dans la ligne actuelle
-                            if column_index < len(row):
-                                val_str = row[column_index].strip() # valeur brute de l'indice de la colonne et on enlève les espaces par précaution
+                            if column_index >= len(row):
+                                continue
+                            val_str = row[column_index].strip() # indice de la colonne
                             if val_str:
                                 try:
                                     val = float(val_str) #conversion en float
