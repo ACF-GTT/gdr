@@ -79,7 +79,7 @@ def pick_files(**kwargs) -> dict[str, str]:
     return inquirer.prompt(questions)
 
 def which_measure(file_name: str) -> str | None:
-    """retourne l'unité de mesure : PMP, CFT, CFL ou APL"""
+    """retourne l'unité de mesure : PMP, CFT, CFL"""
     folder = os.path.dirname(file_name)
     all_files = os.listdir(folder)
     try:
@@ -105,6 +105,4 @@ def which_measure(file_name: str) -> str | None:
     # 2. Détection spéciale SCRIM (nom du fichier comporte 'Scrim')
     if "scrim" in file_name.lower():
         return "CFT"
-    if "sbo" in file_name.lower():
-        return "APL"
     return None
