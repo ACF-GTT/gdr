@@ -59,7 +59,7 @@ class RoadMeasure():# pylint: disable=too-many-instance-attributes
         # offset/décalage à appliquer en mètres
         self.offset = kwargs.get("offset", 0)
         try:
-            self.sens: str = "D" if prs[0] < prs[1] else "G"
+            self.sens: str = "D" if int(prs[0]) < int(prs[1]) else "G"
         except IndexError:
             force_sens = kwargs.get("force_sens", None)
             self.sens = force_sens if force_sens is not None else "D"
