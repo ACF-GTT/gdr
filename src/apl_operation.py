@@ -36,21 +36,21 @@ file_names = pick_files(
 
 measures: list[dict[str, dict[str, RoadMeasure]]] = []
 
-NB_GRAPHES = 0
+nb_graphes = 0
 for name in file_names.values():
     datas = get_po_mo_go_datas(name)
     if datas is not None:
         measures.append(datas)
-        NB_GRAPHES += 3
+        nb_graphes += 3
 
-INDEX = 1
-NB_MES_APL = 0
+index = 1
+nb_mes_apl = 0
 for j, mes in enumerate(measures):
     for onde, traces in mes.items():
-        if NB_MES_APL == 0:
-            ax = plt.subplot(NB_GRAPHES, 1, INDEX)
+        if nb_mes_apl == 0:
+            ax = plt.subplot(nb_graphes, 1, index)
         else:
-            plt.subplot(NB_GRAPHES, 1, INDEX, sharex=ax)
+            plt.subplot(nb_graphes, 1, index, sharex=ax)
         plt.title(str(traces[GAUCHE].title))
 
         ABSCISSES = [i * traces[GAUCHE].step for i in range(len(traces[GAUCHE].datas))]
@@ -62,8 +62,8 @@ for j, mes in enumerate(measures):
         plt.grid(True, linestyle="--", alpha=0.5)
         plt.legend()
         plt.ylim(-10, 10)
-        INDEX += 1
-        NB_MES_APL += 1
+        index += 1
+        nb_apl_mes += 1
 
     plt.tight_layout() # Ajuste automatiquement les espacements
 
