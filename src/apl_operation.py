@@ -63,7 +63,7 @@ for j, mes in enumerate(measures):
         plt.legend()
         plt.ylim(-10, 10)
         index += 1
-        nb_apl_mes += 1
+        nb_mes_apl += 1
 
     plt.tight_layout() # Ajuste automatiquement les espacements
 
