@@ -41,49 +41,52 @@ def create_point(x_val, y_val, **kwargs):
     el_feature["properties"]["pr"] = -1
     return el_feature
 
-geojson_collection: dict[str, Any] = {
-    "type":"FeatureCollection",
-    "features": list
-}
-geojson_collection["features"] = []
+
+def csv2geojson_collection(name: str) -> dict[str, Any]:
+    """get the geojson collection"""
+    result: dict[str, Any] = {
+        "type":"FeatureCollection",
+        "features": list
+    }
+    result["features"] = []
+    with open(name, encoding="utf-8") as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',')
+        index_start = None
+        index_header = None
+        for i,row in enumerate(spamreader):
+            if row[0].strip() == BALISE_HEADER:
+                index_header = i
+            if row[0].strip() == BALISE_RESULTS:
+                index_start = i
+            if index_header is not None:
+                if i == index_header + 2:
+                    pattern_found = re.search(
+                        DATE_REGEXP,
+                        "".join(row)
+                    )
+                    if pattern_found:
+                        result["date"] = pattern_found[0]
+            if index_start and i > index_start + 1:
+                x = float(row[0])
+                y = float(row[1]) *100
+                lat = float(row[7])
+                lon = float(row[8])
+                alt = float(row[9])
+                feature = create_point(
+                    x,
+                    y,
+                    lat=lat,
+                    lon=lon,
+                    alt=alt,
+                    color=get_color(y)
+                )
+                result["features"].append(feature)
+    return result
 
 file_name = pick_file(f"{os.path.dirname(__file__)}/datas")
-
-with open(file_name, encoding="utf-8") as csvfile:
-    spamreader = csv.reader(csvfile, delimiter=',')
-    INDEX_START = None
-    INDEX_HEADER = None
-    for i,row in enumerate(spamreader):
-        if row[0].strip() == BALISE_HEADER:
-            INDEX_HEADER = i
-        if row[0].strip() == BALISE_RESULTS:
-            INDEX_START = i
-        if INDEX_HEADER is not None:
-            if i == INDEX_HEADER + 2:
-                pattern_found = re.search(
-                    DATE_REGEXP,
-                    "".join(row)
-                )
-                if pattern_found:
-                    geojson_collection["date"] = pattern_found[0]
-        if INDEX_START and i > INDEX_START + 1:
-            x = float(row[0])
-            y = float(row[1]) *100
-            lat = float(row[7])
-            lon = float(row[8])
-            alt = float(row[9])
-            feature = create_point(
-                x,
-                y,
-                lat=lat,
-                lon=lon,
-                alt=alt,
-                color=get_color(y)
-            )
-            geojson_collection["features"].append(feature)
-
 geojson_name = file_name.replace(" ", "_")
 geojson_name = file_name.replace(".csv", ".geojson")
+geojson_collection = csv2geojson_collection(file_name)
 with open(geojson_name, encoding="utf-8", mode="w") as geojsonfile:
     geojsonfile.write(
         json.dumps(
