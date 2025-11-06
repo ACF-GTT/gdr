@@ -25,11 +25,6 @@ from typing import Literal
 
 from helpers.shared import pick_file
 
-file_name = pick_file(
-    f"{os.path.dirname(__file__)}/datas",
-    ext="geojson"
-)
-
 class Geojson2PrAbs:
     """transcodage d'un geojson en PR + abscisse."""
     def __init__(self, name):
@@ -127,55 +122,61 @@ class Geojson2PrAbs:
             )
         return datas
 
-parser = argparse.ArgumentParser(description='transcodage en PR+ABS')
-parser.add_argument(
-    "--nom_csv",
-    action="store",
-    help="nom du csv à utiliser",
-    default=None
-)
-parser.add_argument(
-    "--route",
-    action="store",
-    help="nom de la route",
-    default=None
-)
-args = parser.parse_args()
+def produce_csv(name, args):
+    """main file"""
+    transcoder = Geojson2PrAbs(name)
+    datas_in_prabs = transcoder.convert2prd_abd_prf_abf(route=args.route)
+    mode : Literal["w", "a"] = "w"
+    if args.nom_csv is not None:
+        if args.nom_csv[-3:] != ".csv":
+            args.nom_csv = f"{args.nom_csv}.csv"
+        csv_name = f"{os.path.dirname(__file__)}/{args.nom_csv}"
+        if os.path.isfile(csv_name):
+            mode = "a"
+    else:
+        csv_name = name.replace(".geojson", "_prabs.csv")
 
-transcoder = Geojson2PrAbs(file_name)
-datas_in_prabs = transcoder.convert2prd_abd_prf_abf(route=args.route)
-
-MODE : Literal["w", "a"] = "w"
-if args.nom_csv is not None:
-    if args.nom_csv[-3:] != ".csv":
-        args.nom_csv = f"{args.nom_csv}.csv"
-    CSV_NAME = f"{os.path.dirname(__file__)}/{args.nom_csv}"
-    if os.path.isfile(CSV_NAME):
-        MODE = "a"
-else:
-    CSV_NAME = file_name.replace(".geojson", "_prabs.csv")
-
-WRITE = True
-if MODE == "a":
-    with open(CSV_NAME, encoding="utf-8") as csv_file:
-        csv_data = csv.reader(csv_file, delimiter=',')
-        for j,row in enumerate(csv_data):
-            EXIST = True
-            for j, el in enumerate(datas_in_prabs[0]):
-                if str(el) != row[j]:
-                    EXIST = False
+    write = True
+    if mode == "a":
+        with open(csv_name, encoding="utf-8") as csv_file:
+            csv_data = csv.reader(csv_file, delimiter=',')
+            for j,row in enumerate(csv_data):
+                exist = True
+                for j, el in enumerate(datas_in_prabs[0]):
+                    if str(el) != row[j]:
+                        exist = False
+                        break
+                if exist:
+                    write = False
                     break
-            if EXIST:
-                WRITE = False
-                break
-if not WRITE:
-    print("écriture dans le csv annulée pour cause de doublon")
-else:
-    with open(CSV_NAME, MODE, encoding="utf-8") as csv_file:
+    if not write:
+        return "écriture dans le csv annulée pour cause de doublon"
+    with open(csv_name, mode, encoding="utf-8") as csv_file:
         writer = csv.writer(csv_file, lineterminator="\n")
-        if MODE == "w":
+        if mode == "w":
             entete = ["PRD", "ABD", "PRF", "ABF", "CFT", "DATE", "SENS"]
             if args.route is not None:
                 entete.insert(0, "ROUTE")
             writer.writerow(entete)
         writer.writerows(datas_in_prabs)
+    return "csv produit"
+
+if __name__ == "__main__":
+    file_name = pick_file(
+        f"{os.path.dirname(__file__)}/datas",
+        ext="geojson"
+    )
+    parser = argparse.ArgumentParser(description='transcodage en PR+ABS')
+    parser.add_argument(
+        "--nom_csv",
+        action="store",
+        help="nom du csv à utiliser",
+        default=None
+    )
+    parser.add_argument(
+        "--route",
+        action="store",
+        help="nom de la route",
+        default=None
+    )
+    print(produce_csv(file_name, parser.parse_args()))
