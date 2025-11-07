@@ -128,8 +128,8 @@ def graphe(
         bounds = get_pr_bounds(layers[level])
         print(bounds)
     for i, prs in enumerate(SECTIONS):
-        prd = max(prs[0], bounds[0])
-        prf = min(prs[1], bounds[1])
+        prd = max(prs[0], bounds[0]) if bounds[0] is not None else prs[0]
+        prf = min(prs[1], bounds[1]) if bounds[1] is not None else prs[1]
         for level in range(NB_LEVELS):
             zoom = filter_pr_range(layers[level], prd=prd, prf=prf)
             zoom.plot(
