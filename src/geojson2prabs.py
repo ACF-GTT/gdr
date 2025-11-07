@@ -21,7 +21,6 @@ import argparse
 import csv
 import json
 import os
-from typing import Literal
 
 from helpers.shared import pick_file
 
@@ -126,7 +125,7 @@ def produce_csv(name, args):
     """main file"""
     transcoder = Geojson2PrAbs(name)
     datas_in_prabs = transcoder.convert2prd_abd_prf_abf(route=args.route)
-    mode : Literal["w", "a"] = "w"
+    mode = "w"
     if args.nom_csv is not None:
         if args.nom_csv[-3:] != ".csv":
             args.nom_csv = f"{args.nom_csv}.csv"

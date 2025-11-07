@@ -119,7 +119,7 @@ def get_measures(nb_mes) -> list[RoadMeasure]:
 
 def format_legend(add_percent, unit, data):
     """Formate la légende, avec ou sans %"""
-    family_counts: dict[str, float] = {}
+    family_counts = {}
     if add_percent :
         levels_description = LEVELS[unit]
         for level, bounds in levels_description.items():
@@ -157,7 +157,9 @@ def draw_colored_horizons(unit: str, y_max: int):
 
 
 def draw_mean_histo(mes: RoadMeasure, y_max: int, rec_zh: str):
-    """affiche l'historgramme des valeurs moyennes."""
+    """affiche l'histogramme des valeurs moyennes."""
+    if not mes.unit:
+        return
     x_mean_values, mean_values = mes.produce_mean(
         MEAN_STEP,
         rec_zh=rec_zh
