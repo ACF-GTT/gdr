@@ -32,12 +32,12 @@ PRF = "prf"
 
 class Indicateur:
     """Indicateur d'état IQRN"""
-    def __init__(self, state: str) -> None:
+    def __init__(self, dep: str, route: str, sens: str | None = None) -> None:
         """initialisation"""
-        self._state: str = state
-        self._dep: str | None = None
-        self._route: str | None = None
-        self._sens: str | None = None
+        self._dep = dep
+        self._route: str = route
+        self._sens: str | None = sens
+        self._state: str | None = None
         self._level: int | None = None
 
     def _sql(self):
@@ -55,17 +55,9 @@ class Indicateur:
             AND gravite == '>= {self._level}'
         """
 
-    def fix_road(self, route: str) -> None:
-        """fix route"""
-        self._route = route
-
-    def fix_dep(self, dep: str) -> None:
-        """fix departement"""
-        self._dep = dep
-
-    def fix_sens(self, sens: str | None = None) -> None:
-        """fix sens"""
-        self._sens = sens
+    def fix_state(self, state: str) -> None:
+        """fix state"""
+        self._state = state
 
     def fix_level(self, level: int) -> None:
         """fix level"""
@@ -115,15 +107,11 @@ def filter_pr_range(gdf: GeoDataFrame, prd=None, prf=None):
 
 
 def get_state(
-    state: str,
-    route: str,
-    sens : str | None = None
+    indicateur: Indicateur,
+    state: str
 ) -> dict[int, GeoDataFrame]:
     """return all frames for a state"""
-    indicateur = Indicateur(state)
-    indicateur.fix_dep(DEP)
-    indicateur.fix_road(route)
-    indicateur.fix_sens(sens)
+    indicateur.fix_state(state)
     layers = {}
     for level in range(NB_LEVELS):
         indicateur.fix_level(level)
@@ -161,6 +149,7 @@ def graphe(
     sens: str | None = None
 ) -> None:
     """affiche les indicateurs d'état"""
+    indicateur = Indicateur(dep=DEP, route=route, sens=sens)
     _, axes = plt.subplots(
         1,
         len(STATES),
@@ -173,7 +162,7 @@ def graphe(
 
     layers = {}
     for state in LAYERS:
-        state_layers = get_state(state, route, sens)
+        state_layers = get_state(indicateur, state)
         layers[state] = state_layers
     _, _, text_prd_ini, text_prf_ini = get_pr_bounds(layers[STATES[0]][0])
 
