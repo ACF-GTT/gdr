@@ -1,14 +1,20 @@
 """aigle3D gpkg to matplotlib"""
+import os
 import re
+from typing import cast, TypeAlias
 import geopandas as gpd
 from geopandas import GeoDataFrame
+from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
+from matplotlib.widgets import TextBox, Button
 
-FILE = "datas/AIGLE_3D/2024_IQRN_indicateurs_etat_DIRMC.gpkg"
+FILE = f"{os.path.dirname(__file__)}/datas/AIGLE_3D/2024_IQRN_indicateurs_etat_DIRMC.gpkg"
 YEAR = 2024
+GEST = "DIRMC"
+DEP = "43"
 STATES = ["Superficiel", "Profond", "Tres_Profond"]
 LAYERS = {
-    state: f"Indicateur_Etat_{state}_{YEAR} — DIRMC"
+    state: f"Indicateur_Etat_{state}_{YEAR} — {GEST}"
     for state in STATES
 }
 COLORS = {
@@ -23,12 +29,6 @@ NB_LEVELS = 5
 
 PRD = "prd"
 PRF = "prf"
-
-SECTIONS = [
-    [0, 5],
-    [8, 10],
-    [58, 60]
-]
 
 class Indicateur:
     """Indicateur d'état IQRN"""
@@ -63,7 +63,7 @@ class Indicateur:
         """fix departement"""
         self._dep = dep
 
-    def fix_sens(self, sens: str) -> None:
+    def fix_sens(self, sens: str | None = None) -> None:
         """fix sens"""
         self._sens = sens
 
@@ -80,8 +80,10 @@ class Indicateur:
 
 def get_pr_bounds(
     gdf: GeoDataFrame
-) -> tuple[int | None, int | None]:
-    """retourne les pr min et max sur un itinéraire."""
+) -> tuple[int | None, int | None, str, str]:
+    """retourne les pr min et max sur un itinéraire
+    ainsi que des strings prêts à nourrir les textbox.
+    """
     regex = re.compile(r"PR(\d+)", re.IGNORECASE)
     values = []
     for val in gdf[PLOD].dropna():
@@ -90,8 +92,12 @@ def get_pr_bounds(
     # on ne conserve que les valeurs distinctes et on trie
     values = sorted(set(values))
     if not values:
-        return None, None
-    return min(values), max(values)
+        return None, None, "", ""
+    prd = min(values)
+    prf = max(values)
+    if prd == prf:
+        return prd, prf, str(prd), str(prd)
+    return prd, prf, str(prd), str(prd + 1)
 
 
 def filter_pr_range(gdf: GeoDataFrame, prd=None, prf=None):
@@ -108,43 +114,112 @@ def filter_pr_range(gdf: GeoDataFrame, prd=None, prf=None):
     return gdf[mask]
 
 
-def graphe(
+def get_state(
     state: str,
     route: str,
-    sens: str | None = None
-) -> None:
-    """affiche les indicateurs d'état"""
-    nbsec = len(SECTIONS)
-    _, ax = plt.subplots(1, nbsec, figsize=(6*nbsec, 6))
+    sens : str | None = None
+) -> dict[int, GeoDataFrame]:
+    """return all frames for a state"""
     indicateur = Indicateur(state)
-    indicateur.fix_dep("43")
+    indicateur.fix_dep(DEP)
     indicateur.fix_road(route)
-    if sens:
-        indicateur.fix_sens(sens)
+    indicateur.fix_sens(sens)
     layers = {}
     for level in range(NB_LEVELS):
         indicateur.fix_level(level)
         layers[level] = indicateur.get()
-        bounds = get_pr_bounds(layers[level])
-        print(bounds)
-    for i, prs in enumerate(SECTIONS):
-        prd = max(prs[0], bounds[0]) if bounds[0] is not None else prs[0]
-        prf = min(prs[1], bounds[1]) if bounds[1] is not None else prs[1]
-        for level in range(NB_LEVELS):
-            zoom = filter_pr_range(layers[level], prd=prd, prf=prf)
-            zoom.plot(
-                ax=ax[i],
-                color=COLORS[level],
-                edgecolor=COLORS[level]
-            )
-            # affichage des centroides
-            # pas d'intérêt car dès qu'on est sur des portions sinueuses
-            # le centroide n'est plus sur le tracé
-            # zoom["centroid"] = zoom.geometry.centroid
-            # zoom.centroid.plot(ax=ax, color="red", markersize=20)
-        ax[i].set_title(f"PR {prd} à {prf}")
-        ax[i].set_aspect("equal")
-    plt.tight_layout()
+    return layers
+
+
+def graphe_state(
+    state: str,
+    layers: dict[int, GeoDataFrame],
+    ax: Axes,
+    prd: int | None = None,
+    prf: int | None = None,
+) -> None:
+    """graphe a single state"""
+    for level in range(NB_LEVELS):
+        zoom = filter_pr_range(layers[level], prd=prd, prf=prf)
+        zoom.plot(
+            ax=ax,
+            color=COLORS[level],
+            edgecolor=COLORS[level]
+        )
+        ax.set_title(f"Etat {state} - PR {prd} à {prf}")
+        ax.set_aspect("equal")
+
+
+def widget_axes(pos: list[float]) -> Axes:
+    """return the widget position"""
+    AxesRect: TypeAlias = tuple[float, float, float, float]
+    return plt.axes(cast(AxesRect, tuple(pos)))
+
+
+def graphe(
+    route: str,
+    sens: str | None = None
+) -> None:
+    """affiche les indicateurs d'état"""
+    _, axes = plt.subplots(
+        1,
+        len(STATES),
+        figsize=(6 * len(STATES), 6),
+        sharex=True,
+        sharey=True
+    )
+    # on réserve 25% pour les widgets
+    plt.subplots_adjust(right=0.75)
+
+    layers = {}
+    for state in LAYERS:
+        state_layers = get_state(state, route, sens)
+        layers[state] = state_layers
+    _, _, text_prd_ini, text_prf_ini = get_pr_bounds(layers[STATES[0]][0])
+
+    def update(_=None):
+        """filtre sur bornes"""
+        try:
+            prd = int(text_prd.text)
+            prf = int(text_prf.text)
+        except TypeError:
+            print("vérifiez les PR saisis")
+            return
+        for ax in axes:
+            ax.clear()
+        for i, state in enumerate(LAYERS):
+            graphe_state(state, layers[state], axes[i], prd=prd, prf=prf)
+
+    # coordonnées des widgets
+    pos = [
+        0.78, # left
+        0.85, # bottom
+        0.18, # width
+        0.05 # height
+    ]
+    y_gap = 0.07
+
+    # dynamic filter
+    text_prd = TextBox(
+        widget_axes(pos),
+        'PRD:',
+        initial=text_prd_ini
+    )
+    pos[1] -= y_gap
+    text_prf = TextBox(
+        widget_axes(pos),
+        'PRF:',
+        initial=text_prf_ini
+    )
+    pos[1] -= y_gap
+    button = Button(
+        widget_axes(pos),
+        'Filter',
+        hovercolor="#17b835"
+    )
+    plt.suptitle(f"{route} IQRN {YEAR}")
+    update()
+    button.on_clicked(update)
     plt.show()
 
-graphe("Superficiel", "N0088", sens="P")
+graphe("N0088", sens="P")
