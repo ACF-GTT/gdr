@@ -34,6 +34,9 @@ class Indicateur:
     """Indicateur d'état IQRN"""
     def __init__(self, dep: str, route: str, sens: str | None = None) -> None:
         """initialisation"""
+        assert re.fullmatch(r"[A-Z0-9_]+", route)
+        if dep: assert re.fullmatch(r"\d{2,3}", dep)
+        if sens: assert sens in ("P", "M")
         self._dep = dep
         self._route: str = route
         self._sens: str | None = sens
@@ -61,7 +64,7 @@ class Indicateur:
 
     def fix_level(self, level: int) -> None:
         """fix level"""
-        self._level = level
+        self._level = int(level)
 
     def get(self) -> GeoDataFrame:
         """get the geodata frame"""
@@ -164,7 +167,7 @@ def graphe(
     for state in LAYERS:
         state_layers = get_state(indicateur, state)
         layers[state] = state_layers
-    _, _, text_prd_ini, text_prf_ini = get_pr_bounds(layers[STATES[0]][0])
+    pr_min, pr_max, text_prd_ini, text_prf_ini = get_pr_bounds(layers[STATES[0]][0])
 
     def update(_=None):
         """filtre sur bornes"""
@@ -206,9 +209,12 @@ def graphe(
         'Filter',
         hovercolor="#17b835"
     )
-    plt.suptitle(f"{route} IQRN {YEAR}")
+    title = f"{route} IQRN {YEAR}"
+    if pr_min is not None and pr_max is not None:
+        title = f"{title} - données de PR {pr_min} à {pr_max}"
+    plt.suptitle(title)
     update()
     button.on_clicked(update)
     plt.show()
 
-graphe("N0088", sens="P")
+graphe("N0088")
