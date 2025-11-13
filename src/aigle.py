@@ -35,8 +35,10 @@ class Indicateur:
     def __init__(self, dep: str, route: str, sens: str | None = None) -> None:
         """initialisation"""
         assert re.fullmatch(r"[A-Z0-9_]+", route)
-        if dep: assert re.fullmatch(r"\d{2,3}", dep)
-        if sens: assert sens in ("P", "M")
+        if dep:
+            assert re.fullmatch(r"\d{2,3}", dep)
+        if sens:
+            assert sens in ("P", "M")
         self._dep = dep
         self._route: str = route
         self._sens: str | None = sens
@@ -141,9 +143,16 @@ def graphe_state(
         ax.set_aspect("equal")
 
 
-def widget_axes(pos: list[float]) -> Axes:
+def widget_axes(decalage: float = 0) -> Axes:
     """return the widget position"""
     AxesRect: TypeAlias = tuple[float, float, float, float]
+    # coordonnées des widgets
+    pos = [
+        0.78, # left
+        0.85 + decalage, # bottom
+        0.18, # width
+        0.05 # height
+    ]
     return plt.axes(cast(AxesRect, tuple(pos)))
 
 
@@ -165,8 +174,7 @@ def graphe(
 
     layers = {}
     for state in LAYERS:
-        state_layers = get_state(indicateur, state)
-        layers[state] = state_layers
+        layers[state] = get_state(indicateur, state)
     pr_min, pr_max, text_prd_ini, text_prf_ini = get_pr_bounds(layers[STATES[0]][0])
 
     def update(_=None):
@@ -182,30 +190,19 @@ def graphe(
         for i, state in enumerate(LAYERS):
             graphe_state(state, layers[state], axes[i], prd=prd, prf=prf)
 
-    # coordonnées des widgets
-    pos = [
-        0.78, # left
-        0.85, # bottom
-        0.18, # width
-        0.05 # height
-    ]
-    y_gap = 0.07
-
     # dynamic filter
     text_prd = TextBox(
-        widget_axes(pos),
+        widget_axes(),
         'PRD:',
         initial=text_prd_ini
     )
-    pos[1] -= y_gap
     text_prf = TextBox(
-        widget_axes(pos),
+        widget_axes(-0.07),
         'PRF:',
         initial=text_prf_ini
     )
-    pos[1] -= y_gap
     button = Button(
-        widget_axes(pos),
+        widget_axes(-0.14),
         'Filter',
         hovercolor="#17b835"
     )
