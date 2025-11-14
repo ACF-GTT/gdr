@@ -3,26 +3,26 @@ Script d'analyse des états de surface.
 Charge un fichier Excel, extrait les PR et calcule les pourcentages de surface par niveau.
 """
 
-import re
+#import re, on n'en a pas besoin pour l'instant(pylint beg sinon)
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt , on n'en a pas besoin pour l'instant
 from helpers.constante_etat_surface import (
     PLOD, PLOF,
     ROUTE, DEP, SENS,
     SURF_EVAL,
-    PRD, PRF,
-    ABD, ABF,
+    PRD, PRF, PR_REGEX,
+    LONGUEUR_TRONCON,
+    ABD,
+    #ABF, on n'en a pas besoin pour l'instant
     FILE,
     STATES,
-    COLORS
+    #COLORS, on n'en a pas besoin pour l'instant
 )
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
-    def __init__(self, file_path, states, colors):
+    def __init__(self, file_path):
         self.file_path = file_path
-        self.states = states
-        self.colors = colors
         self.df = None
 
     def load_sheet(self):
@@ -50,13 +50,13 @@ class SurfaceAnalyzer:
         self.df.insert(
             loc=0,
             column=PRD,
-            value=self.df[PLOD].str.extract(r"(PR\d+)")
+            value=self.df[PLOD].str.extract(PR_REGEX)
         )
 
         self.df.insert(
             loc=1,
             column=PRF,
-            value=self.df[PLOF].str.extract(r"(PR\d+)")
+            value=self.df[PLOF].str.extract(PR_REGEX)
         )
 
     def compute_levels(self):
@@ -92,9 +92,17 @@ class SurfaceAnalyzer:
             df = df[df[SENS] == sens]
         return df.sort_values(by=[PRD, ABD], ascending=True)
 
+    def compute_curviligne(self, df):
+        """Calcule l'abscisse curviligne après filtre."""
+        df = df.copy()
+        df["curv_start"] = df[LONGUEUR_TRONCON].cumsum() - df[LONGUEUR_TRONCON]
+        df["curv_end"] = df[LONGUEUR_TRONCON].cumsum()
+        return df
+
+
 
 if __name__ == "__main__":
-    analyzer = SurfaceAnalyzer(FILE, STATES, COLORS)
+    analyzer = SurfaceAnalyzer(FILE)
 
     # Charger la feuille
     analyzer.load_sheet()
@@ -108,7 +116,9 @@ if __name__ == "__main__":
     # Calcul des pourcentages
     analyzer.compute_percent()
 
-    # Filtrage exemple
+
+    # Calcul des abscisses curvilignes et filtre
     df_filtered = analyzer.filter(route="N0088", dep="43", sens="M")
+    df_filtered = analyzer.compute_curviligne(df_filtered)
     print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
-    print(df_filtered.iloc[:10, :20])
+    print(df_filtered.loc[:, [PRD, ABD, LONGUEUR_TRONCON, "curv_start", "curv_end"]].head(10))

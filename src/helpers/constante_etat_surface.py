@@ -1,5 +1,7 @@
 # === CONFIGURATION ===
-FILE = r"C:/Users/hugo-h.perez/Desktop/Tables Indicateur Descripteur Localisation/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+
+"""Constantes pour l'analyse de l'état de surface des routes."""
+FILE = r"C:/Users/hugo-h.perez/Desktop/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
 STATES = {
     "ies": "Superficiel",
@@ -20,12 +22,14 @@ COLORS = [
 PLOD = "plod"
 PLOF = "plof"
 ROUTE = "route"
-DEP = "sectionnement_departement"  # tu gardes le vrai nom exact
+DEP = "sectionnement_departement"
 SENS = "sens"
 SURF_EVAL = "S_evaluee"
 ABD = "abs_debut"
 ABF = "abs_fin"
+LONGUEUR_TRONCON= "longueur_troncon"
 
 #constantes pour l'extraction des PR
 PRD = "PRD"
 PRF = "PRF"
+PR_REGEX = r"(PR\d+)"
