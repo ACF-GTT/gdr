@@ -21,6 +21,12 @@ from helpers.constante_etat_surface import (
     COLORS
 )
 
+STATES = {
+    "ies": "SURFACE",
+    "iep": "PROFOND",
+    "ietp": "TRES PROFOND"
+}
+
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
     def __init__(self, file_path: str) -> None:
@@ -138,13 +144,10 @@ if __name__ == "__main__":
     analyzer.compute_percent()
 
     # Calcul des abscisses curvilignes et filtre
-    df_filtered = analyzer.filter(route="N0122", dep="15", sens="P")#, prd_num=123)
+    df_filtered = analyzer.filter(route="N0122", dep="15", sens="P", prd_num=123)
     df_filtered = analyzer.compute_curviligne(df_filtered)
     print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
     print(df_filtered.loc[:, [PRD, ABD, LONGUEUR_TRONCON, "curv_start", "curv_end"]].head(40))
-
-    # Visualisation
-    states_to_plot = ["ies", "iep", "ietp"]
 
     # 3 graphiques pour 3 niveaux d'états
     #sharex vaut true pour partager l'axe x
@@ -157,7 +160,7 @@ if __name__ == "__main__":
     )
 
     # Boucle sur chaque état à tracer
-    for ax, state in zip(axes, states_to_plot):
+    for ax, state in zip(axes, list(STATES.keys())):
         # On parcourt chaque tronçon décrit dans le dataframe filtré.
         for idx, row in df_filtered.iterrows():
             curv_start = row["curv_start"]
@@ -192,7 +195,7 @@ if __name__ == "__main__":
         ax.set_ylim(0, 1)
         ax.grid(visible=True, axis="x", linestyle="--")
         ax.grid(visible=True, axis="y")
-        ax.set_title(f"Répartition des niveaux de surface – état {state}")
+        ax.set_title(STATES[state])
 
     # Axe X partagé
     axes[-1].set_xlim(df_filtered["curv_start"].min(), df_filtered["curv_end"].max())
