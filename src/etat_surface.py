@@ -6,7 +6,9 @@ from itertools import accumulate
 
 import pandas as pd
 from pandas import DataFrame
+from pandas import Series
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 import matplotlib.patches as mpatches
 
 from generate_si import draw_object
@@ -130,9 +132,29 @@ class SurfaceAnalyzer:
         return df
 
 
-def graphe_section():
-    """lets graph a single section for fun !"""
+def graphe_state_section(
+    state: str,
+    row : Series,
+    ax: Axes
+) -> None:
+    """for a given state, lets graph a single section"""
+    curv_start = row["curv_start"]
+    curv_end = row["curv_end"]
+    # width représente la longueur totale du tronçon.
+    width = curv_end - curv_start
 
+    percents = [
+        row[f"pct_{state}_level_{lvl}"] / 100
+        for lvl in range(len(COLORS))
+    ]
+    bottoms  = [0, *accumulate(percents[:-1])]
+    ax.bar(
+        x=curv_start+width/2,
+        width=width,
+        bottom=bottoms,
+        height=percents,
+        color=COLORS
+    )
 
 
 def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
@@ -163,11 +185,6 @@ def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
     for ax, state in zip(axes, list(STATES.keys())):
         # On parcourt chaque tronçon décrit dans le dataframe filtré.
         for _, row in df_filtered.iterrows():
-            curv_start = row["curv_start"]
-            curv_end = row["curv_end"]
-            # width représente la longueur totale du tronçon.
-            width = curv_end - curv_start
-
             # On affiche les PR et les abs_curv
             if row[ABD] == 0:
                 # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
@@ -175,21 +192,9 @@ def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
                 if ax is axes[0] and row[PRD] is not None:
                     prev_ax = plt.gca() # sauvegarde de l'axe actuel
                     plt.sca(ax)
-                    draw_object(str(row[PRD]), curv_start, HEIGHT)
+                    draw_object(str(row[PRD]), row["curv_start"], HEIGHT)
                     plt.sca(prev_ax) # on restaure l'axe précédent pour ps planter ls autres graphes
-
-            percents = [
-                row[f"pct_{state}_level_{lvl}"] / 100
-                for lvl in range(len(COLORS))
-            ]
-            bottoms  = [0, *accumulate(percents[:-1])]
-            ax.bar(
-                x=curv_start+width/2,
-                width=width,
-                bottom=bottoms,
-                height=percents,
-                color=COLORS
-            )
+            graphe_state_section(state, row, ax)
 
         #configuration des 3 ss-graphs
         ax.set_ylim(0, HEIGHT if ax == axes[0] else 1)
