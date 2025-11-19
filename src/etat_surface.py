@@ -30,6 +30,15 @@ STATES = {
     "ietp": "TRES PROFOND"
 }
 HEIGHT = 1.2
+FIELDS_SELECTION = [
+    PRD,
+    ABD,
+    LONGUEUR_TRONCON,
+    "curv_start",
+    "curv_end"
+]
+PRD_NUM = "prd_num"
+PRF_NUM = "prf_num"
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
@@ -66,21 +75,21 @@ class SurfaceAnalyzer:
         # Extraction du numéro de PR
         # On est obligé de faire en 2 étapes car sinon PR100<PR11
         # Explication du pattern : n°dep+PR+n°PR+Sens
-        self.df["prd_num"] = (
+        self.df[PRD_NUM] = (
             self.df[PLOD]
             .str.extract(PR_REGEX)[1]  # groupe 2 = numéro PR
             .astype("Int64")
         )
 
-        self.df["prf_num"] = (
+        self.df[PRF_NUM] = (
             self.df[PLOF]
             .str.extract(PR_REGEX)[1]
             .astype("Int64")
         )
 
         # On reconstruit les PR en txt
-        self.df[PRD] = self.df["prd_num"].apply(lambda x: f"PR{int(x)}" if pd.notna(x) else None )
-        self.df[PRF] = self.df["prf_num"].apply(lambda x: f"PR{int(x)}" if pd.notna(x) else None )
+        self.df[PRD] = self.df[PRD_NUM].apply(lambda x: f"PR{int(x)}" if pd.notna(x) else None )
+        self.df[PRF] = self.df[PRF_NUM].apply(lambda x: f"PR{int(x)}" if pd.notna(x) else None )
 
 
     def compute_levels(self):
@@ -120,8 +129,8 @@ class SurfaceAnalyzer:
         if sens:
             df = df[df[SENS] == sens]
         if prd_num:
-            df = df[df["prd_num"] == prd_num]
-        return df.sort_values(by=["prd_num", ABD], ascending=True)
+            df = df[df[PRD_NUM] == prd_num]
+        return df.sort_values(by=[PRD_NUM, ABD], ascending=True)
 
 
     def compute_curviligne(self, df: DataFrame) -> DataFrame:
@@ -169,7 +178,7 @@ def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
     df_filtered = analyzer.filter(route=route, dep=dep, sens=sens, prd_num=prd_num)
     df_filtered = analyzer.compute_curviligne(df_filtered)
     print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
-    print(df_filtered.loc[:, [PRD, ABD, LONGUEUR_TRONCON, "curv_start", "curv_end"]].head(40))
+    print(df_filtered.loc[:, FIELDS_SELECTION].head(40))
 
     # 3 graphiques pour 3 niveaux d'états
     #sharex vaut true pour partager l'axe x
@@ -200,10 +209,13 @@ def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
         ax.set_ylim(0, HEIGHT if ax == axes[0] else 1)
         ax.grid(visible=True, axis="x", linestyle="--")
         ax.grid(visible=True, axis="y")
-        ax.set_title(STATES[state])
+        ax.set_title(f"{STATES[state]} - sens {sens}")
 
     # Axe X partagé
-    axes[-1].set_xlim(df_filtered["curv_start"].min(), df_filtered["curv_end"].max())
+    axes[-1].set_xlim(
+        df_filtered["curv_start"].min(),
+        df_filtered["curv_end"].max()
+    )
 
     # LÉGENDE DES NIVEAUX
     patches = [
