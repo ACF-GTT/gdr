@@ -2,11 +2,12 @@
 Script d'analyse des états de surface.
 Charge un fichier Excel, extrait les PR et calcule les pourcentages de surface par niveau.
 """
+from itertools import accumulate
 
-#import re, on n'en a pas besoin pour l'instant(pylint beg sinon)
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
 from generate_si import draw_object
 from helpers.constante_etat_surface import (
     PLOD, PLOF,
@@ -15,22 +16,22 @@ from helpers.constante_etat_surface import (
     PRD, PRF, PR_REGEX,
     LONGUEUR_TRONCON,
     ABD,
-    #ABF, on n'en a pas besoin pour l'instant
     FILE,
     STATES,
     COLORS
-
 )
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
-    def __init__(self, file_path):
+    def __init__(self, file_path: str) -> None:
+        """Initialisation"""
         self.file_path = file_path
         self.df = None
+        self.sheet_name : str | None = None
+
 
     def load_sheet(self):
-        """    1. Sélection de la feuille"""
-
+        """charge une feuille"""
         excel_file = pd.ExcelFile(self.file_path)
         print("Feuilles disponibles dans le fichier :")
         for i, sheet in enumerate(excel_file.sheet_names):
@@ -45,6 +46,7 @@ class SurfaceAnalyzer:
         sheet_name = excel_file.sheet_names[sheet_index]
         self.df = pd.read_excel(self.file_path, sheet_name=sheet_name)
         print(f"Feuille '{sheet_name}' chargée avec succès !")
+        self.sheet_name = sheet_name
 
 
     def extract_pr(self):
@@ -60,7 +62,7 @@ class SurfaceAnalyzer:
             .astype("Int64")
         )
 
-        self.df["PRf_num"] = (
+        self.df["prf_num"] = (
             self.df[PLOF]
             .str.extract(PR_REGEX)[1]
             .astype("Int64")
@@ -84,8 +86,9 @@ class SurfaceAnalyzer:
                 else:
                     self.df[f"S_{st}_level_{level_index}"] = self.df[colonne]
 
+
     def compute_percent(self):
-        """    4. Calcul des pourcentages par rapport à S_evaluee """
+        """ 4. Calcul des pourcentages par rapport à S_evaluee """
         assert self.df is not None, "La feuille doit être chargée avant de calculer les %"
 
         for st in STATES:
@@ -94,8 +97,9 @@ class SurfaceAnalyzer:
                     self.df[f"S_{st}_level_{level_index}"] / self.df[SURF_EVAL]
                 ) * 100
 
+
     def filter(self, route=None, dep=None, sens=None, prd_num=None):
-        """     5. Filtre Route/SENS/DEP """
+        """ 5. Filtre Route/SENS/DEP """
         assert self.df is not None, "La feuille doit être chargée avant de filtrer les données."
 
         df = self.df
@@ -109,13 +113,13 @@ class SurfaceAnalyzer:
             df = df[df["prd_num"] == prd_num]
         return df.sort_values(by=["prd_num", ABD], ascending=True)
 
+
     def compute_curviligne(self, df):
         """Calcule l'abscisse curviligne après filtre."""
         assert df is not None, "Le DataFrame doit être fourni pour calculer l'abscisse curviligne."
         df["curv_start"] = df[LONGUEUR_TRONCON].cumsum() - df[LONGUEUR_TRONCON]
         df["curv_end"] = df[LONGUEUR_TRONCON].cumsum()
         return df
-
 
 
 if __name__ == "__main__":
@@ -133,97 +137,78 @@ if __name__ == "__main__":
     # Calcul des pourcentages
     analyzer.compute_percent()
 
-
     # Calcul des abscisses curvilignes et filtre
-    df_filtered = analyzer.filter(route="N0122", dep="15", sens="M", prd_num=123)
+    df_filtered = analyzer.filter(route="N0122", dep="15", sens="P")#, prd_num=123)
     df_filtered = analyzer.compute_curviligne(df_filtered)
     print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
     print(df_filtered.loc[:, [PRD, ABD, LONGUEUR_TRONCON, "curv_start", "curv_end"]].head(40))
 
-
     # Visualisation
-states_to_plot = ["ies", "iep", "ietp"]
+    states_to_plot = ["ies", "iep", "ietp"]
 
-# 3 graphiques pour 3 niveaux d'états
-#sharex vaut true pour partager l'axe x
-fig, axes = plt.subplots(nrows=3, ncols=1,figsize=(15, 6), sharex=True, gridspec_kw={'hspace': 0.2})
+    # 3 graphiques pour 3 niveaux d'états
+    #sharex vaut true pour partager l'axe x
+    fig, axes = plt.subplots(
+        nrows=3,
+        ncols=1,
+        figsize=(15, 6),
+        sharex=True,
+        gridspec_kw={'hspace': 0.2}
+    )
 
-# Boucle sur chaque état à tracer
-for ax, state in zip(axes, states_to_plot):
-    # On parcourt chaque tronçon décrit dans le dataframe filtré.
-    for idx, row in df_filtered.iterrows():
-        curv_start = row["curv_start"]
-        curv_end = row["curv_end"]
-        # width représente la longueur totale du tronçon.
-        width = curv_end - curv_start
+    # Boucle sur chaque état à tracer
+    for ax, state in zip(axes, states_to_plot):
+        # On parcourt chaque tronçon décrit dans le dataframe filtré.
+        for idx, row in df_filtered.iterrows():
+            curv_start = row["curv_start"]
+            curv_end = row["curv_end"]
+            # width représente la longueur totale du tronçon.
+            width = curv_end - curv_start
 
-        # On affiche les PR et les abs_curv
-        if row[ABD] == 0:
-            # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
-            # sur le premier sous-graph (axes[0])
-            if ax is axes[0]:
-                if row[PRD] is not None:
+            # On affiche les PR et les abs_curv
+            if row[ABD] == 0:
+                # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
+                # sur le premier sous-graph (axes[0])
+                if ax is axes[0] and row[PRD] is not None:
                     prev_ax = plt.gca() # sauvegarde de l'axe actuel
                     plt.sca(ax)
                     draw_object(str(row[PRD]), curv_start, 1)
                     plt.sca(prev_ax) # on restaure l'axe précédent pour ps planter ls autres graphes
 
-            # Abscisse curviligne en dessous
-            ax.text(
-                curv_start,
-                -0.30,  # en dessous de la barre
-                f"{curv_start:.0f} m",
-                ha='center', va='top',
-                fontsize=7, color='gray'
+            percents = [
+                row[f"pct_{state}_level_{lvl}"] / 100
+                for lvl in range(len(COLORS))
+            ]
+            bottoms  = [0, *accumulate(percents[:-1])]
+            ax.bar(
+                x=curv_start+width/2,
+                width=width,
+                bottom=bottoms,
+                height=percents,
+                color=COLORS
             )
-        # Tracé des segments colorés pour chaque niveau
-        left = curv_start
-        for lvl, color in enumerate(COLORS):
-            pct = row[f"pct_{state}_level_{lvl}"]
-            seg_width = width * (pct / 100)
 
-            ax.barh(
-                y=0, width=seg_width, left=left, height=1,
-                color=color, align='center'
-            )
-            left += seg_width
+        #configuration des 3 ss-graphs
+        ax.set_ylim(0, 1)
+        ax.grid(visible=True, axis="x", linestyle="--")
+        ax.grid(visible=True, axis="y")
+        ax.set_title(f"Répartition des niveaux de surface – état {state}")
 
-    #configuration des 3 ss-graphs
-    ax.set_ylim(0, 1)
-    ax.set_yticks([]) #graduations
-    ax.set_title(f"Répartition des niveaux de surface – état {state}")
+    # Axe X partagé
+    axes[-1].set_xlim(df_filtered["curv_start"].min(), df_filtered["curv_end"].max())
 
+    # LÉGENDE DES NIVEAUX
+    patches = [
+        mpatches.Patch(color=color, label=f">={lvl}")
+        for lvl, color in enumerate(COLORS)
+    ]
 
-# Construction des alignements abs_curv sous chaque PR
-alignement_abs_curv_positions : list[float] = []
-alignement_abs_curv_labels : list[str]= []
+    fig.legend(
+        handles=patches,
+        loc="upper right",
+        ncol=5,)
 
-for idx, row in df_filtered.iterrows():
-    if row[ABD] == 0:
-        alignement_abs_curv_positions.append(row["curv_start"])  # position réelle
-
-# Application des alignements abscisse curviligne à tous les graphes
-for ax in axes:
-    ax.set_xticks(alignement_abs_curv_positions)
-    ax.set_xticklabels(alignement_abs_curv_labels, fontsize=10)
-
-# Axe X partagé
-axes[-1].set_xlabel("Abscisse curviligne (m)")
-axes[-1].set_xlim(df_filtered["curv_start"].min(), df_filtered["curv_end"].max())
-
-# LÉGENDE DES NIVEAUX
-patches = [
-    mpatches.Patch(color=COLORS[0], label="Niveau > 0"),
-    mpatches.Patch(color=COLORS[1], label="Niveau > 1"),
-    mpatches.Patch(color=COLORS[2], label="Niveau > 2"),
-    mpatches.Patch(color=COLORS[3], label="Niveau > 3"),
-    mpatches.Patch(color=COLORS[4], label="Niveau > 4"),
-]
-
-fig.legend(
-    handles=patches,
-    loc="upper right",
-    ncol=5,)
-
-plt.tight_layout()
-plt.show()
+    plt.tight_layout()
+    assert analyzer.sheet_name is not None
+    plt.suptitle(analyzer.sheet_name)
+    plt.show()
