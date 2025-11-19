@@ -139,7 +139,9 @@ def graphe_state(
             color=COLORS[level],
             edgecolor=COLORS[level]
         )
-        ax.set_title(f"Etat {state} - PR {prd} à {prf}")
+        pr_label = f"PR {prd}" if prd == prf else f"PR {prd} à {prf}"
+        ax.set_title(f"{YEAR} \n {pr_label} \n Etat {state}")
+        ax.set_axis_off()
         ax.set_aspect("equal")
 
 
