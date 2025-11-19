@@ -32,4 +32,4 @@ LONGUEUR_TRONCON= "longueur_troncon"
 #constantes pour l'extraction des PR
 PRD = "PRD"
 PRF = "PRF"
-PR_REGEX = r"(PR\d+)"
+PR_REGEX = r"^(\d{2})PR(\d+)[A-Z]?$"
