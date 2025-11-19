@@ -5,6 +5,7 @@ Charge un fichier Excel, extrait les PR et calcule les pourcentages de surface p
 from itertools import accumulate
 
 import pandas as pd
+from pandas import DataFrame
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -26,6 +27,7 @@ STATES = {
     "iep": "PROFOND",
     "ietp": "TRES PROFOND"
 }
+HEIGHT = 1.2
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
@@ -60,7 +62,7 @@ class SurfaceAnalyzer:
         assert self.df is not None, "La feuille doit être chargée."
 
         # Extraction du numéro de PR
-        # On est onligé de faire en 2 étapes car sinon PR100<PR11
+        # On est obligé de faire en 2 étapes car sinon PR100<PR11
         # Explication du pattern : n°dep+PR+n°PR+Sens
         self.df["prd_num"] = (
             self.df[PLOD]
@@ -104,7 +106,7 @@ class SurfaceAnalyzer:
                 ) * 100
 
 
-    def filter(self, route=None, dep=None, sens=None, prd_num=None):
+    def filter(self, route=None, dep=None, sens=None, prd_num=None) -> DataFrame:
         """ 5. Filtre Route/SENS/DEP """
         assert self.df is not None, "La feuille doit être chargée avant de filtrer les données."
 
@@ -120,7 +122,7 @@ class SurfaceAnalyzer:
         return df.sort_values(by=["prd_num", ABD], ascending=True)
 
 
-    def compute_curviligne(self, df):
+    def compute_curviligne(self, df: DataFrame) -> DataFrame:
         """Calcule l'abscisse curviligne après filtre."""
         assert df is not None, "Le DataFrame doit être fourni pour calculer l'abscisse curviligne."
         df["curv_start"] = df[LONGUEUR_TRONCON].cumsum() - df[LONGUEUR_TRONCON]
@@ -128,23 +130,21 @@ class SurfaceAnalyzer:
         return df
 
 
-if __name__ == "__main__":
+def graphe_section():
+    """lets graph a single section for fun !"""
+
+
+
+def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
+    """main"""
     analyzer = SurfaceAnalyzer(FILE)
-
-    # Charger la feuille
     analyzer.load_sheet()
-
-    # Extraction PR
     analyzer.extract_pr()
-
-    # Calcul des surfaces par niveau
     analyzer.compute_levels()
-
-    # Calcul des pourcentages
     analyzer.compute_percent()
 
     # Calcul des abscisses curvilignes et filtre
-    df_filtered = analyzer.filter(route="N0122", dep="15", sens="P", prd_num=123)
+    df_filtered = analyzer.filter(route=route, dep=dep, sens=sens, prd_num=prd_num)
     df_filtered = analyzer.compute_curviligne(df_filtered)
     print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
     print(df_filtered.loc[:, [PRD, ABD, LONGUEUR_TRONCON, "curv_start", "curv_end"]].head(40))
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     # Boucle sur chaque état à tracer
     for ax, state in zip(axes, list(STATES.keys())):
         # On parcourt chaque tronçon décrit dans le dataframe filtré.
-        for idx, row in df_filtered.iterrows():
+        for _, row in df_filtered.iterrows():
             curv_start = row["curv_start"]
             curv_end = row["curv_end"]
             # width représente la longueur totale du tronçon.
@@ -175,7 +175,7 @@ if __name__ == "__main__":
                 if ax is axes[0] and row[PRD] is not None:
                     prev_ax = plt.gca() # sauvegarde de l'axe actuel
                     plt.sca(ax)
-                    draw_object(str(row[PRD]), curv_start, 1)
+                    draw_object(str(row[PRD]), curv_start, HEIGHT)
                     plt.sca(prev_ax) # on restaure l'axe précédent pour ps planter ls autres graphes
 
             percents = [
@@ -192,7 +192,7 @@ if __name__ == "__main__":
             )
 
         #configuration des 3 ss-graphs
-        ax.set_ylim(0, 1)
+        ax.set_ylim(0, HEIGHT if ax == axes[0] else 1)
         ax.grid(visible=True, axis="x", linestyle="--")
         ax.grid(visible=True, axis="y")
         ax.set_title(STATES[state])
@@ -215,3 +215,6 @@ if __name__ == "__main__":
     assert analyzer.sheet_name is not None
     plt.suptitle(analyzer.sheet_name)
     plt.show()
+
+if __name__ == "__main__":
+    main(route="N0122", dep="15", sens="P", prd_num=123)
