@@ -29,16 +29,22 @@ STATES = {
     "iep": "PROFOND",
     "ietp": "TRES PROFOND"
 }
-HEIGHT = 1.2
+Y_SCALE = 100
+Y_SCALE_W_PR = 120
+CURV_START = "curv_start"
+CURV_END = "curv_end"
+
 FIELDS_SELECTION = [
     PRD,
     ABD,
     LONGUEUR_TRONCON,
-    "curv_start",
-    "curv_end"
+    CURV_START,
+    CURV_END
 ]
 PRD_NUM = "prd_num"
 PRF_NUM = "prf_num"
+SENS_LIST = ["P", "M"]
+
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
@@ -50,7 +56,7 @@ class SurfaceAnalyzer:
 
 
     def load_sheet(self):
-        """charge une feuille"""
+        """Charge une feuille"""
         excel_file = pd.ExcelFile(self.file_path)
         print("Feuilles disponibles dans le fichier :")
         for i, sheet in enumerate(excel_file.sheet_names):
@@ -69,7 +75,7 @@ class SurfaceAnalyzer:
 
 
     def extract_pr(self):
-        """ 2. Extraire le numéro de PR à partir de plod/plof """
+        """Construit les colonnes PRD et PRF à partir de plod/plof """
         assert self.df is not None, "La feuille doit être chargée."
 
         # Extraction du numéro de PR
@@ -88,8 +94,12 @@ class SurfaceAnalyzer:
         )
 
         # On reconstruit les PR en txt
-        self.df[PRD] = self.df[PRD_NUM].apply(lambda x: f"PR{int(x)}" if pd.notna(x) else None )
-        self.df[PRF] = self.df[PRF_NUM].apply(lambda x: f"PR{int(x)}" if pd.notna(x) else None )
+        self.df[PRD] = self.df[PRD_NUM].apply(
+            lambda x: f"PR{int(x)}" if pd.notna(x) else None
+        )
+        self.df[PRF] = self.df[PRF_NUM].apply(
+            lambda x: f"PR{int(x)}" if pd.notna(x) else None
+        )
 
 
     def compute_levels(self):
@@ -136,8 +146,8 @@ class SurfaceAnalyzer:
     def compute_curviligne(self, df: DataFrame) -> DataFrame:
         """Calcule l'abscisse curviligne après filtre."""
         assert df is not None, "Le DataFrame doit être fourni pour calculer l'abscisse curviligne."
-        df["curv_start"] = df[LONGUEUR_TRONCON].cumsum() - df[LONGUEUR_TRONCON]
-        df["curv_end"] = df[LONGUEUR_TRONCON].cumsum()
+        df[CURV_START] = df[LONGUEUR_TRONCON].cumsum() - df[LONGUEUR_TRONCON]
+        df[CURV_END] = df[LONGUEUR_TRONCON].cumsum()
         return df
 
 
@@ -147,13 +157,13 @@ def graphe_state_section(
     ax: Axes
 ) -> None:
     """for a given state, lets graph a single section"""
-    curv_start = row["curv_start"]
-    curv_end = row["curv_end"]
+    curv_start = row[CURV_START]
+    curv_end = row[CURV_END]
     # width représente la longueur totale du tronçon.
     width = curv_end - curv_start
 
     percents = [
-        row[f"pct_{state}_level_{lvl}"] / 100
+        Y_SCALE * row[f"pct_{state}_level_{lvl}"] / 100
         for lvl in range(len(COLORS))
     ]
     bottoms  = [0, *accumulate(percents[:-1])]
@@ -165,57 +175,119 @@ def graphe_state_section(
         color=COLORS
     )
 
+class GraphStates:
+    """grapher helper for IQRN states"""
+    def __init__(self):
+        """initialisation"""
+        self.analyzer = SurfaceAnalyzer(FILE)
+        self.analyzer.load_sheet()
+        self.analyzer.extract_pr()
+        self.analyzer.compute_levels()
+        self.analyzer.compute_percent()
+        self.route = None
+        self.dep = None
 
-def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
+    def set_route_dep(
+        self,
+        route: str | None,
+        dep: str | None
+    ) -> None:
+        """fixe route & département"""
+        self.route = route
+        self.dep = dep
+
+    def graphe_sens(
+        self,
+        sens: str,
+        prd_num: int | None,
+        axes: list[Axes]
+    ) -> DataFrame:
+        """graphes de tous les états pour un sens donné"""
+        assert self.route is not None
+        assert self.dep is not None
+        # Calcul des abscisses curvilignes et filtre
+        df_filtered = self.analyzer.filter(
+            route=self.route,
+            dep=self.dep,
+            sens=sens,
+            prd_num=prd_num
+        )
+        df_filtered = self.analyzer.compute_curviligne(df_filtered)
+        print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
+        print(df_filtered.loc[:, FIELDS_SELECTION].head(40))
+
+        # Boucle sur chaque état à tracer
+        for ax, state in zip(axes, list(STATES.keys())):
+            # On parcourt chaque tronçon décrit dans le dataframe filtré.
+            ax.tick_params(labelsize=6)
+            ax.set_ylabel(STATES[state], fontsize=8)
+            for _, row in df_filtered.iterrows():
+                # On affiche les PR et les abs_curv
+                if row[ABD] == 0:
+                    # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
+                    # sur le premier sous-graph (axes[0])
+                    if ax is axes[0] and row[PRD] is not None:
+                        prev_ax = plt.gca() # sauvegarde de l'axe actuel
+                        plt.sca(ax)
+                        draw_object(
+                            label=str(row[PRD]),
+                            x_pos=row[CURV_START],
+                            ymax=Y_SCALE_W_PR
+                        )
+                         # on restaure l'axe précédent pour ps planter ls autres graphes
+                        plt.sca(prev_ax)
+                graphe_state_section(state, row, ax)
+
+            #configuration des 3 ss-graphs
+            ax.set_ylim(
+                0,
+                Y_SCALE_W_PR if ax == axes[0] else Y_SCALE
+            )
+            ax.grid(visible=True, axis="x", linestyle="--")
+            ax.grid(visible=True, axis="y")
+            ax.set_title(f"sens {sens}")
+        return df_filtered
+
+
+def main(
+    route: str,
+    dep: str,
+    sens_list: list[str],
+    prd_num: int | None = None
+) -> None:
     """main"""
-    analyzer = SurfaceAnalyzer(FILE)
-    analyzer.load_sheet()
-    analyzer.extract_pr()
-    analyzer.compute_levels()
-    analyzer.compute_percent()
-
-    # Calcul des abscisses curvilignes et filtre
-    df_filtered = analyzer.filter(route=route, dep=dep, sens=sens, prd_num=prd_num)
-    df_filtered = analyzer.compute_curviligne(df_filtered)
-    print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
-    print(df_filtered.loc[:, FIELDS_SELECTION].head(40))
-
     # 3 graphiques pour 3 niveaux d'états
     #sharex vaut true pour partager l'axe x
+    for sens in sens_list:
+        assert sens in SENS_LIST
+    nbg_per_sens = 3
+    nbrows = nbg_per_sens * len(sens_list)
     fig, axes = plt.subplots(
-        nrows=3,
+        nrows=nbrows,
         ncols=1,
         figsize=(15, 6),
         sharex=True,
-        gridspec_kw={'hspace': 0.2}
+        gridspec_kw={'hspace': 0.5}
     )
+    plt.rcParams.update({'font.size': 6})
 
-    # Boucle sur chaque état à tracer
-    for ax, state in zip(axes, list(STATES.keys())):
-        # On parcourt chaque tronçon décrit dans le dataframe filtré.
-        for _, row in df_filtered.iterrows():
-            # On affiche les PR et les abs_curv
-            if row[ABD] == 0:
-                # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
-                # sur le premier sous-graph (axes[0])
-                if ax is axes[0] and row[PRD] is not None:
-                    prev_ax = plt.gca() # sauvegarde de l'axe actuel
-                    plt.sca(ax)
-                    draw_object(str(row[PRD]), row["curv_start"], HEIGHT)
-                    plt.sca(prev_ax) # on restaure l'axe précédent pour ps planter ls autres graphes
-            graphe_state_section(state, row, ax)
+    grapher = GraphStates()
+    grapher.set_route_dep(route=route, dep=dep)
+    index = 0
+    for sens in sens_list:
+        sub_axes = axes[index : index + nbg_per_sens]
+        index += nbg_per_sens
+        df_filtered = grapher.graphe_sens(
+            sens=sens,
+            prd_num=prd_num,
+            axes=sub_axes
+        )
 
-        #configuration des 3 ss-graphs
-        ax.set_ylim(0, HEIGHT if ax == axes[0] else 1)
-        ax.grid(visible=True, axis="x", linestyle="--")
-        ax.grid(visible=True, axis="y")
-        ax.set_title(f"{STATES[state]} - sens {sens}")
-
-    # Axe X partagé
-    axes[-1].set_xlim(
-        df_filtered["curv_start"].min(),
-        df_filtered["curv_end"].max()
-    )
+        # Axe X partagé
+        axes[-1].set_xlim(
+            df_filtered[CURV_START].min(),
+            df_filtered[CURV_END].max()
+        )
 
     # LÉGENDE DES NIVEAUX
     patches = [
@@ -229,9 +301,14 @@ def main(dep: str, route: str, sens: str, prd_num: int | None) -> None:
         ncol=5,)
 
     plt.tight_layout()
-    assert analyzer.sheet_name is not None
-    plt.suptitle(analyzer.sheet_name)
+    assert grapher.analyzer.sheet_name is not None
+    plt.suptitle(f"{grapher.analyzer.sheet_name} - {route} - dpt {dep}")
     plt.show()
 
 if __name__ == "__main__":
-    main(route="N0122", dep="15", sens="P", prd_num=123)
+    main(
+        route="N0088",
+        dep="43",
+        sens_list=["M", "P"],
+        prd_num=None
+    )
