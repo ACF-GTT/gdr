@@ -36,7 +36,7 @@ def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
 def draw_object(
         label: str,
         x_pos: float,
-        ymax: int
+        ymax: float
 ) -> None:
     """Ajoute un évènement ponctuel
     et une ligne verticale de repérage.
