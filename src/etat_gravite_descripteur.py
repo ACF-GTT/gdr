@@ -41,7 +41,7 @@ class DescripteurAnalyzer:
         })
 
         return pd.concat([df, df_infos], axis=1)
-    
+
 
     #3. comptage des occurrences par gravité
 

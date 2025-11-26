@@ -4,11 +4,13 @@ d'état de surface extraits depuis le fichier GPKG ou XLSX.
 """
 # pylint: disable=consider-using-from-import
 import matplotlib.cm as cm
+from helpers.tools_file import parent_dir
 
+DATAS = f"{parent_dir(__file__, 2)}/datas/"
 
 # Nom du fichier source (GPKG)
-FILE_DESCRIPTEURS = r"C:/Users/hugo-h.perez/Desktop/2024_IQRN_descripteurs_DIRMC.gpkg"
-FILE_SURFACE = r"C:/Users/hugo-h.perez/Documents/GitHub/gdr/src/datas/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+FILE_DESCRIPTEURS = f"{DATAS}/2024_IQRN_descripteurs_DIRMC.gpkg"
+FILE_SURFACE = f"{DATAS}/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
 
 # Définition des descripteurs et de leurs caractéristiques
