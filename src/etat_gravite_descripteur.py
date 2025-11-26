@@ -4,7 +4,7 @@ import geopandas as gpd #type: ignore
 import fiona #type: ignore
 import pandas as pd
 from helpers.constante_descripteur import generate_palette
-from helpers.constante_descripteur import FILE_DESCRIPTEURS
+from helpers.constante_descripteur import FILE_DESCRIPTEURS, DescTypes
 from helpers.constante_descripteur import (
     DESCRIPTEURS,
     CLE_TRONCON_REGEX,
@@ -45,7 +45,7 @@ class DescripteurAnalyzer:
 
     #3. comptage des occurrences par gravité
 
-    def count_gravite_par_troncon(self, descripteur_key: str) -> pd.DataFrame:
+    def count_gravite_par_troncon(self, descripteur_key: DescTypes) -> pd.DataFrame:
         """
         Compte le nombre d'occurrences de chaque gravité par tronçon.
         Retourne un DataFrame avec colonnes :

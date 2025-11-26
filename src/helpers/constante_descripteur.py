@@ -16,9 +16,17 @@ FILE_SURFACE = f"{DATAS}/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
 # Définition des descripteurs et de leurs caractéristiques
 FieldTypes = Literal["layer", "column", "gravite_type", "gravites"]
-DESCRIPTEURS: dict[str, dict[FieldTypes, Any]] = {}
+DescTypes = Literal[
+    "DELAMINATION",
+    "DENSITE_FISSURATION",
+    "MACROTEXTURE",
+    "EPO", "EMO",
+    "ESTEX",
+    "RAVELING",
+    "ORNIERAGE_GRAND_RAYON", "ORNIERAGE_PETIT_RAYON"
+]
 
-DESCRIPTEURS = {
+DESCRIPTEURS: dict[DescTypes, dict[FieldTypes, Any]] = {
     "DELAMINATION": {
         "layer": "Descr_final_Delamination_2024 — DIRMC",
         "column": None,               # Pas de gravité = présent/absent
