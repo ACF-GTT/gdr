@@ -3,6 +3,7 @@
 d'état de surface extraits depuis le fichier GPKG ou XLSX.
 """
 # pylint: disable=consider-using-from-import
+from typing import Any, Literal
 import matplotlib.cm as cm
 from helpers.tools_file import parent_dir
 
@@ -14,6 +15,9 @@ FILE_SURFACE = f"{DATAS}/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
 
 # Définition des descripteurs et de leurs caractéristiques
+FIELD_TYPES = Literal["layer", "column", "gravite_type", "gravites"]
+DESCRIPTEURS: dict[str, dict[FIELD_TYPES, Any]] = {}
+
 DESCRIPTEURS = {
     "DELAMINATION": {
         "layer": "Descr_final_Delamination_2024 — DIRMC",
@@ -54,7 +58,7 @@ DESCRIPTEURS = {
         ]
     },
 
-    "EXTEX": {
+    "ESTEX": {
         "layer": "Descr_gravite_eSTex_2024 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",

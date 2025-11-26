@@ -26,7 +26,7 @@ class DescripteurAnalyzer:
         return gpd.read_file(self.file_path, layer=layer_name)
 
     # 2. Extraction de ROUTE / SENS / DEP / PRD / ABD depuis la clef tronçon
-    def extract_troncon_infos(self, df: pd.DataFrame) :
+    def extract_troncon_infos(self, df: gpd.GeoDataFrame) -> pd.DataFrame :
         "Extrait les infos tronçon depuis la colonne cle_troncon_plod"
         # Utilisation de str.extract avec le regex
         extracted = df[CLE_TRONCON_PLOD].str.extract(CLE_TRONCON_REGEX)
@@ -54,8 +54,8 @@ class DescripteurAnalyzer:
         descripteur = DESCRIPTEURS[descripteur_key]
 
         #  Charger la couche et extraire les infos tronçon
-        df = self.load_layer(descripteur["layer"])
-        df = self.extract_troncon_infos(df) #ajout des colonnes tronçon
+        gdf = self.load_layer(descripteur["layer"])
+        df = self.extract_troncon_infos(gdf) #ajout des colonnes tronçon
 
         # Déterminer la colonne gravité
         if descripteur["gravite_type"] == "bool":
