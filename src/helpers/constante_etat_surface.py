@@ -11,12 +11,14 @@ STATES = {
 
 # Couleurs du niveau 0 (meilleur) au niveau 4 (pire)
 COLORS = [
-    "#7CFC00",  # vert clair
-    "#228B22",  # vert foncé
-    "#FFFF00",  # jaune
-    "#FFA500",  # orange
-    "#FF0000"   # rouge
+    "green",  
+    "#b8dfaf",  
+    "orange",  
+    "red",  
+    "purple"  
 ]
+
+
 
 # Colonnes du DataFrame
 PLOD = "plod"
@@ -33,3 +35,25 @@ LONGUEUR_TRONCON= "longueur_troncon"
 PRD = "PRD"
 PRF = "PRF"
 PR_REGEX = r"^(\d{2})PR(\d+)[A-Z]?$"
+
+# Colonnes calculées
+PRD_NUM = "prd_num"
+PRF_NUM = "prf_num"
+CURV_START = "curv_start"
+CURV_END = "curv_end"
+
+
+# Paramètres d'affichage
+Y_SCALE = 100
+Y_SCALE_W_PR = 120
+
+# Sens
+SENS_LIST = ["P", "M"]
+
+FIELDS_SELECTION = [
+    PRD,
+    ABD,
+    LONGUEUR_TRONCON,
+    CURV_START,
+    CURV_END
+]

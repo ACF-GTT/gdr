@@ -13,38 +13,21 @@ import matplotlib.patches as mpatches
 
 from generate_si import draw_object
 from helpers.constante_etat_surface import (
-    PLOD, PLOF,
-    ROUTE, DEP, SENS,
-    SURF_EVAL,
+    FILE, STATES, COLORS,
+    PLOD, PLOF, ROUTE, DEP, SENS,
     PRD, PRF, PR_REGEX,
-    LONGUEUR_TRONCON,
-    ABD,
-    FILE,
-    STATES,
-    COLORS
+    ABD, FIELDS_SELECTION,
+    PRD_NUM, PRF_NUM,
+    CURV_START, CURV_END,
+    Y_SCALE, Y_SCALE_W_PR,
+    SENS_LIST
 )
 
-STATES = {
-    "ies": "SURFACE",
-    "iep": "PROFOND",
-    "ietp": "TRES PROFOND"
-}
-Y_SCALE = 100
-Y_SCALE_W_PR = 120
-CURV_START = "curv_start"
-CURV_END = "curv_end"
-
-FIELDS_SELECTION = [
-    PRD,
-    ABD,
-    LONGUEUR_TRONCON,
-    CURV_START,
-    CURV_END
-]
-PRD_NUM = "prd_num"
-PRF_NUM = "prf_num"
-SENS_LIST = ["P", "M"]
-
+from helpers.fonctions_etats_surfaces import (
+    compute_levels,
+    compute_percent,
+    compute_curviligne
+)
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
@@ -102,31 +85,6 @@ class SurfaceAnalyzer:
         )
 
 
-    def compute_levels(self):
-        """ 3. Calcul des surfaces non cumulées pour chaque état et niveau """
-        assert self.df is not None, "La feuille doit être chargée avant de calculer les niveaux."
-
-        for st in STATES:
-            for level_index in range(5):
-                colonne = f"S_{st}_sup_{level_index}"
-                next_colonne = f"S_{st}_sup_{level_index+1}" if level_index < 4 else None
-                if next_colonne in self.df.columns:
-                    self.df[f"S_{st}_level_{level_index}"] = self.df[colonne]-self.df[next_colonne]
-                else:
-                    self.df[f"S_{st}_level_{level_index}"] = self.df[colonne]
-
-
-    def compute_percent(self):
-        """ 4. Calcul des pourcentages par rapport à S_evaluee """
-        assert self.df is not None, "La feuille doit être chargée avant de calculer les %"
-
-        for st in STATES:
-            for level_index in range(5):
-                self.df[f"pct_{st}_level_{level_index}"] = (
-                    self.df[f"S_{st}_level_{level_index}"] / self.df[SURF_EVAL]
-                ) * 100
-
-
     def filter(self, route=None, dep=None, sens=None, prd_num=None) -> DataFrame:
         """ 5. Filtre Route/SENS/DEP """
         assert self.df is not None, "La feuille doit être chargée avant de filtrer les données."
@@ -141,14 +99,6 @@ class SurfaceAnalyzer:
         if prd_num:
             df = df[df[PRD_NUM] == prd_num]
         return df.sort_values(by=[PRD_NUM, ABD], ascending=True)
-
-
-    def compute_curviligne(self, df: DataFrame) -> DataFrame:
-        """Calcule l'abscisse curviligne après filtre."""
-        assert df is not None, "Le DataFrame doit être fourni pour calculer l'abscisse curviligne."
-        df[CURV_START] = df[LONGUEUR_TRONCON].cumsum() - df[LONGUEUR_TRONCON]
-        df[CURV_END] = df[LONGUEUR_TRONCON].cumsum()
-        return df
 
 
 def graphe_state_section(
@@ -182,8 +132,8 @@ class GraphStates:
         self.analyzer = SurfaceAnalyzer(FILE)
         self.analyzer.load_sheet()
         self.analyzer.extract_pr()
-        self.analyzer.compute_levels()
-        self.analyzer.compute_percent()
+        compute_levels(self.analyzer.df, STATES)
+        compute_percent(self.analyzer.df, STATES)
         self.route = None
         self.dep = None
 
@@ -212,7 +162,7 @@ class GraphStates:
             sens=sens,
             prd_num=prd_num
         )
-        df_filtered = self.analyzer.compute_curviligne(df_filtered)
+        df_filtered = compute_curviligne(df_filtered)
         print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
         print(df_filtered.loc[:, FIELDS_SELECTION].head(40))
 
