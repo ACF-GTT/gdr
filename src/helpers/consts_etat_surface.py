@@ -64,11 +64,9 @@ D_SUP = {
 }
 
 def level_name(st: str, level: int) -> str:
-    """Retourne le nom de la colonne correspondant à la longueur du tronçon
-    appartenant exactement au niveau donné pour un état"""
+    """name"""
     return f"S_{st}_level_{level}"
 
 def pct_name(st: str, level: int) -> str:
-    """Retourne le nom de la colonne contenant le pourcentage de longueur
-    appartenant au niveau donné pour un état"""
+    """name"""
     return f"pct_{st}_level_{level}"
