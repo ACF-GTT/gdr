@@ -7,7 +7,7 @@ from pandas import DataFrame
 from pandas import Series
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from generate_si import draw_object
+from helpers.graph_tools import draw_object
 
 from helpers.consts_etat_surface import (
     FILE,
