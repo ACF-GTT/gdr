@@ -1,3 +1,4 @@
+"""graph_tools"""
 import matplotlib.pyplot as plt
 from helpers.consts import EVE_COLORS
 
