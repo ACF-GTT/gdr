@@ -84,6 +84,23 @@ class SurfaceAnalyzer:
         )
 
 
+    def compute_levels(self):
+        """Calcul des surfaces non cumulées pour chaque état de niveau"""
+        assert self.df is not None, "La feuille doit être chargée"
+
+        for st, sup_cols in D_SUP.items():
+            for i, col in enumerate(sup_cols) :
+                try:
+                    # colonne suivante (si elle existe)
+                    next_col = sup_cols[i + 1]
+
+                    # calcul
+                    self.df[level_name(st, i)] = self.df[col] - self.df[next_col]
+
+                except IndexError:
+                    # cas du dernier niveau (i = 4) → pas de next_col
+                    self.df[level_name(st, i)] = self.df[col]
+
 
 
     def compute_percent(self):
@@ -117,7 +134,7 @@ def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFram
 
 
 def compute_curviligne(df: DataFrame) -> DataFrame:
-    """Calcule l'abscisse curviligne après filtre."""
+    """Calcule l'abscisse curviligne total après filtre."""
     assert df is not None, "le Dataframe doit être fourni pour calculer l'abscisse curviligne"
     df[CURV_END] = df[LONGUEUR_TRONCON].cumsum()
     df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]

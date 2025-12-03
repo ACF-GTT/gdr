@@ -2,7 +2,7 @@
 from helpers.tools_file import parent_dir
 FILE = f"{parent_dir(__file__, 2)}/datas/Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
-# Couleurs du niveau 0 (meilleur) au niveau 4 (pire)
+# Couleurs du niveau 0  au niveau 4
 COLORS = [
     "green",
     "#b8dfaf",
