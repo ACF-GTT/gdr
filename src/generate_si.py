@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
-    EVE_COLORS, COLORS, get_color
+    COLORS, get_color
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
