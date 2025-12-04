@@ -24,6 +24,7 @@ from helpers.consts_etat_surface import (
     FIELDS_SELECTION,
     Y_SCALE, Y_SCALE_W_PR,
     D_SUP,
+    MESSAGE_NO_DF,
     level_name,
     pct_name
 )
@@ -58,7 +59,7 @@ class SurfaceAnalyzer:
 
     def compute_pr(self):
         """Construit les colonnes PRD et PRF à partir de plod/plof """
-        assert self.df is not None, "La feuille doit être chargée"
+        assert self.df is not None, MESSAGE_NO_DF
 
         # Extraction du numéro de PR
         # On est obligé de faire en 2 étapes car sinon PR100<PR11
@@ -86,7 +87,7 @@ class SurfaceAnalyzer:
 
     def compute_levels(self):
         """Calcul des surfaces non cumulées pour chaque état de niveau"""
-        assert self.df is not None, "La feuille doit être chargée"
+        assert self.df is not None, MESSAGE_NO_DF
 
         for st, sup_cols in D_SUP.items():
             for i, col in enumerate(sup_cols) :
@@ -105,7 +106,7 @@ class SurfaceAnalyzer:
 
     def compute_percent(self):
         """Calcul des pourcentages par rapport à S_evaluee"""
-        assert self.df is not None, "La feuille doit être chargée"
+        assert self.df is not None, MESSAGE_NO_DF
 
         for st in STATES:
             for level in range(5):
@@ -117,7 +118,7 @@ class SurfaceAnalyzer:
 
 def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFrame:
     """ Filtre route/dep/sens et ré-ordonne"""
-    assert df is not None, "la feuille doit être chargée avant de filtrer les données"
+    assert df is not None, MESSAGE_NO_DF
     route = kwargs.get("route", None)
     dep = kwargs.get("dep", None)
     sens = kwargs.get("sens", None)
@@ -135,7 +136,7 @@ def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFram
 
 def compute_curviligne(df: DataFrame) -> DataFrame:
     """Calcule l'abscisse curviligne total après filtre."""
-    assert df is not None, "le Dataframe doit être fourni pour calculer l'abscisse curviligne"
+    assert df is not None, MESSAGE_NO_DF
     df[CURV_END] = df[LONGUEUR_TRONCON].cumsum()
     df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
     return df

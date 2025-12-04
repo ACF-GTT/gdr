@@ -70,3 +70,5 @@ def level_name(st: str, level: int) -> str:
 def pct_name(st: str, level: int) -> str:
     """name"""
     return f"pct_{st}_level_{level}"
+
+MESSAGE_NO_DF = "Pas de DataFrame, impossible de continuer"
