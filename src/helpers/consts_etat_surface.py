@@ -58,17 +58,20 @@ SUP = "sup"
 LEVEL = "level"
 PCT = "pct"
 
+NB_LEVELS = 5
+
 D_SUP = {
-    st: [f"S_{st}_{SUP}_{level}" for level in range(5)]
-    for st in STATES
+    state: [f"S_{state}_{SUP}_{level}" for level in range(NB_LEVELS)]
+    for state in STATES
 }
 
-def level_name(st: str, level: int) -> str:
-    """name"""
-    return f"S_{st}_level_{level}"
 
-def pct_name(st: str, level: int) -> str:
+def level_name(state: str, level: int) -> str:
     """name"""
-    return f"pct_{st}_level_{level}"
+    return f"S_{state}_level_{level}"
+
+def pct_name(state: str, level: int) -> str:
+    """name"""
+    return f"pct_{state}_level_{level}"
 
 MESSAGE_NO_DF = "Pas de DataFrame, impossible de continuer"

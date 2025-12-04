@@ -23,7 +23,7 @@ from helpers.consts_etat_surface import (
     CURV_START, CURV_END,
     FIELDS_SELECTION,
     Y_SCALE, Y_SCALE_W_PR,
-    D_SUP,
+    D_SUP,NB_LEVELS,
     MESSAGE_NO_DF,
     level_name,
     pct_name
@@ -89,18 +89,13 @@ class SurfaceAnalyzer:
         """Calcul des surfaces non cumulées pour chaque état de niveau"""
         assert self.df is not None, MESSAGE_NO_DF
 
-        for st, sup_cols in D_SUP.items():
-            for i, col in enumerate(sup_cols) :
+        for state, cols in D_SUP.items():
+            for i in range(NB_LEVELS):
                 try:
-                    # colonne suivante (si elle existe)
-                    next_col = sup_cols[i + 1]
-
-                    # calcul
-                    self.df[level_name(st, i)] = self.df[col] - self.df[next_col]
-
+                    levels = self.df[cols[i]] - self.df[cols[i + 1]]
                 except IndexError:
-                    # cas du dernier niveau (i = 4) → pas de next_col
-                    self.df[level_name(st, i)] = self.df[col]
+                    levels = self.df[cols[i]]
+                self.df[level_name(state, i)] = levels
 
 
 
@@ -108,10 +103,10 @@ class SurfaceAnalyzer:
         """Calcul des pourcentages par rapport à S_evaluee"""
         assert self.df is not None, MESSAGE_NO_DF
 
-        for st in STATES:
-            for level in range(5):
-                self.df[pct_name(st, level)] = (
-                    self.df[level_name(st, level)] / self.df[SURF_EVAL] * 100
+        for state in STATES:
+            for level in range(NB_LEVELS):
+                self.df[pct_name(state, level)] = (
+                    self.df[level_name(state, level)] / self.df[SURF_EVAL] * 100
                 )
 
 
