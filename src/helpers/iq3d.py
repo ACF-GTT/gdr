@@ -118,6 +118,11 @@ def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFram
     dep = kwargs.get("dep", None)
     sens = kwargs.get("sens", None)
     prd_num= kwargs.get("prd_num", None)
+    prf_num= kwargs.get("prf_num", None)
+    prd_min = kwargs.get("prd_min", None)
+    prd_max = kwargs.get("prd_max", None)
+    prf_min = kwargs.get("prf_min", None)
+    prf_max = kwargs.get("prf_max", None)
     if route:
         df = df[df[ROUTE] == route]
     if dep:
@@ -126,6 +131,16 @@ def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFram
         df = df[df[SENS] == sens]
     if prd_num:
         df = df[df[PRD_NUM] == prd_num]
+    if prf_num:
+        df = df[df[PRF_NUM] == prf_num]
+    if prd_min is not None:
+        df = df[df[PRD_NUM] >= prd_min]
+    if prd_max is not None:
+        df = df[df[PRD_NUM] <= prd_max]
+    if prf_min is not None:
+        df = df[df[PRF_NUM] >= prf_min]
+    if prf_max is not None:
+        df = df[df[PRF_NUM] <= prf_max]
     return df.sort_values(by=[PRD_NUM, ABD], ascending=ascending)
 
 
@@ -185,8 +200,8 @@ class GraphStates:
     def graphe_sens(
         self,
         sens: str,
-        prd_num: int | None,
-        axes: list[Axes]
+        axes: list[Axes],
+        **kwargs
     ) -> DataFrame:
         """graphes de tous les états pour un sens donné"""
         assert self.route is not None
@@ -197,7 +212,7 @@ class GraphStates:
             route=self.route,
             dep=self.dep,
             sens=sens,
-            prd_num=prd_num
+            **kwargs
         )
         df_filtered = compute_curviligne(df_filtered)
         print(f"Nombre de lignes après filtrage : {len(df_filtered)}")

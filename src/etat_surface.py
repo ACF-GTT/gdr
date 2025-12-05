@@ -18,7 +18,7 @@ def main(
     route: str,
     dep: str,
     sens_list: list[str],
-    prd_num: int | None = None
+    **kwargs
 ) -> None:
     """main"""
     # 3 graphiques pour 3 niveaux d'états
@@ -44,8 +44,8 @@ def main(
         index += nbg_per_sens
         df_filtered = grapher.graphe_sens(
             sens=sens,
-            prd_num=prd_num,
-            axes=sub_axes
+            axes=sub_axes,
+            **kwargs
         )
 
         # Axe X partagé
@@ -75,5 +75,6 @@ if __name__ == "__main__":
         route="N0088",
         dep="43",
         sens_list=["M", "P"],
-        prd_num=None
+        prd_min=8,
+        prf_max=15
     )
