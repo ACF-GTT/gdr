@@ -72,9 +72,9 @@ def main(
 
 if __name__ == "__main__":
     main(
-        route="N0088",
-        dep="43",
+        route="N0122",
+        dep="15",
         sens_list=["M", "P"],
-        prd_min=8,
-        prf_max=15
+        prd_num=123,
+        prf_num=126
     )

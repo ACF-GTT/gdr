@@ -119,28 +119,16 @@ def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFram
     sens = kwargs.get("sens", None)
     prd_num= kwargs.get("prd_num", None)
     prf_num= kwargs.get("prf_num", None)
-    prd_min = kwargs.get("prd_min", None)
-    prd_max = kwargs.get("prd_max", None)
-    prf_min = kwargs.get("prf_min", None)
-    prf_max = kwargs.get("prf_max", None)
     if route:
         df = df[df[ROUTE] == route]
     if dep:
         df= df[df[DEP].astype(str).str.strip() == str(dep).strip()]
     if sens:
         df = df[df[SENS] == sens]
-    if prd_num:
-        df = df[df[PRD_NUM] == prd_num]
-    if prf_num:
-        df = df[df[PRF_NUM] == prf_num]
-    if prd_min is not None:
-        df = df[df[PRD_NUM] >= prd_min]
-    if prd_max is not None:
-        df = df[df[PRD_NUM] <= prd_max]
-    if prf_min is not None:
-        df = df[df[PRF_NUM] >= prf_min]
-    if prf_max is not None:
-        df = df[df[PRF_NUM] <= prf_max]
+    if prd_num is not None:
+        df = df[df[PRD_NUM] >= prd_num]
+    if prf_num is not None:
+        df = df[df[PRF_NUM] <= prf_num]
     return df.sort_values(by=[PRD_NUM, ABD], ascending=ascending)
 
 
