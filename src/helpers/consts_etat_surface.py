@@ -65,13 +65,13 @@ D_SUP = {
     for state in STATES
 }
 
-
 def level_name(state: str, level: int) -> str:
     """name"""
-    return f"S_{state}_level_{level}"
+    return f"S_{state}_{LEVEL}_{level}"
 
 def pct_name(state: str, level: int) -> str:
     """name"""
-    return f"pct_{state}_level_{level}"
+    return f"{PCT}_{state}_{LEVEL}_{level}"
+
 
 MESSAGE_NO_DF = "Pas de DataFrame, impossible de continuer"
