@@ -18,7 +18,6 @@ class CheckConf():
         self.yaml: dict = {}
         self.src_path = parent_dir(__file__, 2)
         yaml_path = f"{self.src_path}/configuration.yml"
-        yaml_path = f"{parent_dir(__file__, 2)}/configuration.yml"
         if os.path.exists(yaml_path):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.yaml = dict(yaml.safe_load(f))

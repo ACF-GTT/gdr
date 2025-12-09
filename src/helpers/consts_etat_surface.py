@@ -20,11 +20,14 @@ PLOF = "plof"
 ROUTE = "route"
 SENS = "sens"
 SURF_EVAL = "S_evaluee"
+IES = "ies"
+IEP = "iep"
+IETP = "ietp"
 
 STATES = {
-    "ies": "SURFACE",
-    "iep": "PROFOND",
-    "ietp": "TRES PROFOND"
+    IES: "SURFACE",
+    IEP: "PROFOND",
+    IETP: "TRES PROFOND"
 }
 
 # Création du PR avec regex

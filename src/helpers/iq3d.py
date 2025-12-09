@@ -5,7 +5,6 @@ from itertools import accumulate
 import pandas as pd
 from pandas import DataFrame
 from pandas import Series
-import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from helpers.graph_tools import draw_object
 
@@ -18,10 +17,9 @@ from helpers.consts_etat_surface import (
     LONGUEUR_TRONCON,
     SURF_EVAL,
     PR_REGEX,
-    STATES,
+    STATES,IES,IEP,IETP,
     PRD_NUM, PRF_NUM, PRD, PRF,
     CURV_START, CURV_END,
-    #FIELDS_SELECTION,
     Y_SCALE, Y_SCALE_W_PR,
     D_SUP,NB_LEVELS,
     MESSAGE_NO_DF,
@@ -124,11 +122,11 @@ class SurfaceAnalyzer:
             str(dep).strip()]
 
     def filter(
-            self,
-            prd : int | None,
-            abd : int | None,
-            prf : int | None,
-            abf : int | None,
+        self,
+        prd : int | None,
+        abd : int | None,
+        prf : int | None,
+        abf : int | None,
 
     ) -> None :
         """filtre sur pr/abs"""
@@ -156,6 +154,8 @@ class SurfaceAnalyzer:
         df = df.sort_values(by=[PRD_NUM, ABD], ascending=True)
         df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
         df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
+            # Affichage demandé
+
         return df, {
             el[PRD_NUM]: el[CURV_START]
             for _, el in df.iterrows()
@@ -185,6 +185,15 @@ def graphe_state_section(
         height=percents,
         color=COLORS
     )
+
+def habille(ax, title, label, scale):
+    """Habillage d'un axe"""
+    ax.tick_params(labelsize=6)
+    ax.set_ylabel(label, fontsize=8)
+    ax.set_ylim(0, scale)
+    ax.grid(visible=True, axis="x", linestyle="--")
+    ax.grid(visible=True, axis="y")
+    ax.set_title(title)
 
 class GraphStates:
     """Classe pour grapher les états de surface IQRN 3D"""
@@ -224,36 +233,23 @@ class GraphStates:
         assert self.dep is not None
         self.analyzer.filter(**kwargs)
         df, self.curv_prs[sens] = self.analyzer.compute_curviligne(sens)
-
-        # Boucle sur chaque état à tracer
-        for ax, state in zip(axes, list(STATES.keys())):
-            # On parcourt chaque tronçon décrit dans le dataframe filtré.
-            ax.tick_params(labelsize=6)
-            ax.set_ylabel(STATES[state], fontsize=8)
-            for _, row in df.iterrows():
-                # On affiche les PR et les abs_curv
-                if row[ABD] == 0:
-                    self.curv_prs[sens][row[PRD_NUM]] = row[CURV_START]
-                    # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
-                    # sur le premier sous-graph (axes[0])
-                    if ax is axes[0] and row[PRD] is not None:
-                        prev_ax = plt.gca() # sauvegarde de l'axe actuel
-                        plt.sca(ax)
-                        draw_object(
-                            label=str(row[PRD]),
-                            x_pos=row[CURV_START],
-                            ymax=Y_SCALE_W_PR
-                        )
-                        # on restaure l'axe précédent pour ps planter ls autres graphes
-                        plt.sca(prev_ax)
-                graphe_state_section(state, row, ax)
-
-            #configuration des 3 ss-graphs
-            ax.set_ylim(
-                0,
-                Y_SCALE_W_PR if ax == axes[0] else Y_SCALE
+        # Affichage des PR sur le premier axe
+        for pr, curv in self.curv_prs[sens].items():
+            draw_object(
+                label = str(pr),
+                x_pos = curv,
+                ymax = Y_SCALE_W_PR,
+                ax = axes[0],
             )
-            ax.grid(visible=True, axis="x", linestyle="--")
-            ax.grid(visible=True, axis="y")
-            ax.set_title(f"sens {sens}")
+        # Décoration et habillage des graphiques
+        title = f"sens {sens}"
+        habille(axes[0], title, STATES[IES], Y_SCALE_W_PR)
+        habille(axes[1], title, STATES[IEP], Y_SCALE)
+        habille(axes[2], title, STATES[IETP], Y_SCALE)
+
+        # Valeurs
+        for _, row in df.iterrows():
+            graphe_state_section(IES, row, axes[0])
+            graphe_state_section(IEP, row, axes[1])
+            graphe_state_section(IETP, row, axes[2])
         return df
