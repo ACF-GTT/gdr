@@ -2,7 +2,7 @@
 sous la forme de schémas itinéraires SI
 """
 import argparse
-import os
+#import os
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -67,7 +67,7 @@ def get_measures(nb_mes) -> list[RoadMeasure]:
     questions = {}
     for j in range(nb_mes):
         questions[f"measure_{j}"] = {
-            "folder_path": f"{os.path.dirname(__file__)}/{YAML_CONF.get_datas_folder()}",
+            "folder_path" : YAML_CONF.get_datas_folder(),
             "ext": ["csv", "RE0"],
             "message": f"fichier de mesure {j}"
         }

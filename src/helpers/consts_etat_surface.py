@@ -1,7 +1,6 @@
 """Constantes pour l'analyse de l'état de surface des routes."""
-from helpers.tools_file import parent_dir
-FILE = f"{parent_dir(__file__, 2)}/datas/Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
-
+from helpers.tools_file import CheckConf
+FILE = CheckConf().aigle3d_xls()
 # Couleurs du niveau 0  au niveau 4
 COLORS = [
     "green",
