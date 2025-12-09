@@ -2,7 +2,7 @@
 sous la forme de schémas itinéraires SI
 """
 import argparse
-import os
+#import os
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
-    EVE_COLORS, COLORS, get_color
+    COLORS, get_color
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
@@ -18,6 +18,8 @@ from helpers.grip import get_grip_datas
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure, START, END
 from helpers.tools_file import CheckConf
+from helpers.graph_tools import draw_object
+
 
 YAML_CONF = CheckConf()
 
@@ -32,28 +34,6 @@ MEAN_STEP = YAML_CONF.get_mean_step()
 def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
     """Crée le tableau des couleurs pour l'histogramme."""
     return [get_color(val, unit) for val in y_data]
-
-def draw_object(
-        label: str,
-        x_pos: float,
-        ymax: int
-) -> None:
-    """Ajoute un évènement ponctuel
-    et une ligne verticale de repérage.
-    """
-    plt.annotate(
-        label,
-        (x_pos, 0.9 * ymax),
-        bbox = EVE_COLORS[label]["bbox"],
-        color = EVE_COLORS[label]["font"]
-    )
-    plt.vlines(
-        x_pos,
-        0,
-        1.5 * ymax,
-        color = EVE_COLORS[label]["line"]
-    )
-
 
 def draw_objects(tops : dict[str, tuple], ymax: int):
     """Ajoute des évènements topés par le mesureur à un SI.
@@ -87,7 +67,7 @@ def get_measures(nb_mes) -> list[RoadMeasure]:
     questions = {}
     for j in range(nb_mes):
         questions[f"measure_{j}"] = {
-            "folder_path": f"{os.path.dirname(__file__)}/{YAML_CONF.get_datas_folder()}",
+            "folder_path" : YAML_CONF.get_datas_folder(),
             "ext": ["csv", "RE0"],
             "message": f"fichier de mesure {j}"
         }
