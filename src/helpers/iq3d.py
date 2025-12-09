@@ -1,5 +1,5 @@
 """Helpers pour l'analyse des états de surface IQRN 3D"""
-
+from collections import defaultdict
 from itertools import accumulate
 
 import pandas as pd
@@ -12,7 +12,7 @@ from helpers.graph_tools import draw_object
 from helpers.consts_etat_surface import (
     FILE,
     COLORS,
-    ABD,
+    ABD, ABF,
     PLOD, PLOF,
     ROUTE, DEP, SENS,
     LONGUEUR_TRONCON,
@@ -21,7 +21,7 @@ from helpers.consts_etat_surface import (
     STATES,
     PRD_NUM, PRF_NUM, PRD, PRF,
     CURV_START, CURV_END,
-    FIELDS_SELECTION,
+    #FIELDS_SELECTION,
     Y_SCALE, Y_SCALE_W_PR,
     D_SUP,NB_LEVELS,
     MESSAGE_NO_DF,
@@ -31,15 +31,20 @@ from helpers.consts_etat_surface import (
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
-    def __init__(self, file_path: str) -> None:
+    def __init__(
+        self,
+        file_path: str | None = None,
+        df : DataFrame | None = None
+        ) -> None:
         """Initialisation"""
         self.file_path = file_path
-        self.df = None
+        self.df = df
         self.sheet_name : str | None = None
 
 
     def load_sheet(self):
         """Charge une feuille"""
+        assert self.file_path is not None
         excel_file = pd.ExcelFile(self.file_path)
         print("Feuilles disponibles dans le fichier :")
         for i, sheet in enumerate(excel_file.sheet_names):
@@ -109,36 +114,53 @@ class SurfaceAnalyzer:
                     self.df[level_name(state, level)] / self.df[SURF_EVAL] * 100
                 )
 
+    def set(self,route: str | None, dep: str | None) :
+        """fixe route & département"""
+        assert self.df is not None, MESSAGE_NO_DF
+        if route :
+            self.df = self.df[self.df[ROUTE] == route]
+        if dep :
+            self.df = self.df[self.df[DEP].astype(str).str.strip() ==
+            str(dep).strip()]
+
+    def filter(
+            self,
+            prd : int | None,
+            abd : int | None,
+            prf : int | None,
+            abf : int | None,
+
+    ) -> None :
+        """filtre sur pr/abs"""
+        assert self.df is not None, MESSAGE_NO_DF
+        if prd is not None :
+            self.df = self.df[self.df[PRD_NUM] >= prd]
+        if abd is not None :
+            self.df = self.df[self.df[ABD] >= abd]
+        if prf is not None :
+            self.df = self.df[self.df[PRF_NUM] <= prf]
+        if abf is not None :
+            self.df = self.df[self.df[ABF] <= abf]
 
 
-def filter_order(df: DataFrame|None,ascending: bool = True,**kwargs) -> DataFrame:
-    """ Filtre route/dep/sens et ré-ordonne"""
-    assert df is not None, MESSAGE_NO_DF
-    route = kwargs.get("route", None)
-    dep = kwargs.get("dep", None)
-    sens = kwargs.get("sens", None)
-    prd_num= kwargs.get("prd_num", None)
-    prf_num= kwargs.get("prf_num", None)
-    if route:
-        df = df[df[ROUTE] == route]
-    if dep:
-        df= df[df[DEP].astype(str).str.strip() == str(dep).strip()]
-    if sens:
-        df = df[df[SENS] == sens]
-    if prd_num is not None:
-        df = df[df[PRD_NUM] >= prd_num]
-    if prf_num is not None:
-        df = df[df[PRF_NUM] <= prf_num]
-    return df.sort_values(by=[PRD_NUM, ABD], ascending=ascending)
-
-
-def compute_curviligne(df: DataFrame) -> DataFrame:
-    """Calcule l'abscisse curviligne total après filtre."""
-    assert df is not None, MESSAGE_NO_DF
-    df[CURV_END] = df[LONGUEUR_TRONCON].cumsum()
-    df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
-    return df
-
+    def compute_curviligne(
+            self,
+            sens : str
+    ) -> tuple [DataFrame, dict[int, float]] :
+        """Calcule les abscisses curvilignes et retourne
+        un dictironnaire des pr"""
+        assert self.df is not None, MESSAGE_NO_DF
+        # On fixe le sens
+        df = self.df[self.df[SENS] == sens]
+        # On trie les données dans le sens pr/abs croissants
+        df = df.sort_values(by=[PRD_NUM, ABD], ascending=True)
+        df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
+        df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
+        return df, {
+            el[PRD_NUM]: el[CURV_START]
+            for _, el in df.iterrows()
+            if el[ABD] == 0
+        }
 
 def graphe_state_section(
     state: str,
@@ -166,15 +188,19 @@ def graphe_state_section(
 
 class GraphStates:
     """Classe pour grapher les états de surface IQRN 3D"""
-    def __init__(self):
+    def __init__(self, df: DataFrame | None = None):
         """initialisation"""
-        self.analyzer = SurfaceAnalyzer(FILE)
-        self.analyzer.load_sheet()
-        self.analyzer.compute_pr()
-        self.analyzer.compute_levels()
-        self.analyzer.compute_percent()
-        self.route = None
-        self.dep = None
+        if df is  None:
+            self.analyzer = SurfaceAnalyzer(FILE)
+            self.analyzer.load_sheet()
+            self.analyzer.compute_pr()
+            self.analyzer.compute_levels()
+            self.analyzer.compute_percent()
+        else :
+            self.analyzer = SurfaceAnalyzer(df=df)
+        self.route : str | None = None
+        self.dep : str | None = None
+        self.curv_prs : dict[str, dict[int, float]] = defaultdict(dict)
 
     def set_route_dep(
         self,
@@ -184,6 +210,8 @@ class GraphStates:
         """fixe route & département"""
         self.route = route
         self.dep = dep
+        self.analyzer.set(route=route, dep=dep)
+
 
     def graphe_sens(
         self,
@@ -194,26 +222,18 @@ class GraphStates:
         """graphes de tous les états pour un sens donné"""
         assert self.route is not None
         assert self.dep is not None
-        # Calcul des abscisses curvilignes et filtre
-        df_filtered = filter_order(
-            df=self.analyzer.df,
-            route=self.route,
-            dep=self.dep,
-            sens=sens,
-            **kwargs
-        )
-        df_filtered = compute_curviligne(df_filtered)
-        print(f"Nombre de lignes après filtrage : {len(df_filtered)}")
-        print(df_filtered.loc[:, FIELDS_SELECTION].head(40))
+        self.analyzer.filter(**kwargs)
+        df, self.curv_prs[sens] = self.analyzer.compute_curviligne(sens)
 
         # Boucle sur chaque état à tracer
         for ax, state in zip(axes, list(STATES.keys())):
             # On parcourt chaque tronçon décrit dans le dataframe filtré.
             ax.tick_params(labelsize=6)
             ax.set_ylabel(STATES[state], fontsize=8)
-            for _, row in df_filtered.iterrows():
+            for _, row in df.iterrows():
                 # On affiche les PR et les abs_curv
                 if row[ABD] == 0:
+                    self.curv_prs[sens][row[PRD_NUM]] = row[CURV_START]
                     # PR sur l'axe X : n'afficher la barre verticale (draw_object) que
                     # sur le premier sous-graph (axes[0])
                     if ax is axes[0] and row[PRD] is not None:
@@ -224,7 +244,7 @@ class GraphStates:
                             x_pos=row[CURV_START],
                             ymax=Y_SCALE_W_PR
                         )
-                         # on restaure l'axe précédent pour ps planter ls autres graphes
+                        # on restaure l'axe précédent pour ps planter ls autres graphes
                         plt.sca(prev_ax)
                 graphe_state_section(state, row, ax)
 
@@ -236,4 +256,4 @@ class GraphStates:
             ax.grid(visible=True, axis="x", linestyle="--")
             ax.grid(visible=True, axis="y")
             ax.set_title(f"sens {sens}")
-        return df_filtered
+        return df

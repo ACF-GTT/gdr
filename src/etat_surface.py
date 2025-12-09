@@ -42,11 +42,16 @@ def main(
     for sens in sens_list:
         sub_axes = axes[index : index + nbg_per_sens]
         index += nbg_per_sens
+
         df_filtered = grapher.graphe_sens(
             sens=sens,
             axes=sub_axes,
             **kwargs
         )
+        print("\n=== PRD / PRF (200 premières lignes) ===")
+        print(df_filtered[["PRD", "PRF"]].head(200))
+
+
 
         # Axe X partagé
         axes[-1].set_xlim(
@@ -75,6 +80,8 @@ if __name__ == "__main__":
         route="N0122",
         dep="15",
         sens_list=["M", "P"],
-        prd_num=123,
-        prf_num=126
+        prd = 123,
+        abd = None,
+        prf = 126,
+        abf = None
     )
