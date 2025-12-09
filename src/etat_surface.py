@@ -9,7 +9,8 @@ import matplotlib.patches as mpatches
 from helpers.consts_etat_surface import (
     COLORS,
     CURV_START, CURV_END,
-    SENS_LIST
+    SENS_LIST,
+    FIELDS_SELECTION_B
 )
 
 from helpers.iq3d import GraphStates
@@ -49,7 +50,7 @@ def main(
             **kwargs
         )
         print("\n=== PRD / PRF (200 premières lignes) ===")
-        print(df_filtered[["PRD", "PRF"]].head(200))
+        print(df_filtered[FIELDS_SELECTION_B].head(200))
 
 
 
@@ -79,9 +80,9 @@ if __name__ == "__main__":
     main(
         route="N0122",
         dep="15",
-        sens_list=["M", "P"],
-        prd = 123,
+        sens_list=["P", "M"],
+        prd = 40,
         abd = None,
-        prf = 126,
+        prf = 50,
         abf = None
     )

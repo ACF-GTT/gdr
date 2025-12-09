@@ -18,7 +18,7 @@ from helpers.consts_etat_surface import (
     SURF_EVAL,
     PR_REGEX,
     STATES,IES,IEP,IETP,
-    PRD_NUM, PRF_NUM, PRD, PRF,
+    PRD_NUM, PRF_NUM, PRD, PRF, PRD_NAT,
     CURV_START, CURV_END,
     Y_SCALE, Y_SCALE_W_PR,
     D_SUP,NB_LEVELS,
@@ -64,25 +64,18 @@ class SurfaceAnalyzer:
         """Construit les colonnes PRD et PRF à partir de plod/plof """
         assert self.df is not None, MESSAGE_NO_DF
 
-        # Extraction du numéro de PR
-        # On est obligé de faire en 2 étapes car sinon PR100<PR11
-        # Explication du pattern : n°dep+PR+n°PR+Sens
-        self.df[PRD_NUM] = (
-            self.df[PLOD]
-            .str.extract(PR_REGEX)[1]  # groupe 2 = numéro PR
-            .astype("Int64")
-        )
+        prd = self.df[PLOD].str.extract(PR_REGEX)
+        prf = self.df[PLOF].str.extract(PR_REGEX)
 
-        self.df[PRF_NUM] = (
-            self.df[PLOF]
-            .str.extract(PR_REGEX)[1]
-            .astype("Int64")
-        )
+        self.df[PRD_NAT] = prd[0]
+        self.df[PRD_NUM] = prd[2].astype("Int64")
+        self.df[PRF_NUM] = prf[2].astype("Int64")
 
-        # On reconstruit les PR en txt
-        self.df[PRD] = self.df[PRD_NUM].apply(
-            lambda x: f"PR{int(x)}" if pd.notna(x) else None
-        )
+        # On reconstruit les labels des PR en txt
+        self.df[PRD] = [
+            f"{el[PRD_NAT]}{el[PRD_NUM]}"
+            for _, el in self.df.iterrows()
+        ]
         self.df[PRF] = self.df[PRF_NUM].apply(
             lambda x: f"PR{int(x)}" if pd.notna(x) else None
         )
@@ -142,22 +135,20 @@ class SurfaceAnalyzer:
 
 
     def compute_curviligne(
-            self,
-            sens : str
-    ) -> tuple [DataFrame, dict[int, float]] :
-        """Calcule les abscisses curvilignes et retourne
-        un dictironnaire des pr"""
+        self,
+        sens : str
+    ) -> tuple [DataFrame, dict[str, float]] :
+        """retourne le dataframe avec les abscisses curvilignes 
+        et un dictionnaire des pr"""
         assert self.df is not None, MESSAGE_NO_DF
         # On fixe le sens
         df = self.df[self.df[SENS] == sens]
         # On trie les données dans le sens pr/abs croissants
-        df = df.sort_values(by=[PRD_NUM, ABD], ascending=True)
+        df = df.sort_values(by=[PRD_NUM, PRD_NAT, ABD], ascending=True)
         df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
         df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
-            # Affichage demandé
-
         return df, {
-            el[PRD_NUM]: el[CURV_START]
+            el[PRD]: el[CURV_START]
             for _, el in df.iterrows()
             if el[ABD] == 0
         }
@@ -209,7 +200,7 @@ class GraphStates:
             self.analyzer = SurfaceAnalyzer(df=df)
         self.route : str | None = None
         self.dep : str | None = None
-        self.curv_prs : dict[str, dict[int, float]] = defaultdict(dict)
+        self.curv_prs : dict[str, dict[str, float]] = defaultdict(dict)
 
     def set_route_dep(
         self,
@@ -236,7 +227,7 @@ class GraphStates:
         # Affichage des PR sur le premier axe
         for pr, curv in self.curv_prs[sens].items():
             draw_object(
-                label = str(pr),
+                label = pr,
                 x_pos = curv,
                 ymax = Y_SCALE_W_PR,
                 ax = axes[0],

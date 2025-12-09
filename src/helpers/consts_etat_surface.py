@@ -31,7 +31,8 @@ STATES = {
 }
 
 # Création du PR avec regex
-PR_REGEX = r"^(\d{2})PR(\d+)[A-Z]?$"
+# Explication du pattern : nature+n°dep+PR+n°PR+Sens
+PR_REGEX = r"^([A-Z]*)(\d{2})PR(\d+)[A-Z]?$"
 
 # Echelles pour les graphiques
 
@@ -45,6 +46,7 @@ PRD_NUM = "prd_num"
 PRF_NUM = "prf_num"
 PRD = "PRD"
 PRF = "PRF"
+PRD_NAT = "PRD_NAT"
 
 FIELDS_SELECTION = [
     PRD,
@@ -52,6 +54,12 @@ FIELDS_SELECTION = [
     LONGUEUR_TRONCON,
     CURV_START,
     CURV_END
+]
+FIELDS_SELECTION_B = [
+    PRD, PRD_NAT, ABD,
+    PRF, ABF,
+    SENS, LONGUEUR_TRONCON,
+    PLOD, PLOF
 ]
 
 SENS_LIST = ["P", "M"]
