@@ -17,8 +17,11 @@ mean_step:
 # si on précise sub1/sub2, la valeur est datas/sub1/sub2 
 datas:
 
-#Emplacement des fichiers aigle dans datas
+# Emplacement du fichier xls des états aigle dans datas
 aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+
+# emplacement d'un fichier contenant des données en PR+abcisse dans datas
+pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
 
 # affichage des légendes
 # si on précise rien, les légendes sont affichées
