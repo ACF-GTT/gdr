@@ -1,10 +1,8 @@
 """
 Analyse des états de surface des routes à partir de l'AIGLE3D
 """
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-
 
 from helpers.consts_etat_surface import (
     COLORS,
@@ -14,6 +12,7 @@ from helpers.consts_etat_surface import (
 )
 
 from helpers.iq3d import GraphStates
+from helpers.graph_tools import init_single_column_plt
 
 def main(
     route: str,
@@ -28,14 +27,7 @@ def main(
         assert sens in SENS_LIST
     nbg_per_sens = 3
     nbrows = nbg_per_sens * len(sens_list)
-    fig, axes = plt.subplots(
-        nrows=nbrows,
-        ncols=1,
-        figsize=(15, 6),
-        sharex=True,
-        gridspec_kw={'hspace': 0.5}
-    )
-    plt.rcParams.update({'font.size': 6})
+    fig, axes = init_single_column_plt(nbrows)
 
     grapher = GraphStates()
     grapher.set_route_dep(route=route, dep=dep)
@@ -51,8 +43,6 @@ def main(
         )
         print("\n=== PRD / PRF (200 premières lignes) ===")
         print(df_filtered[FIELDS_SELECTION_B].head(200))
-
-
 
         # Axe X partagé
         axes[-1].set_xlim(
