@@ -116,10 +116,10 @@ class SurfaceAnalyzer:
 
     def filter(
         self,
-        prd : int | None,
-        abd : int | None,
-        prf : int | None,
-        abf : int | None,
+        prd : int | None = None,
+        abd : int | None = None,
+        prf : int | None = None,
+        abf : int | None = None
 
     ) -> None :
         """filtre sur pr/abs"""
@@ -190,7 +190,7 @@ class GraphStates:
     """Classe pour grapher les états de surface IQRN 3D"""
     def __init__(self, df: DataFrame | None = None):
         """initialisation"""
-        if df is  None:
+        if df is None:
             self.analyzer = SurfaceAnalyzer(FILE)
             self.analyzer.load_sheet()
             self.analyzer.compute_pr()
