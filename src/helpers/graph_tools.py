@@ -7,7 +7,7 @@ from helpers.road_mesure import START, END
 def init_single_column_plt(nb_graphes) :
     """Initialise un graphe a une seule colonne"""
     fig, axes = plt.subplots(
-        nbrows=nb_graphes,
+        nrows=nb_graphes,
         ncols=1,
         figsize=(15,6),
         sharex=True,

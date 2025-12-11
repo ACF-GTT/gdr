@@ -20,6 +20,9 @@ datas:
 #Emplacement des fichiers aigle dans datas
 aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
+aigle_route : "N0122"
+aigle_dep : 15
+
 # affichage des légendes
 # si on précise rien, les légendes sont affichées
 # si on met true ou 1, c'est pareil

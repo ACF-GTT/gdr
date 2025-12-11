@@ -2,6 +2,7 @@
 sous la forme de schémas itinéraires SI
 """
 import argparse
+from dataclasses import dataclass
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -19,6 +20,7 @@ from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
 from helpers.graph_tools import draw_objects, init_single_column_plt
+from helpers.iq3d import GraphStates
 
 
 YAML_CONF = CheckConf()
@@ -31,9 +33,22 @@ PRECISION = {
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = YAML_CONF.get_mean_step()
 
-def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
+@dataclass
+class Aigle :
+    """aigle3D dataclass"""
+    route = YAML_CONF.yaml.get("aigle_route")
+    dep = YAML_CONF.yaml.get("aigle_dep")
+    df = None
+
+aigle = Aigle()
+
+def color_map(
+    y_data: list[float],
+    unit: str = "CFT"
+)-> list[str]:
     """Crée le tableau des couleurs pour l'histogramme."""
     return [get_color(val, unit) for val in y_data]
+
 
 def filtre_bornes(mes: RoadMeasure, bornes: list[str] | None):
     """Filtre les données de la mesure fonction des bornes fournies."""
@@ -105,6 +120,7 @@ def format_legend(add_percent, unit, data):
         legend.append(patch)
     return legend
 
+
 def draw_colored_horizons(
     unit: str,
     y_max: int,
@@ -167,11 +183,20 @@ def fix_abs_reference(measures: list[RoadMeasure], pr: str | None):
 def main(args):
     """main exe"""
     nb_graphes = 0
+    if aigle.route and aigle.dep :
+        grapher = GraphStates()
+        grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
+        nb_graphes += 3
+
     measures = get_measures(int(args.multi))
 
     nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
     _,axes = init_single_column_plt(nb_graphes)
     plt_index = 0
+    if aigle.route and aigle.dep :
+        aigle.df = grapher.graphe_sens(sens="P", axes=axes[0:3], prd=int(args.pr))
+        plt_index +=3
+
     abs_reference = fix_abs_reference(measures, args.pr)
     abscisses = None
 
