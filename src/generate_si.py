@@ -2,10 +2,10 @@
 sous la forme de schémas itinéraires SI
 """
 import argparse
-#import os
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 from helpers.consts import (
     UPPER, LOWER,
@@ -16,9 +16,9 @@ from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
-from helpers.road_mesure import RoadMeasure, START, END
+from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
-from helpers.graph_tools import draw_object
+from helpers.graph_tools import draw_objects, init_single_column_plt
 
 
 YAML_CONF = CheckConf()
@@ -34,22 +34,6 @@ MEAN_STEP = YAML_CONF.get_mean_step()
 def color_map(y_data: list[float], unit: str = "CFT") -> list[str]:
     """Crée le tableau des couleurs pour l'histogramme."""
     return [get_color(val, unit) for val in y_data]
-
-def draw_objects(tops : dict[str, tuple], ymax: int):
-    """Ajoute des évènements topés par le mesureur à un SI.
-    tops est un dictionnaire avec 
-    - clé = chaine topée
-    - valeur = tuple (x,y) de la position sur le SI
-    """
-    for key, value in tops.items():
-        x , _ = value
-        if key == START:
-            draw_object("D", x, ymax)
-        elif key == END:
-            draw_object("F", x, ymax)
-        else:
-            draw_object(key, x, ymax)
-
 
 def filtre_bornes(mes: RoadMeasure, bornes: list[str] | None):
     """Filtre les données de la mesure fonction des bornes fournies."""
@@ -121,14 +105,17 @@ def format_legend(add_percent, unit, data):
         legend.append(patch)
     return legend
 
-
-def draw_colored_horizons(unit: str, y_max: int):
+def draw_colored_horizons(
+    unit: str,
+    y_max: int,
+    ax: Axes
+):
     """Ajout de bandes colorées en arrière-plan"""
     if unit in ("CFT", "CFL"):
         for level, val in LEVELS[unit].items():
             lower = val.get(LOWER, 0)
             upper = val.get(UPPER, y_max)
-            plt.axhspan(
+            ax.axhspan(
                 lower,
                 upper,
                 color=COLORS[unit][level],
@@ -136,7 +123,12 @@ def draw_colored_horizons(unit: str, y_max: int):
             )
 
 
-def draw_mean_histo(mes: RoadMeasure, y_max: int, rec_zh: str):
+def draw_mean_histo(
+    mes: RoadMeasure,
+    y_max: int,
+    rec_zh: str,
+    ax : Axes
+):
     """affiche l'histogramme des valeurs moyennes."""
     if not mes.unit:
         return
@@ -144,7 +136,7 @@ def draw_mean_histo(mes: RoadMeasure, y_max: int, rec_zh: str):
         MEAN_STEP,
         rec_zh=rec_zh
     )
-    plt.bar(
+    ax.bar(
         x_mean_values,
         mean_values,
         width=MEAN_STEP,
@@ -152,7 +144,7 @@ def draw_mean_histo(mes: RoadMeasure, y_max: int, rec_zh: str):
         edgecolor="white"
     )
     for jj, mean_value in enumerate(mean_values):
-        plt.annotate(
+        ax.annotate(
             round(mean_value, PRECISION[y_max]),
             (x_mean_values[jj], mean_value)
         )
@@ -174,24 +166,21 @@ def fix_abs_reference(measures: list[RoadMeasure], pr: str | None):
 
 def main(args):
     """main exe"""
+    nb_graphes = 0
     measures = get_measures(int(args.multi))
-    plt.subplots_adjust(hspace=0.5)
-    plt.rcParams.update({'font.size': 6})
 
-    nb_graphes = len(measures) if MEAN_STEP == 0 else 2*len(measures)
-    plt_index = 1
+    nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
+    _,axes = init_single_column_plt(nb_graphes)
+    plt_index = 0
     abs_reference = fix_abs_reference(measures, args.pr)
     abscisses = None
 
     for j, mes in enumerate(measures):
         y_max = 100 if mes.unit in  ("CFT","CFL") else 1
         print(f"mesure {j}")
-        if j == 0:
-            ax = plt.subplot(nb_graphes, 1, plt_index)
-        else:
-            plt.subplot(nb_graphes, 1, plt_index, sharex=ax)
+        ax = axes[plt_index]
         if mes.title is not None:
-            plt.title(mes.title)
+            ax.set_title(mes.title)
 
         print(f"tops avant offset {mes.tops()}")
         if j != 0 and mes.sens != measures[0].sens:
@@ -199,24 +188,24 @@ def main(args):
         if j != 0 and abs_reference is not None:
             mes.offset = abs_reference - mes.tops()[args.pr][0]
             print(f""""
-                  on applique un offset {mes.offset}
-                  tops après offset : {mes.tops()}
+            on applique un offset {mes.offset}
+            tops après offset : {mes.tops()}
             """)
 
         abscisses, data = filtre_bornes(mes, args.bornes)
         if args.bornes and j == 0:
-            plt.xlim(min(abscisses), max(abscisses))
+            ax.set_xlim(min(abscisses), max(abscisses))
         n = len(data)
         if n == 0:
             continue
 
-        draw_colored_horizons(mes.unit, y_max)
+        draw_colored_horizons(mes.unit, y_max, ax=ax)
 
         print(f"il y a {n} lignes")
         if mes.unit is None:
             continue
         if YAML_CONF.view_legend():
-            plt.legend(
+            ax.legend(
                 handles=format_legend(
                     args.add_percent,
                     mes.unit,
@@ -225,11 +214,11 @@ def main(args):
                 loc="upper right"
             )
 
-        plt.ylim((0, y_max))
-        plt.grid(visible=True, axis="x", linestyle="--")
-        plt.grid(visible=True, axis="y")
-        draw_objects(mes.tops(), y_max)
-        plt.bar(
+        ax.set_ylim((0, y_max))
+        ax.grid(visible=True, axis="x", linestyle="--")
+        ax.grid(visible=True, axis="y")
+        draw_objects(mes.tops(), y_max, ax=ax)
+        ax.bar(
             abscisses,
             data,
             width = mes.step,
@@ -239,12 +228,11 @@ def main(args):
         plt_index += 1
 
         if MEAN_STEP :
-            plt.subplot(nb_graphes, 1, plt_index, sharex=ax)
-            plt.ylim((0, y_max))
-            draw_mean_histo(mes, y_max, args.rec_zh)
-            draw_objects(mes.tops(), y_max)
+            ax = axes[plt_index]
+            ax.set_ylim((0, y_max))
+            draw_mean_histo(mes, y_max, args.rec_zh, ax=ax)
+            draw_objects(mes.tops(), y_max, ax=ax)
             plt_index += 1
-    plt.show()
     return measures
 
 
@@ -292,3 +280,4 @@ if __name__ == "__main__":
         help="événement pour le recalage des zones homogènes"
     )
     summarize(main(parser.parse_args()))
+    plt.show()
