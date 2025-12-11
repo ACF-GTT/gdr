@@ -1,6 +1,5 @@
 """exploitation des fichiers SBO de l'APL"""
 import argparse
-import os
 
 import matplotlib.pyplot as plt
 
