@@ -166,18 +166,29 @@ def draw_mean_histo(
         )
 
 
-def fix_abs_reference(measures: list[RoadMeasure], pr: str | None):
+def fix_abs_reference(measures: list[RoadMeasure], pr: str | None, grapher = None):
     """fixe l'abscisse de référence"""
-    abs_reference = None
     if pr is None:
         print("Pas de pr de recalage fourni")
-        return abs_reference
+        return None
+    # Cas A3D présent
+    if grapher is not None:
+        try:
+            abs_reference = grapher.curv_prs["P"][pr]
+            print(f"abscisse du pr A3D {pr} dans cette mesure : {abs_reference}")
+            return abs_reference
+        except KeyError:
+            print(f"Attention le PR A3D saisi '{pr}' est inexistant : pas de recalage")
+
+    # Cas sans A3D
     try:
         abs_reference = measures[0].tops()[pr][0]
-        print(f"abscisse du pr {pr} dans cette mesure : {abs_reference}")
+        print(f"abscisse du pr Grip {pr} dans cette mesure : {abs_reference}")
+        return abs_reference
     except KeyError:
-        print(f"Attention le PR saisi '{pr}' est inexistant : pas de recalage")
-    return abs_reference
+        print(f"Attention le PR Grip saisi '{pr}' est inexistant : pas de recalage")
+        return None
+
 
 
 def main(args):
@@ -197,7 +208,11 @@ def main(args):
         aigle.df = grapher.graphe_sens(sens="P", axes=axes[0:3], prd=int(args.pr))
         plt_index +=3
 
-    abs_reference = fix_abs_reference(measures, args.pr)
+    abs_reference = fix_abs_reference(
+        measures,
+        args.pr,
+        grapher if (aigle.route and aigle.dep) else None
+    )
     abscisses = None
 
     for j, mes in enumerate(measures):
@@ -210,7 +225,7 @@ def main(args):
         print(f"tops avant offset {mes.tops()}")
         if j != 0 and mes.sens != measures[0].sens:
             mes.reverse()
-        if j != 0 and abs_reference is not None:
+        if abs_reference is not None:
             mes.offset = abs_reference - mes.tops()[args.pr][0]
             print(f""""
             on applique un offset {mes.offset}
