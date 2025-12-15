@@ -189,10 +189,22 @@ def fix_abs_reference(measures: list[RoadMeasure], pr: str | None, grapher = Non
         print(f"Attention le PR Grip saisi '{pr}' est inexistant : pas de recalage")
         return None
 
+def extract_prd_prf(args):
+    """bornes pour prd/prf """
+    if args.bornes:
+        prd = int(args.bornes[0])
+        prf = int(args.bornes[-1]) if len(args.bornes) > 1 else None
+        return prd, prf
 
+    if args.pr:
+        return int(args.pr), None
 
-def main(args):
-    """main exe"""
+    return None, None
+
+def init_graph_aigle(args):
+    """Initialise le contexte de graphes (Aigle + matplotlib)."""
+    grapher = None
+    plt_index = 0
     nb_graphes = 0
     if aigle.route and aigle.dep :
         grapher = GraphStates()
@@ -202,12 +214,24 @@ def main(args):
     measures = get_measures(int(args.multi))
 
     nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
-    _,axes = init_single_column_plt(nb_graphes)
-    plt_index = 0
-    if aigle.route and aigle.dep :
-        aigle.df = grapher.graphe_sens(sens="P", axes=axes[0:3], prd=int(args.pr))
-        plt_index +=3
+    _, axes = init_single_column_plt(nb_graphes)
 
+    if grapher:
+        prd, prf = extract_prd_prf(args)
+        aigle.df = grapher.graphe_sens(
+            sens="P",
+            axes=axes[0:3],
+            prd=prd,
+            prf=prf
+        )
+        plt_index = 3
+
+    return grapher, measures, axes, plt_index
+
+
+def main(args):
+    """main exe"""
+    grapher, measures, axes, plt_index = init_graph_aigle(args)
     abs_reference = fix_abs_reference(
         measures,
         args.pr,
