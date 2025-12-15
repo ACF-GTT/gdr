@@ -201,7 +201,7 @@ def extract_prd_prf(args):
 
     return None, None
 
-def init_graph_aigle(args):
+def init_context(args):
     """Initialise le contexte de graphes (Aigle + matplotlib)."""
     grapher = None
     plt_index = 0
@@ -231,7 +231,7 @@ def init_graph_aigle(args):
 
 def main(args):
     """main exe"""
-    grapher, measures, axes, plt_index = init_graph_aigle(args)
+    grapher, measures, axes, plt_index = init_context(args)
     abs_reference = fix_abs_reference(
         measures,
         args.pr,
