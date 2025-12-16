@@ -216,6 +216,12 @@ def init_context(args):
     nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
     _, axes = init_single_column_plt(nb_graphes)
 
+    return grapher, measures, axes, plt_index
+
+
+def main(args):
+    """main exe"""
+    grapher, measures, axes, plt_index = init_context(args)
     if grapher:
         prd, prf = extract_prd_prf(args)
         aigle.df = grapher.graphe_sens(
@@ -224,14 +230,7 @@ def init_context(args):
             prd=prd,
             prf=prf
         )
-        plt_index = 3
-
-    return grapher, measures, axes, plt_index
-
-
-def main(args):
-    """main exe"""
-    grapher, measures, axes, plt_index = init_context(args)
+    plt_index = 3
     abs_reference = fix_abs_reference(
         measures,
         args.pr,
