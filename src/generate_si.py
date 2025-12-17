@@ -21,6 +21,8 @@ from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
 from helpers.graph_tools import draw_objects, init_single_column_plt
 from helpers.iq3d import GraphStates
+from helpers.consts_etat_surface import surface_state_legend
+
 
 
 YAML_CONF = CheckConf()
@@ -217,6 +219,7 @@ def init_context(args):
     nb_graphes = 0
     if aigle.route and aigle.dep :
         grapher = GraphStates()
+
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         nb_graphes += 3 * len(aigle.sens_list)
 
@@ -228,11 +231,17 @@ def init_context(args):
     return grapher, measures, axes
 
 
-def main(args):
+def main(args):  # pylint: disable=too-many-locals
     """main exe"""
     grapher, measures, axes = init_context(args)
     plt_index = 0
     if grapher:
+        fig = axes[0].figure
+        fig.legend(
+            handles = surface_state_legend(),
+            loc = "upper right",
+            ncol = len(surface_state_legend()),
+        )
         for sens in aigle.sens_list :
             prd, prf = extract_prd_prf(args)
             if prd is None and sens in aigle.recalage :
