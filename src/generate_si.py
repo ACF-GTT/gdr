@@ -33,11 +33,19 @@ PRECISION = {
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = YAML_CONF.get_mean_step()
 
+# Mapping entre sens des mesures Grip et sens Aigle
+SENS_GRIP_TO_AIGLE = {
+    "D": "P",  # Droite → P
+    "G": "M",  # Gauche → M
+}
+
 @dataclass
 class Aigle :
     """aigle3D dataclass"""
     route = YAML_CONF.yaml.get("aigle_route")
     dep = YAML_CONF.yaml.get("aigle_dep")
+    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
+    recalage = YAML_CONF.yaml.get("aigle_recalage", {})
     df = None
 
 aigle = Aigle()
@@ -172,10 +180,12 @@ def fix_abs_reference(measures: list[RoadMeasure], pr: str | None, grapher = Non
         print("Pas de pr de recalage fourni")
         return None
     # Cas A3D présent
+    grip_sens = measures[0].sens # D ou G
+    aigle_sens = SENS_GRIP_TO_AIGLE.get(grip_sens)
     if grapher is not None:
         try:
-            abs_reference = grapher.curv_prs["P"][pr]
-            print(f"abscisse du pr A3D {pr} dans cette mesure : {abs_reference}")
+            abs_reference = grapher.curv_prs[aigle_sens][pr]
+            print(f"abscisse du pr A3D {pr}(Grip{grip_sens} -> aigle{aigle_sens}):{abs_reference}")
             return abs_reference
         except KeyError:
             print(f"Attention le PR A3D saisi '{pr}' est inexistant : pas de recalage")
@@ -204,39 +214,41 @@ def extract_prd_prf(args):
 def init_context(args):
     """Initialise le contexte de graphes (Aigle + matplotlib)."""
     grapher = None
-    plt_index = 0
     nb_graphes = 0
     if aigle.route and aigle.dep :
         grapher = GraphStates()
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
-        nb_graphes += 3
+        nb_graphes += 3 * len(aigle.sens_list)
 
     measures = get_measures(int(args.multi))
 
     nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
     _, axes = init_single_column_plt(nb_graphes)
 
-    return grapher, measures, axes, plt_index
+    return grapher, measures, axes
 
 
 def main(args):
     """main exe"""
-    grapher, measures, axes, plt_index = init_context(args)
+    grapher, measures, axes = init_context(args)
+    plt_index = 0
     if grapher:
-        prd, prf = extract_prd_prf(args)
-        aigle.df = grapher.graphe_sens(
-            sens="P",
-            axes=axes[0:3],
-            prd=prd,
-            prf=prf
-        )
-    plt_index = 3
+        for sens in aigle.sens_list :
+            prd, prf = extract_prd_prf(args)
+            if prd is None and sens in aigle.recalage :
+                prd = aigle.recalage[sens]
+            aigle.df = grapher.graphe_sens(
+                sens=sens,
+                axes=axes[plt_index:plt_index+3],
+                prd=prd,
+                prf=prf
+            )
+            plt_index += 3
     abs_reference = fix_abs_reference(
         measures,
         args.pr,
         grapher if (aigle.route and aigle.dep) else None
     )
-    abscisses = None
 
     for j, mes in enumerate(measures):
         y_max = 100 if mes.unit in  ("CFT","CFL") else 1
@@ -254,14 +266,14 @@ def main(args):
             on applique un offset {mes.offset}
             tops après offset : {mes.tops()}
             """)
-
-        abscisses, data = filtre_bornes(mes, args.bornes)
+        # Fusion de abscisse et data en abscisses_data
+        # abscisses_data[0] vaut abscisses et [1] vaut data
+        abscisses_data = filtre_bornes(mes, args.bornes)
         if args.bornes and j == 0:
-            ax.set_xlim(min(abscisses), max(abscisses))
-        n = len(data)
+            ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
+        n = len(abscisses_data[1])
         if n == 0:
             continue
-
         draw_colored_horizons(mes.unit, y_max, ax=ax)
 
         print(f"il y a {n} lignes")
@@ -272,7 +284,7 @@ def main(args):
                 handles=format_legend(
                     args.add_percent,
                     mes.unit,
-                    data
+                    abscisses_data[1]
                 ),
                 loc="upper right"
             )
@@ -282,11 +294,11 @@ def main(args):
         ax.grid(visible=True, axis="y")
         draw_objects(mes.tops(), y_max, ax=ax)
         ax.bar(
-            abscisses,
-            data,
+            abscisses_data[0],
+            abscisses_data[1],
             width = mes.step,
-            color = color_map(data, unit=mes.unit),
-            edgecolor = color_map(data, unit=mes.unit)
+            color = color_map(abscisses_data[1], unit=mes.unit),
+            edgecolor = color_map(abscisses_data[1], unit=mes.unit)
         )
         plt_index += 1
 
