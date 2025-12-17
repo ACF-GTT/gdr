@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 
 from helpers.consts_etat_surface import (
-    COLORS,
     CURV_START, CURV_END,
     SENS_LIST,
     FIELDS_SELECTION_B,
