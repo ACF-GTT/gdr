@@ -244,8 +244,6 @@ def main(args):  # pylint: disable=too-many-locals
         )
         for sens in aigle.sens_list :
             prd, prf = extract_prd_prf(args)
-            if prd is None and sens in aigle.recalage :
-                prd = aigle.recalage[sens]
             aigle.df = grapher.graphe_sens(
                 sens=sens,
                 axes=axes[plt_index:plt_index+3],

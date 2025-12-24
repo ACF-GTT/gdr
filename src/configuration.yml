@@ -25,12 +25,9 @@ aigle_dep : 15
 aigle_sens:
   - P 
   - M
-aigle_recalage:
-  P: 124
-  M: 124
 
 # affichage des légendes
 # si on précise rien, les légendes sont affichées
 # si on met true ou 1, c'est pareil
 # si on met false ou 0, les légendes ne sont pas affichées
-legend:
+legend: 1
