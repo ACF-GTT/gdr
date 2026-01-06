@@ -127,7 +127,7 @@ class DescripteurAnalyzer:
 
 
 if __name__ == "__main__":
-    
+
     analyzer = DescripteurAnalyzer()
 
     analyzer.load_layer("ORNIERAGE_GRAND_RAYON")
