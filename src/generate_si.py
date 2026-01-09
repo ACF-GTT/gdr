@@ -21,6 +21,8 @@ from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
 from helpers.graph_tools import draw_objects, init_single_column_plt
 from helpers.iq3d import GraphStates
+from helpers.consts_etat_surface import surface_state_legend
+
 
 
 YAML_CONF = CheckConf()
@@ -33,11 +35,19 @@ PRECISION = {
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = YAML_CONF.get_mean_step()
 
+# Mapping entre sens des mesures Grip et sens Aigle
+SENS_GRIP_TO_AIGLE = {
+    "D": "P",  # Droite → P
+    "G": "M",  # Gauche → M
+}
+
 @dataclass
 class Aigle :
     """aigle3D dataclass"""
     route = YAML_CONF.yaml.get("aigle_route")
     dep = YAML_CONF.yaml.get("aigle_dep")
+    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
+    recalage = YAML_CONF.yaml.get("aigle_recalage", {})
     df = None
 
 aigle = Aigle()
@@ -166,39 +176,86 @@ def draw_mean_histo(
         )
 
 
-def fix_abs_reference(measures: list[RoadMeasure], pr: str | None):
+def fix_abs_reference(measures: list[RoadMeasure], pr: str | None, grapher = None):
     """fixe l'abscisse de référence"""
-    abs_reference = None
     if pr is None:
         print("Pas de pr de recalage fourni")
-        return abs_reference
+        return None
+    # Cas A3D présent
+    grip_sens = measures[0].sens # D ou G
+    aigle_sens = SENS_GRIP_TO_AIGLE.get(grip_sens)
+    if grapher is not None:
+        try:
+            abs_reference = grapher.curv_prs[aigle_sens][pr]
+            print(f"abscisse du pr A3D {pr}(Grip{grip_sens} -> aigle{aigle_sens}):{abs_reference}")
+            return abs_reference
+        except KeyError:
+            print(f"Attention le PR A3D saisi '{pr}' est inexistant : pas de recalage")
+
+    # Cas sans A3D
     try:
         abs_reference = measures[0].tops()[pr][0]
-        print(f"abscisse du pr {pr} dans cette mesure : {abs_reference}")
+        print(f"abscisse du pr Grip {pr} dans cette mesure : {abs_reference}")
+        return abs_reference
     except KeyError:
-        print(f"Attention le PR saisi '{pr}' est inexistant : pas de recalage")
-    return abs_reference
+        print(f"Attention le PR Grip saisi '{pr}' est inexistant : pas de recalage")
+        return None
 
+def extract_prd_prf(args):
+    """bornes pour prd/prf """
+    if args.bornes:
+        prd = int(args.bornes[0])
+        prf = int(args.bornes[-1]) if len(args.bornes) > 1 else None
+        return prd, prf
 
-def main(args):
-    """main exe"""
+    if args.pr:
+        return int(args.pr), None
+
+    return None, None
+
+def init_context(args):
+    """Initialise le contexte de graphes (Aigle + matplotlib)."""
+    grapher = None
     nb_graphes = 0
     if aigle.route and aigle.dep :
         grapher = GraphStates()
+
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
-        nb_graphes += 3
+        nb_graphes += 3 * len(aigle.sens_list)
 
     measures = get_measures(int(args.multi))
 
     nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
-    _,axes = init_single_column_plt(nb_graphes)
-    plt_index = 0
-    if aigle.route and aigle.dep :
-        aigle.df = grapher.graphe_sens(sens="P", axes=axes[0:3], prd=int(args.pr))
-        plt_index +=3
+    _, axes = init_single_column_plt(nb_graphes)
 
-    abs_reference = fix_abs_reference(measures, args.pr)
-    abscisses = None
+    return grapher, measures, axes
+
+
+def main(args):  # pylint: disable=too-many-locals
+    """main exe"""
+    grapher, measures, axes = init_context(args)
+    plt_index = 0
+    if grapher:
+        fig = axes[0].figure
+        fig.legend(
+            handles = surface_state_legend(),
+            loc = "upper right",
+            ncol = len(surface_state_legend()),
+        )
+        for sens in aigle.sens_list :
+            prd, prf = extract_prd_prf(args)
+            aigle.df = grapher.graphe_sens(
+                sens=sens,
+                axes=axes[plt_index:plt_index+3],
+                prd=prd,
+                prf=prf
+            )
+            plt_index += 3
+    abs_reference = fix_abs_reference(
+        measures,
+        args.pr,
+        grapher if (aigle.route and aigle.dep) else None
+    )
 
     for j, mes in enumerate(measures):
         y_max = 100 if mes.unit in  ("CFT","CFL") else 1
@@ -210,20 +267,20 @@ def main(args):
         print(f"tops avant offset {mes.tops()}")
         if j != 0 and mes.sens != measures[0].sens:
             mes.reverse()
-        if j != 0 and abs_reference is not None:
+        if abs_reference is not None:
             mes.offset = abs_reference - mes.tops()[args.pr][0]
             print(f""""
             on applique un offset {mes.offset}
             tops après offset : {mes.tops()}
             """)
-
-        abscisses, data = filtre_bornes(mes, args.bornes)
+        # Fusion de abscisse et data en abscisses_data
+        # abscisses_data[0] vaut abscisses et [1] vaut data
+        abscisses_data = filtre_bornes(mes, args.bornes)
         if args.bornes and j == 0:
-            ax.set_xlim(min(abscisses), max(abscisses))
-        n = len(data)
+            ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
+        n = len(abscisses_data[1])
         if n == 0:
             continue
-
         draw_colored_horizons(mes.unit, y_max, ax=ax)
 
         print(f"il y a {n} lignes")
@@ -234,7 +291,7 @@ def main(args):
                 handles=format_legend(
                     args.add_percent,
                     mes.unit,
-                    data
+                    abscisses_data[1]
                 ),
                 loc="upper right"
             )
@@ -244,11 +301,11 @@ def main(args):
         ax.grid(visible=True, axis="y")
         draw_objects(mes.tops(), y_max, ax=ax)
         ax.bar(
-            abscisses,
-            data,
+            abscisses_data[0],
+            abscisses_data[1],
             width = mes.step,
-            color = color_map(data, unit=mes.unit),
-            edgecolor = color_map(data, unit=mes.unit)
+            color = color_map(abscisses_data[1], unit=mes.unit),
+            edgecolor = color_map(abscisses_data[1], unit=mes.unit)
         )
         plt_index += 1
 

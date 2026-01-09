@@ -2,13 +2,13 @@
 Analyse des états de surface des routes à partir de l'AIGLE3D
 """
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+
 
 from helpers.consts_etat_surface import (
-    COLORS,
     CURV_START, CURV_END,
     SENS_LIST,
-    FIELDS_SELECTION_B
+    FIELDS_SELECTION_B,
+    surface_state_legend
 )
 
 from helpers.iq3d import GraphStates
@@ -51,11 +51,7 @@ def main(
         )
 
     # LÉGENDE DES NIVEAUX
-    patches = [
-        mpatches.Patch(color=color, label=f">={lvl}")
-        for lvl, color in enumerate(COLORS)
-    ]
-
+    patches = surface_state_legend()
     fig.legend(
         handles=patches,
         loc="upper right",

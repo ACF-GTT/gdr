@@ -1,4 +1,6 @@
 """Constantes pour l'analyse de l'état de surface des routes."""
+import matplotlib.patches as mpatches
+
 from helpers.tools_file import CheckConf
 FILE = CheckConf().aigle3d_xls()
 # Couleurs du niveau 0  au niveau 4
@@ -85,3 +87,10 @@ def pct_name(state: str, level: int) -> str:
 
 
 MESSAGE_NO_DF = "Pas de DataFrame, impossible de continuer"
+
+def surface_state_legend():
+    """Retourne les patches de légende pour les états de surface A3D"""
+    return [
+        mpatches.Patch(color=color, label=f">={lvl}")
+        for lvl, color in enumerate(COLORS)
+    ]
