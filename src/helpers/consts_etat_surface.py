@@ -27,9 +27,9 @@ IEP = "iep"
 IETP = "ietp"
 
 STATES = {
-    IES: "SURFACE",
-    IEP: "PROFOND",
-    IETP: "TRES PROFOND"
+    IES: "SURF.",
+    IEP: "PROF.",
+    IETP: "T.PROF."
 }
 
 # Création du PR avec regex

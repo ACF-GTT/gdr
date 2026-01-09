@@ -11,9 +11,9 @@ def init_single_column_plt(nb_graphes) :
         ncols=1,
         figsize=(15,6),
         sharex=True,
-        gridspec_kw={'hspace': 0.5}
+        gridspec_kw={'hspace': 0.8}
     )
-    plt.rcParams.update({'font.size':6})
+    plt.rcParams.update({'font.size':5})
     return fig, axes
 
 
