@@ -1,6 +1,5 @@
 """exploitation des fichiers SBO de l'APL"""
 import argparse
-import os
 
 import matplotlib.pyplot as plt
 
@@ -25,7 +24,7 @@ NB_MES = int(args.multi)
 
 for j in range(NB_MES):
     questions[f"measure_{j}"] = {
-        "folder_path": f"{os.path.dirname(__file__)}/{YAML_CONF.get_datas_folder()}",
+        "folder_path": YAML_CONF.get_datas_folder(),
         "ext": ["SBO"],
         "message": f"fichier de mesure {j}"
     }

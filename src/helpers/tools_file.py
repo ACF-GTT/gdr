@@ -63,3 +63,10 @@ class CheckConf():
         if aigle_xls is not None:
             return f"{self.src_path}/datas/{aigle_xls}"
         return f"{self.src_path}/datas/Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+
+    def pr_abs_csv(self) -> str | None:
+        """Retourne le path vers le csv contenant les données pr+abs"""
+        pr_abs_csv = self.yaml.get("pr_abs_csv")
+        if pr_abs_csv is not None:
+            return f"{self.src_path}/datas/{pr_abs_csv}"
+        return None
