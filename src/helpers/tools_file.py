@@ -26,6 +26,10 @@ class CheckConf():
         """Retourne toutes les clés présentes dans le yaml."""
         return list(self.yaml.keys())
 
+    def get(self, field: str):
+        """check for a field value."""
+        return self.yaml.get(field)
+
     def get_mean_step(self) -> int:
         """retourne mean_step"""
         mean_step = self.yaml.get("mean_step")

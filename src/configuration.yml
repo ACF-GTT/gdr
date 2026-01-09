@@ -34,3 +34,10 @@ pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
 # si on met true ou 1, c'est pareil
 # si on met false ou 0, les légendes ne sont pas affichées
 legend: 1
+
+# mettre la valeur 1 pour retourner TOUTES les séries issues d'appareils monomesure
+# exemple de use case : seulement des données de sens gauche sont à traiter
+# en mettant 1, elles seront automatiquement retournées dans le sens plus
+# et la synchro avec aigle se fera bien.
+force_reverse:
+

@@ -231,7 +231,7 @@ def init_context(args):
     return grapher, measures, axes
 
 
-def main(args):  # pylint: disable=too-many-locals
+def main(args):
     """main exe"""
     grapher, measures, axes = init_context(args)
     plt_index = 0
@@ -256,7 +256,7 @@ def main(args):  # pylint: disable=too-many-locals
         args.pr,
         grapher if (aigle.route and aigle.dep) else None
     )
-
+    nb_sens_mono = len({mes.sens for mes in measures})
     for j, mes in enumerate(measures):
         y_max = 100 if mes.unit in  ("CFT","CFL") else 1
         print(f"mesure {j}")
@@ -266,6 +266,8 @@ def main(args):  # pylint: disable=too-many-locals
 
         print(f"tops avant offset {mes.tops()}")
         if j != 0 and mes.sens != measures[0].sens:
+            mes.reverse()
+        elif YAML_CONF.get("force_reverse") and nb_sens_mono == 1:
             mes.reverse()
         if abs_reference is not None:
             mes.offset = abs_reference - mes.tops()[args.pr][0]
