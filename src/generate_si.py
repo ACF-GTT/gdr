@@ -19,7 +19,6 @@ from helpers.grip import get_grip_datas
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
-from helpers.graph_tools import draw_objects, init_single_column_plt
 from helpers.graph_tools import draw_objects, init_single_column_plt, habille
 from helpers.iq3d import GraphStates
 from helpers.consts_etat_surface import surface_state_legend
