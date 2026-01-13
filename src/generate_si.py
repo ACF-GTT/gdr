@@ -67,23 +67,15 @@ def filtre_bornes(
 ):
     """Filtre les données de la mesure fonction des bornes fournies."""
     if not bornes or bornes is None:
-        mes.clear_zoom()
         return mes.abs_zoomed(), mes.datas_zoomed
 
     start_pr = bornes[0]
     end_pr = bornes[-1] if len(bornes) > 1 else None
-
-    #  Pas de plus_abs
-    if not plus_abs:
-        mes.apply_zoom_from_prs(start_pr, end_pr)
-        return mes.abs_zoomed(), mes.datas_zoomed
-
-    #  Avec plus_abs
     start_abs = mes.top_abs(start_pr)
-    end_abs = mes.top_abs(end_pr) if end_pr else None
+    end_abs = mes.top_abs(end_pr)
 
-    if start_abs is None and end_abs is None:
-        mes.clear_zoom()
+    if not plus_abs:
+        mes.set_zoom_by_abs(start_abs, end_abs)
         return mes.abs_zoomed(), mes.datas_zoomed
 
     # On applique les décalages
@@ -91,7 +83,6 @@ def filtre_bornes(
         start_abs += plus_abs[0]
     if end_abs is not None and len(plus_abs) > 1:
         end_abs += plus_abs[-1]
-
     # Zoom final
     mes.set_zoom_by_abs(start_abs, end_abs)
     return mes.abs_zoomed(), mes.datas_zoomed
