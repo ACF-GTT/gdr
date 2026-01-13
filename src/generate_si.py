@@ -254,6 +254,9 @@ def main(args):
     plt_index = 0
     if grapher:
         fig = axes[0].figure
+        if aigle.route and aigle.dep:
+            fig.suptitle(
+                f"Route : {aigle.route} - Département : {aigle.dep}")
         fig.legend(
             handles = surface_state_legend(),
             loc = "upper right",
