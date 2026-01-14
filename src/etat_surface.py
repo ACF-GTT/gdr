@@ -2,6 +2,7 @@
 Analyse des états de surface des routes à partir de l'AIGLE3D
 """
 import matplotlib.pyplot as plt
+from helpers.pr_plus_abs import PlotText
 
 
 from helpers.consts_etat_surface import (
@@ -26,7 +27,7 @@ def main(
     for sens in sens_list:
         assert sens in SENS_LIST
     nbg_per_sens = 3
-    nbrows = nbg_per_sens * len(sens_list)
+    nbrows = nbg_per_sens * len(sens_list) + 2
     fig, axes = init_single_column_plt(nbrows)
 
     grapher = GraphStates()
@@ -49,6 +50,9 @@ def main(
             df_filtered[CURV_START].min(),
             df_filtered[CURV_END].max()
         )
+    if "P" in grapher.curv_prs:
+        text_helper = PlotText(grapher.curv_prs["P"])
+        text_helper.plot_text(axes[-2:])
 
     # LÉGENDE DES NIVEAUX
     patches = surface_state_legend()
@@ -67,8 +71,8 @@ if __name__ == "__main__":
         route="N0122",
         dep="15",
         sens_list=["P", "M"],
-        prd = 40,
+        prd = 123,
         abd = None,
-        prf = 50,
+        prf = 126,
         abf = None
     )
