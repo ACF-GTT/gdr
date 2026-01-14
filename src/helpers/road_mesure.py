@@ -131,16 +131,6 @@ class RoadMeasure():# pylint: disable=too-many-instance-attributes
         end_idx = abs_list.index(end_abs) + 1 if end_abs is not None else len(self.datas)
         self.zoom = (start_idx, end_idx)
 
-    def apply_zoom_from_prs(self, start_pr: str | None, end_pr: str | None) -> None:
-        """Applique un zoom en se basant sur deux PR (ou None)."""
-        start_abs = self.top_abs(start_pr)
-        end_abs = self.top_abs(end_pr)
-        self.set_zoom_by_abs(start_abs, end_abs)
-
-    def clear_zoom(self) -> None:
-        """Supprime le zoom (affiche tout)."""
-        self.zoom = None
-
     def produce_mean(
         self,
         mean_step: int,
