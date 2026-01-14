@@ -79,7 +79,7 @@ Les scripts peuvent aussi :
 
 ## AIGLE3D
 
-Le script peut intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés dans `configuration.yaml`.
+Le script peut intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés dans [configuration.yml](src/configuration.yml).
 
 Pour activer AIGLE3D, renseigner par exemple :
 
@@ -91,35 +91,62 @@ aigle_sens:
   - P
   - M
 ```
-Si aigle_route ou aigle_dep est vide, AIGLE3D est ignoré.
+Si `aigle_route` ou `aigle_dep` est vide, les données AIGLE3D ne seront pas chargées en mémoire.
 
 ## Exemple Intégration grip + A3D
 
 ![](images/exemple_grip_aigle.png)
 
 
-## Configuration.yaml
+## Configuration.yml
 
-Le fichier configuration.yaml permet d’ajuster le comportement des scripts sans modifier le code.
+Le fichier configuration.yml permet d’ajuster le comportement des scripts sans modifier le code.
 
 Exemple de paramètres utiles :
 
-- transparence des bandes de couleur
-    background_alpha:
-    - poor: 0.1
-    - fine: 0.3
-    - good: 0.4
-    - excellent: 0.4
+## transparence des bandes de couleur
+```yaml
+background_alpha:
+  - poor: 0.1
+  - fine: 0.3
+  - good: 0.4
+  - excellent: 0.4
+```
+## Pas pour le calcul des moyennes (en m)
 
-- Pas pour le calcul des moyennes (en m) ;si rien n'est précisé, la valeur par défaut est 200
+```yaml
+# si on ne précise rien, la valeur est 200
+mean_step:
+```
 
-- Sous-répertoire de datas utilisé comme racine
+## Sous-répertoire de datas utilisé comme racine
 
-- Affichage des légendes (1 = oui, 0 = non)
+```yaml
+# si on ne précise rien, la valeur est datas
+# si on précise sub1/sub2, la valeur est datas/sub1/sub2 
+datas:
+```
 
-- Emplacement d'un fichier contenant des données en PR+abcisse dans datas avec pr_abs_csv
+## Affichage des légendes (1 = oui, 0 = non)
+```yaml
+legend: 1
+```
 
-- Inversion automatique des séries monomesure si besoin :
-    - force_reverse : 1 = retourne automatiquement les mesures monomesure dans le sens “plus” (utile si on n’a que la voie gauche)
+## Emplacement d'un fichier contenant des données en PR+abcisse 
 
+le fichier csv doit être dans le répertoire `datas`
+
+```yaml
+# emplacement d'un fichier contenant des données en PR+abcisse dans datas
+pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
+```
+
+## Inversion automatique des séries monomesure si besoin
+
+```yaml
+# exemple de use case : seulement des données de sens gauche sont à traiter
+# en mettant 1, elles seront automatiquement retournées dans le sens plus
+# et la synchro avec aigle se fera bien.
+force_reverse: 1
+```
 
