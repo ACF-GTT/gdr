@@ -76,3 +76,50 @@ py .\src\generate_si.py --multi=2 --pr=20
 Les scripts peuvent aussi :
 - transcoder les données du griptester au format geojson, pour les utiliser dans un SIG comme QGIS
 - recompiler un fichier csv des données indexées au format PR+abscisse, moyennant une identification manuelle dans les geojson des PR depuis un référentiel connu (exemple BPTOPO)
+
+## AIGLE3D
+
+Le script peut intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés dans `configuration.yaml`.
+
+Pour activer AIGLE3D, renseigner par exemple :
+
+```yaml
+aigle_xls: "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+aigle_route: "N0122"
+aigle_dep: "15"
+aigle_sens:
+  - P
+  - M
+```
+Si aigle_route ou aigle_dep est vide, AIGLE3D est ignoré.
+
+## Exemple Intégration grip + A3D
+
+![](images/exemple_grip_aigle.png)
+
+
+## Configuration.yaml
+
+Le fichier configuration.yaml permet d’ajuster le comportement des scripts sans modifier le code.
+
+Exemple de paramètres utiles :
+
+- transparence des bandes de couleur
+    background_alpha:
+    - poor: 0.1
+    - fine: 0.3
+    - good: 0.4
+    - excellent: 0.4
+
+- Pas pour le calcul des moyennes (en m) ;si rien n'est précisé, la valeur par défaut est 200
+
+- Sous-répertoire de datas utilisé comme racine
+
+- Affichage des légendes (1 = oui, 0 = non)
+
+- Emplacement d'un fichier contenant des données en PR+abcisse dans datas avec pr_abs_csv
+
+- Inversion automatique des séries monomesure si besoin :
+    - force_reverse : 1 = retourne automatiquement les mesures monomesure dans le sens “plus” (utile si on n’a que la voie gauche)
+
+
