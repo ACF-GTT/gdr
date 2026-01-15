@@ -32,22 +32,23 @@ class PlotText:
         with open(FILE, encoding="utf-8") as csvfile:
             csv_data = list(csv.DictReader(csvfile, delimiter=','))
             self.filtered = {
-                txt_type: [el for el in csv_data if el[TXT_TYPE]==txt_type]
+                txt_type: items
                 for txt_type in Fields
+                if (items := [el for el in csv_data if el.get(TXT_TYPE) == txt_type])
             }
         self.abds = {
             txt_type: [
                 curv_prs[str(row[PRD])] + int(row[ABD])
                 for row in self.filtered[txt_type]
             ]
-            for txt_type in Fields
+            for txt_type in self.filtered
         }
         self.abfs = {
             txt_type: [
                 curv_prs[str(row[PRF])] + int(row[ABF])
                 for row in self.filtered[txt_type]
             ]
-            for txt_type in Fields
+            for txt_type in self.filtered
         }
 
     def plot_text_line(
