@@ -104,14 +104,6 @@ Le fichier configuration.yml permet d’ajuster le comportement des scripts sans
 
 Exemple de paramètres utiles :
 
-## transparence des bandes de couleur
-```yaml
-background_alpha:
-  - poor: 0.1
-  - fine: 0.3
-  - good: 0.4
-  - excellent: 0.4
-```
 ## Pas pour le calcul des moyennes (en m)
 
 ```yaml
@@ -150,3 +142,13 @@ pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
 force_reverse: 1
 ```
 
+## Transparence des bandes de couleur en fond des graphiques griptester
+
+mettre tpus ces paramétres à 0 pour revenir au fond blanc
+```yaml
+background_alpha:
+  - poor: 0.1
+  - fine: 0.3
+  - good: 0.4
+  - excellent: 0.4
+```
