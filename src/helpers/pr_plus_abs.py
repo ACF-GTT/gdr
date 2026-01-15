@@ -30,13 +30,17 @@ class PlotText:
     ) -> None:
         """init"""
         self.filtered = {}
-        self.abds = {}
-        self.abfs = {}
+        self.abds: dict[str, list[float]] = {}
+        self.abfs: dict[str, list[float]] = {}
         csv_name = None
         if isinstance(PR_ABS_DB, str):
             csv_name = PR_ABS_DB
         if route is not None and isinstance(PR_ABS_DB, dict):
             csv_name = PR_ABS_DB.get(route)
+        if csv_name is None:
+            message = f"pas de datas PR+ABS pour {route} ou pas de bdd PR+ABS"
+            LOGGER.warning(message)
+            return
         try:
             with open(csv_name, encoding="utf-8") as csvfile:
                 csv_data = list(csv.DictReader(csvfile, delimiter=','))
@@ -53,9 +57,6 @@ class PlotText:
             LOGGER.info(message)
         except FileNotFoundError:
             message = f"CSV introuvable : {csv_name}"
-            LOGGER.warning(message)
-        except TypeError:
-            message = f"pas de datas PR+ABS pour {route} ou pas de bdd PR+ABS"
             LOGGER.warning(message)
 
     def len(self) -> int:
