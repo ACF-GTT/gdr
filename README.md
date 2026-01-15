@@ -144,7 +144,7 @@ force_reverse: 1
 
 ## Transparence des bandes de couleur en fond des graphiques griptester
 
-mettre tpus ces paramétres à 0 pour revenir au fond blanc
+mettre tous ces paramétres à 0 pour revenir au fond blanc
 ```yaml
 background_alpha:
   - poor: 0.1
