@@ -119,7 +119,8 @@ mean_step:
 datas:
 ```
 
-## Affichage des légendes (1 = oui, 0 = non)
+## Affichage des légendes
+1 = oui, 0 = non
 ```yaml
 legend: 1
 ```
