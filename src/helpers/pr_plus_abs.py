@@ -14,11 +14,10 @@ ABD = "abd"
 ABF = "abf"
 TXT = "txt"
 TXT_TYPE = "type"
-FIELDS= {}
 
 class Fields(StrEnum):
     """les champs de la bdd en PR+ABS"""
-    TECH= "technique"
+    TECH = "technique"
     GEOM = "geometrie"
 
 class PlotText:
@@ -53,7 +52,7 @@ class PlotText:
 
     def plot_text_line(
         self,
-        txt_type: str,
+        txt_type: Fields,
         ax: Axes
     ) -> None:
         """plot a line of textual datas"""
