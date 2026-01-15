@@ -5,9 +5,11 @@ from matplotlib.axes import Axes
 import matplotlib.patches as mpatches
 
 from helpers.tools_file import CheckConf
+from helpers.consts import LOGGER
 
-FILE = CheckConf().pr_abs_csv()
+PR_ABS_DB = CheckConf().pr_abs_csv()
 
+ROUTE = "route"
 PRD = "prd"
 PRF = "prf"
 ABD = "abd"
@@ -24,18 +26,47 @@ class PlotText:
     """Add textual lines to SI"""
     def __init__(
         self,
-        curv_prs : dict[str, float]
+        route: str | None = None
     ) -> None:
         """init"""
-        self.curv_prs = curv_prs
-        assert FILE is not None
-        with open(FILE, encoding="utf-8") as csvfile:
-            csv_data = list(csv.DictReader(csvfile, delimiter=','))
-            self.filtered = {
-                txt_type: items
-                for txt_type in Fields
-                if (items := [el for el in csv_data if el.get(TXT_TYPE) == txt_type])
-            }
+        self.filtered = {}
+        self.abds = {}
+        self.abfs = {}
+        csv_name = None
+        if isinstance(PR_ABS_DB, str):
+            csv_name = PR_ABS_DB
+        if route is not None and isinstance(PR_ABS_DB, dict):
+            csv_name = PR_ABS_DB.get(route)
+        try:
+            with open(csv_name, encoding="utf-8") as csvfile:
+                csv_data = list(csv.DictReader(csvfile, delimiter=','))
+                self.filtered = {
+                    txt_type: items
+                    for txt_type in Fields
+                    if (items := [
+                        el for el in csv_data
+                        if el.get(TXT_TYPE) == txt_type
+                        and el.get(ROUTE) == route
+                    ])
+                }
+            message = f"nombre d'infos text : {self.len()}"
+            LOGGER.info(message)
+        except FileNotFoundError:
+            message = f"CSV introuvable : {csv_name}"
+            LOGGER.warning(message)
+        except TypeError:
+            message = f"pas de datas PR+ABS pour {route} ou pas de bdd PR+ABS"
+            LOGGER.warning(message)
+
+    def len(self) -> int:
+        """nombre de champs réellement dispo"""
+        return len(self.filtered)
+
+    def compute_abs(
+        self,
+        curv_prs : dict[str, float]
+    ):
+        """compute les abscisses curvilignes des datas PR+ABS"""
         self.abds = {
             txt_type: [
                 curv_prs[str(row[PRD])] + int(row[ABD])
