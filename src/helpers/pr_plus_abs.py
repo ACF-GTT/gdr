@@ -1,4 +1,5 @@
 """helper pour travail en PR+abscisse"""
+from enum import StrEnum
 import csv
 from matplotlib.axes import Axes
 import matplotlib.patches as mpatches
@@ -13,8 +14,12 @@ ABD = "abd"
 ABF = "abf"
 TXT = "txt"
 TXT_TYPE = "type"
-TECH = "technique"
-GEOM = "geometrie"
+FIELDS= {}
+
+class Fields(StrEnum):
+    """les champs de la bdd en PR+ABS"""
+    TECH= "technique"
+    GEOM = "geometrie"
 
 class PlotText:
     """Add textual lines to SI"""
@@ -29,21 +34,21 @@ class PlotText:
             csv_data = list(csv.DictReader(csvfile, delimiter=','))
             self.filtered = {
                 txt_type: [el for el in csv_data if el[TXT_TYPE]==txt_type]
-                for txt_type in [TECH, GEOM]
+                for txt_type in Fields
             }
         self.abds = {
             txt_type: [
                 curv_prs[str(row[PRD])] + int(row[ABD])
                 for row in self.filtered[txt_type]
             ]
-            for txt_type in [TECH, GEOM]
+            for txt_type in Fields
         }
         self.abfs = {
             txt_type: [
                 curv_prs[str(row[PRF])] + int(row[ABF])
                 for row in self.filtered[txt_type]
             ]
-            for txt_type in [TECH, GEOM]
+            for txt_type in Fields
         }
 
     def plot_text_line(
