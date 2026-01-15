@@ -27,7 +27,11 @@ aigle_sens:
   - M
 
 # emplacement d'un fichier contenant des données en PR+abcisse dans datas
-pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
+# si on a toute la base dans un seul fichier csv, on pourrait écrire simplement
+# pr_abs_csv: "bdd/pr_abs_bdd.csv"
+# mais le plus simple est d'avoir un fichier par route
+pr_abs_csv:
+  N0122: "PR_ABS/exp_N0122_Vauclair.csv"
 
 # affichage des légendes
 # si on précise rien, les légendes sont affichées
