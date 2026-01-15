@@ -16,6 +16,7 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
+from helpers.pr_plus_abs import PlotText, FILE as PR_ABS_FILE
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
@@ -238,7 +239,11 @@ def init_context(args):
         grapher = GraphStates()
 
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
+        # 3 graphes par sens + 2 graphes pour le texte PR+abs
         nb_graphes += 3 * len(aigle.sens_list)
+
+        if PR_ABS_FILE is not None :
+            nb_graphes += 2
 
     measures = get_measures(int(args.multi))
 
@@ -247,7 +252,7 @@ def init_context(args):
 
     return grapher, measures, axes
 
-
+# pylint: disable=too-many-branches
 def main(args):
     """main exe"""
     grapher, measures, axes = init_context(args)
@@ -333,6 +338,10 @@ def main(args):
             draw_mean_histo(mes, y_max, args.rec_zh, ax=ax)
             draw_objects(mes.tops(), y_max, ax=ax)
             plt_index += 1
+    # AJOUT POUR LE TEXTE PR+ABS, COMME DANS etat_surface
+    if grapher and PR_ABS_FILE and "P" in grapher.curv_prs:
+        text_helper = PlotText(grapher.curv_prs["P"])
+        text_helper.plot_text(axes[-2:])
     return measures
 
 

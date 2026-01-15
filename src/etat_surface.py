@@ -2,7 +2,7 @@
 Analyse des états de surface des routes à partir de l'AIGLE3D
 """
 import matplotlib.pyplot as plt
-from helpers.pr_plus_abs import PlotText
+from helpers.pr_plus_abs import PlotText, FILE as PR_ABS_FILE
 
 
 from helpers.consts_etat_surface import (
@@ -27,7 +27,9 @@ def main(
     for sens in sens_list:
         assert sens in SENS_LIST
     nbg_per_sens = 3
-    nbrows = nbg_per_sens * len(sens_list) + 2
+    nbrows = nbg_per_sens * len(sens_list)
+    if PR_ABS_FILE is not None:
+        nbrows += 2  # 2 graphes pour le texte PR+abs
     fig, axes = init_single_column_plt(nbrows)
 
     grapher = GraphStates()
@@ -50,7 +52,7 @@ def main(
             df_filtered[CURV_START].min(),
             df_filtered[CURV_END].max()
         )
-    if "P" in grapher.curv_prs:
+    if  PR_ABS_FILE and "P" in grapher.curv_prs:
         text_helper = PlotText(grapher.curv_prs["P"])
         text_helper.plot_text(axes[-2:])
 
