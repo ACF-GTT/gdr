@@ -18,6 +18,8 @@ exemple de structure pour le dossier `datas` à implanter dans le répertoire `s
 
 ```
 ├───datas
+|   |───Aigle3D
+│   |   │───Table_Indicateurs_Etat_surface_DIRMC.xlsx
 │   ├───CD43
 │   │   ├───pôle Craponne sur Arzon
 │   │   │       RD906 VOIE DROITE PR20 a 23+446.csv
@@ -30,29 +32,34 @@ exemple de structure pour le dossier `datas` à implanter dans le répertoire `s
 │   │           RD902 N2 voie droite PR11+865 a 17+.csv
 │   │           RD902 N2 voie gauche PR17+030 a 11+865.csv
 │   └───DIRMC
-│       └───Bessamorel
-│           │   N88 Bessamorel VL AXE.csv
-│           │   N88 Bessamorel VL TRACE DROITE.csv
-│           └───RUGO
-│               ├───APO0122030190.SES
-│               │       APO0122030190.EV0
-│               │       APO0122030190.ID0
-│               │       APO220105.CFG
-│               │       APORUG0121030190.ME0
-│               │       APORUG0121030190.RE0
-│               └───APO0122030200.SES
-│                       APO0122030200.EV0
-│                       APO0122030200.ID0
-│                       APO220105.CFG
-│                       APORUG0121030200.ME0
-│                       APORUG0121030200.RE0
+│   |   └───Bessamorel
+│   |       │   N88 Bessamorel VL AXE.csv
+│   |       │   N88 Bessamorel VL TRACE DROITE.csv
+│   |       └───RUGO
+│   |           ├───APO0122030190.SES
+│   |           │       APO0122030190.EV0
+│   |           │       APO0122030190.ID0
+│   |           │       APO220105.CFG
+│   |           │       APORUG0121030190.ME0
+│   |           │       APORUG0121030190.RE0
+│   |           └───APO0122030200.SES
+│   |                   APO0122030200.EV0
+│   |                   APO0122030200.ID0
+│   |                   APO220105.CFG
+│   |                   APORUG0121030200.ME0
+│   |                   APORUG0121030200.RE0
+|   └───PR_ABS
+|      |───exp_N0122_Vauclair.csv
 ```
 
 Dans cette structure de données exemple, on a :
 - 2 clients : CD43 et DIRMC
 - 2 types de mesures différentes: griptester MK2 (format csv) et rugolaser (format APO)
+- le fichiers xls des indicateurs de surface Aigle3D
+- un fichier [exp_N0122_Vauclair.csv](src/examples_datasets/PR_ABS/exp_N0122_Vauclair.csv) au format csv contenant des données référencées en PR + ABSCISSE
 
-ce sont des séries monomesure : dans le csv on a un seul type de données, CFL pour le grip et PMP pour le rugolaser par exemple
+grip et rugo sont des séries monomesure : dans le csv on a un seul type de données, CFL pour le grip et PMP pour le rugolaser par exemple
+
 
 ## utilisation
 
@@ -74,27 +81,42 @@ py .\src\generate_si.py --multi=2 --pr=20
 Les scripts peuvent aussi :
 - transcoder les données du griptester au format geojson, pour les utiliser dans un SIG comme QGIS
 - recompiler un fichier csv des données indexées au format PR+abscisse, moyennant une identification manuelle dans les geojson des PR depuis un référentiel connu (exemple BPTOPO)
+- intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés.
 
-## AIGLE3D
+La mention de `aigle_3d : 1`  dans [configuration.yml](src/configuration.yml) permet d'activer l'utilisation des données aigle
 
-Le script peut intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés dans [configuration.yml](src/configuration.yml).
+Il faut aussi s'assurer que [configuration.yml](src/configuration.yml) contient l'emplacement correct du fichier excel, le nom de la route, le département et les sens qu'on veut afficher
+```
+aigle_3d : 1
+aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+aigle_route : N0088
+aigle_dep : 43
+aigle_sens:
+  - P
+  - M
+```
 
-`aigle_3d : 1` permet de charger les données aigle3D en mémoire.
-
-si on veut ne travailler qu'avec des données aigle, sans besoin de synchro avec des appareils monomesure (rugo, grip)
+si on veut ne travailler qu'avec des données aigle, sans besoin de synchro avec des appareils monomesure (rugo, grip), on doit préciser `multi=0`
 
 ```
 py .\src\generate_si.py --multi=0 --bornes 30 37
 ```
+le paramètre bornes sert à préciser les numéros de PR pour délimiter la fenêtre d'affichage
+
+## Synchronisation de données monomesures et de données Aigle3D
+
+
+Si les données monomesures sont uniquement dans un sens, par exemple le sens moins, le recalage ne peut se faire que si on force le retournement. 
+
+Pour celà on impose `force_reverse: 1` dans [configuration.yml](src/configuration.yml)
+
 
 ## Exemple Intégration grip + A3D
 
 ![](images/exemple_grip_aigle.png)
 
 
-## Configuration.yml
-
-Le fichier configuration.yml permet d’ajuster le comportement des scripts sans modifier le code.
+## Autres paramètres
 
 `legend: 0` permet de désactiver les légendes sur les séries monomesures
 
@@ -113,23 +135,6 @@ py .\src\generate_si.py --multi=4
    C:\Users\alexandre.cuer\Documents\GitHub\gdr\src\datas\DIRMC\Bessamorel\RUGO\APO0122030200.SES\APORUG0121030200.RE0
 ```
 
-## Emplacement d'un fichier contenant des données en PR+abcisse 
-
-le fichier csv doit être dans le répertoire `datas`
-
-```yaml
-# emplacement d'un fichier contenant des données en PR+abcisse dans datas
-pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
-```
-
-## Inversion automatique des séries monomesure si besoin
-
-```yaml
-# exemple de use case : seulement des données de sens gauche sont à traiter
-# en mettant 1, elles seront automatiquement retournées dans le sens plus
-# et la synchro avec aigle se fera bien.
-force_reverse: 1
-```
 
 ## Transparence des bandes de couleur en fond des graphiques griptester
 
