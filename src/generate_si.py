@@ -45,6 +45,7 @@ SENS_GRIP_TO_AIGLE = {
 @dataclass
 class Aigle :
     """aigle3D dataclass"""
+    active = YAML_CONF.yaml.get("aigle_3d")
     route = YAML_CONF.yaml.get("aigle_route")
     dep = YAML_CONF.yaml.get("aigle_dep")
     sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
@@ -234,16 +235,16 @@ def extract_prd_prf(args):
 def init_context(args):
     """Initialise le contexte de graphes (Aigle + matplotlib)."""
     grapher = None
-    text_helper = None
     nb_graphes = 0
-    if aigle.route and aigle.dep :
+    if aigle.active :
         grapher = GraphStates()
 
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         # 3 graphes par sens + 2 graphes pour le texte PR+abs
         nb_graphes += 3 * len(aigle.sens_list)
-        text_helper = PlotText(route=aigle.route)
-        nb_graphes += text_helper.len()
+
+    text_helper = PlotText(route=aigle.route)
+    nb_graphes += text_helper.len()
 
     measures = get_measures(int(args.multi))
 
@@ -279,7 +280,7 @@ def main(args):
     abs_reference = fix_abs_reference(
         measures,
         args.pr,
-        grapher if (aigle.route and aigle.dep) else None
+        grapher
     )
     nb_sens_mono = len({mes.sens for mes in measures})
     for j, mes in enumerate(measures):
@@ -338,7 +339,7 @@ def main(args):
             draw_mean_histo(mes, y_max, args.rec_zh, ax=ax)
             draw_objects(mes.tops(), y_max, ax=ax)
             plt_index += 1
-    if text_helper and "P" in grapher.curv_prs:
+    if text_helper.len() and "P" in grapher.curv_prs:
         text_helper.compute_abs(grapher.curv_prs["P"])
         text_helper.plot_text(axes[-text_helper.len():])
     return measures

@@ -18,10 +18,12 @@ mean_step:
 datas:
 
 # Emplacement du fichier xls des états aigle dans datas
-# pour ne pas utiliser aigle, ne pas mettre de valeur pour aigle_route et aigle_dep
+# pour utiliser aigle, mettre 1 comme valeur pour aigle_3d
+# puis définir aigle_route et aigle_dep
+aigle_3d : 0
 aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
-aigle_route :
-aigle_dep :
+aigle_route : N0088
+aigle_dep : 43
 aigle_sens:
   - P 
   - M
