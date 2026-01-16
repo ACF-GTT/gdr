@@ -9,11 +9,7 @@ traitement de fichiers de mesure routière
 - installer github desktop si on ne souhaite pas utiliser git en ligne de commande : https://desktop.github.com/download/
 
 ```
-py -m pip install matplotlib
-py -m pip install inquirer
-py -m pip install folium
-py -m pip install geopandas
-py -m pip install pyyaml
+py -m pip install -r requirements.txt
 ```
 
 ## organisation des répertoires de données
