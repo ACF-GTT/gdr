@@ -52,6 +52,8 @@ Dans cette structure de données exemple, on a :
 - 2 clients : CD43 et DIRMC
 - 2 types de mesures différentes: griptester MK2 (format csv) et rugolaser (format APO)
 
+ce sont des séries monomesure : dans le csv on a un seul type de données, CFL pour le grip et PMP pour le rugolaser par exemple
+
 ## utilisation
 
 Pour faire un schéma itinéraire à partir de 2 sessions de mesure :
@@ -77,17 +79,13 @@ Les scripts peuvent aussi :
 
 Le script peut intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés dans [configuration.yml](src/configuration.yml).
 
-Pour activer AIGLE3D, renseigner par exemple :
+`aigle_3d : 1` permet de charger les données aigle3D en mémoire.
 
-```yaml
-aigle_xls: "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
-aigle_route: "N0122"
-aigle_dep: "15"
-aigle_sens:
-  - P
-  - M
+si on veut ne travailler qu'avec des données aigle, sans besoin de synchro avec des appareils monomesure (rugo, grip)
+
 ```
-Si `aigle_route` ou `aigle_dep` est vide, les données AIGLE3D ne seront pas chargées en mémoire.
+py .\src\generate_si.py --multi=0 --bornes 30 37
+```
 
 ## Exemple Intégration grip + A3D
 
@@ -98,27 +96,21 @@ Si `aigle_route` ou `aigle_dep` est vide, les données AIGLE3D ne seront pas cha
 
 Le fichier configuration.yml permet d’ajuster le comportement des scripts sans modifier le code.
 
-Exemple de paramètres utiles :
+`legend: 0` permet de désactiver les légendes sur les séries monomesures
 
-## Pas pour le calcul des moyennes (en m)
+`mean_step: 100` permet d'afficher les moyennes sur des pas de 100 mètres (200 mètres est la valeur par défaut)
 
-```yaml
-# si on ne précise rien, la valeur est 200
-mean_step:
+`datas: DIRMC` permet de filtrer les fichiers de mesure qui seront proposées au choix de l'utilisateur.
+Celà améliore l'ergonomie lorsqu'on commence à avoir beaucoup de fichiers de mesure.
+
 ```
-
-## Sous-répertoire de datas utilisé comme racine
-
-```yaml
-# si on ne précise rien, la valeur est datas
-# si on précise sub1/sub2, la valeur est datas/sub1/sub2 
-datas:
-```
-
-## Affichage des légendes
-1 = oui, 0 = non
-```yaml
-legend: 1
+py .\src\generate_si.py --multi=4               
+2026-01-16 13:04:03,386 WARNING  pr_plus_abs     __init__ :42       pas de datas PR+ABS pour N0088 ou pas de bdd PR+ABS
+[?] fichier de mesure 0:
+ > C:\Users\alexandre.cuer\Documents\GitHub\gdr\src\datas\DIRMC\Bessamorel\N88 Bessamorel  VL AXE.csv
+   C:\Users\alexandre.cuer\Documents\GitHub\gdr\src\datas\DIRMC\Bessamorel\N88 Bessamorel VL TRACE DROITE.csv
+   C:\Users\alexandre.cuer\Documents\GitHub\gdr\src\datas\DIRMC\Bessamorel\RUGO\APO0122030190.SES\APORUG0121030190.RE0
+   C:\Users\alexandre.cuer\Documents\GitHub\gdr\src\datas\DIRMC\Bessamorel\RUGO\APO0122030200.SES\APORUG0121030200.RE0
 ```
 
 ## Emplacement d'un fichier contenant des données en PR+abcisse 
