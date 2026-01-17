@@ -58,7 +58,7 @@ Dans cette structure de données exemple, on a :
 - le fichiers xls des indicateurs de surface Aigle3D
 - un fichier [exp_N0122_Vauclair.csv](src/examples_datasets/PR_ABS/exp_N0122_Vauclair.csv) au format csv contenant des données référencées en PR + ABSCISSE
 
-grip et rugo sont des séries monomesure : dans le csv on a un seul type de données, CFL pour le grip et PMP pour le rugolaser par exemple
+grip et rugo sont des séries monomesure, avec un seul type de données, CFL pour le grip et PMP pour le rugolaser par exemple
 
 
 ## utilisation
