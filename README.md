@@ -81,11 +81,11 @@ py .\src\generate_si.py --multi=2 --pr=20
 Les scripts peuvent aussi :
 - transcoder les données du griptester au format geojson, pour les utiliser dans un SIG comme QGIS
 - recompiler un fichier csv des données indexées au format PR+abscisse, moyennant une identification manuelle dans les geojson des PR depuis un référentiel connu (exemple BPTOPO)
-- intégrer les **états de surface AIGLE3D** (IES / IEP / IETP) si le fichier Excel et les paramètres sont renseignés.
+- intégrer les **états de surface AIGLE3D** (IES / IEP / IETP)
 
-La mention de `aigle_3d : 1`  dans [configuration.yml](src/configuration.yml) permet d'activer l'utilisation des données aigle
+La mention de `aigle_3d : 1`  dans [configuration.yml](src/configuration.yml) active l'utilisation des données aigle
 
-Il faut aussi s'assurer que [configuration.yml](src/configuration.yml) contient l'emplacement correct du fichier excel, le nom de la route, le département et les sens qu'on veut afficher
+[configuration.yml](src/configuration.yml) permet de définir l'emplacement correct du fichier excel, le nom de la route, le département et les sens qu'on veut afficher
 ```
 aigle_3d : 1
 aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
@@ -96,7 +96,7 @@ aigle_sens:
   - M
 ```
 
-si on veut ne travailler qu'avec des données aigle, sans besoin de synchro avec des appareils monomesure (rugo, grip), on doit préciser `multi=0`
+si on ne travaille qu'avec des données aigle, sans besoin de synchro avec des appareils monomesure (rugo, grip), on doit lancer `generate_si` avec l'argument `--multi=0` 
 
 ```
 py .\src\generate_si.py --multi=0 --bornes 30 37
