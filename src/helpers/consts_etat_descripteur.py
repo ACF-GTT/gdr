@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """Constantes décrivant les couches, colonnes, types et niveaux des descripteurs
 extraits depuis le fichier GPKG ou XLSX.
 """
