@@ -1,54 +1,91 @@
 """helper pour travail en PR+abscisse"""
+from enum import StrEnum
 import csv
 from matplotlib.axes import Axes
 import matplotlib.patches as mpatches
 
 from helpers.tools_file import CheckConf
+from helpers.consts import LOGGER
 
-FILE = CheckConf().pr_abs_csv()
+PR_ABS_DB = CheckConf().pr_abs_csv()
 
+ROUTE = "route"
 PRD = "prd"
 PRF = "prf"
 ABD = "abd"
 ABF = "abf"
 TXT = "txt"
 TXT_TYPE = "type"
-TECH = "technique"
-GEOM = "geometrie"
+
+class Fields(StrEnum):
+    """les champs de la bdd en PR+ABS"""
+    TECH = "technique"
+    GEOM = "geometrie"
 
 class PlotText:
     """Add textual lines to SI"""
     def __init__(
         self,
-        curv_prs : dict[str, float]
+        route: str | None = None
     ) -> None:
         """init"""
-        self.curv_prs = curv_prs
-        assert FILE is not None
-        with open(FILE, encoding="utf-8") as csvfile:
-            csv_data = list(csv.DictReader(csvfile, delimiter=','))
-            self.filtered = {
-                txt_type: [el for el in csv_data if el[TXT_TYPE]==txt_type]
-                for txt_type in [TECH, GEOM]
-            }
+        self.filtered = {}
+        self.abds: dict[str, list[float]] = {}
+        self.abfs: dict[str, list[float]] = {}
+        csv_name = None
+        if isinstance(PR_ABS_DB, str):
+            csv_name = PR_ABS_DB
+        if route is not None and isinstance(PR_ABS_DB, dict):
+            csv_name = PR_ABS_DB.get(route)
+        if csv_name is None:
+            message = f"pas de datas PR+ABS pour {route} ou pas de bdd PR+ABS"
+            LOGGER.warning(message)
+            return
+        try:
+            with open(csv_name, encoding="utf-8") as csvfile:
+                csv_data = list(csv.DictReader(csvfile, delimiter=','))
+                self.filtered = {
+                    txt_type: items
+                    for txt_type in Fields
+                    if (items := [
+                        el for el in csv_data
+                        if el.get(TXT_TYPE) == txt_type
+                        and el.get(ROUTE) == route
+                    ])
+                }
+            message = f"nombre d'infos text : {self.len()}"
+            LOGGER.info(message)
+        except FileNotFoundError:
+            message = f"CSV introuvable : {csv_name}"
+            LOGGER.warning(message)
+
+    def len(self) -> int:
+        """nombre de champs réellement dispo"""
+        return len(self.filtered)
+
+    def compute_abs(
+        self,
+        curv_prs : dict[str, float]
+    ):
+        """compute les abscisses curvilignes des datas PR+ABS"""
         self.abds = {
             txt_type: [
                 curv_prs[str(row[PRD])] + int(row[ABD])
                 for row in self.filtered[txt_type]
             ]
-            for txt_type in [TECH, GEOM]
+            for txt_type in self.filtered
         }
         self.abfs = {
             txt_type: [
                 curv_prs[str(row[PRF])] + int(row[ABF])
                 for row in self.filtered[txt_type]
             ]
-            for txt_type in [TECH, GEOM]
+            for txt_type in self.filtered
         }
 
     def plot_text_line(
         self,
-        txt_type: str,
+        txt_type: Fields,
         ax: Axes
     ) -> None:
         """plot a line of textual datas"""

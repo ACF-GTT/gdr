@@ -26,6 +26,10 @@ class CheckConf():
         """Retourne toutes les clés présentes dans le yaml."""
         return list(self.yaml.keys())
 
+    def get(self, field: str):
+        """check for a field value."""
+        return self.yaml.get(field)
+
     def get_mean_step(self) -> int:
         """retourne mean_step"""
         mean_step = self.yaml.get("mean_step")
@@ -64,9 +68,11 @@ class CheckConf():
             return f"{self.src_path}/datas/{aigle_xls}"
         return f"{self.src_path}/datas/Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
-    def pr_abs_csv(self) -> str | None:
+    def pr_abs_csv(self) -> dict[str, str] | str | None:
         """Retourne le path vers le csv contenant les données pr+abs"""
         pr_abs_csv = self.yaml.get("pr_abs_csv")
-        if pr_abs_csv is not None:
+        if isinstance(pr_abs_csv, dict):
+            return {road: f"{self.src_path}/datas/{csv}" for road, csv in pr_abs_csv.items()}
+        if isinstance(pr_abs_csv, str):
             return f"{self.src_path}/datas/{pr_abs_csv}"
         return None

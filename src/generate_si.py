@@ -16,11 +16,14 @@ from helpers.consts import (
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
+from helpers.pr_plus_abs import PlotText
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
-from helpers.graph_tools import draw_objects, init_single_column_plt
+from helpers.graph_tools import draw_objects, init_single_column_plt, habille
 from helpers.iq3d import GraphStates
+from helpers.consts_etat_surface import surface_state_legend
+
 
 
 YAML_CONF = CheckConf()
@@ -33,11 +36,20 @@ PRECISION = {
 # pas en mètres pour une analyse en zône homogène
 MEAN_STEP = YAML_CONF.get_mean_step()
 
+# Mapping entre sens des mesures Grip et sens Aigle
+SENS_GRIP_TO_AIGLE = {
+    "D": "P",  # Droite → P
+    "G": "M",  # Gauche → M
+}
+
 @dataclass
 class Aigle :
     """aigle3D dataclass"""
+    active = YAML_CONF.yaml.get("aigle_3d")
     route = YAML_CONF.yaml.get("aigle_route")
     dep = YAML_CONF.yaml.get("aigle_dep")
+    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
+    recalage = YAML_CONF.yaml.get("aigle_recalage", {})
     df = None
 
 aigle = Aigle()
@@ -50,14 +62,31 @@ def color_map(
     return [get_color(val, unit) for val in y_data]
 
 
-def filtre_bornes(mes: RoadMeasure, bornes: list[str] | None):
+def filtre_bornes(
+    mes: RoadMeasure,
+    bornes: list[str] | None,
+    plus_abs: list[float] | None = None,
+):
     """Filtre les données de la mesure fonction des bornes fournies."""
     if not bornes or bornes is None:
-        mes.clear_zoom()
-    elif len(bornes) == 1:
-        mes.apply_zoom_from_prs(bornes[0], None)
-    elif len(bornes) >= 2:
-        mes.apply_zoom_from_prs(bornes[0], bornes[-1])
+        return mes.abs_zoomed(), mes.datas_zoomed
+
+    start_pr = bornes[0]
+    end_pr = bornes[-1] if len(bornes) > 1 else None
+    start_abs = mes.top_abs(start_pr)
+    end_abs = mes.top_abs(end_pr)
+
+    if not plus_abs:
+        mes.set_zoom_by_abs(start_abs, end_abs)
+        return mes.abs_zoomed(), mes.datas_zoomed
+
+    # On applique les décalages
+    if start_abs is not None :
+        start_abs += plus_abs[0]
+    if end_abs is not None and len(plus_abs) > 1:
+        end_abs += plus_abs[-1]
+    # Zoom final
+    mes.set_zoom_by_abs(start_abs, end_abs)
     return mes.abs_zoomed(), mes.datas_zoomed
 
 
@@ -166,64 +195,119 @@ def draw_mean_histo(
         )
 
 
-def fix_abs_reference(measures: list[RoadMeasure], pr: str | None):
+def fix_abs_reference(measures: list[RoadMeasure], pr: str | None, grapher = None):
     """fixe l'abscisse de référence"""
-    abs_reference = None
     if pr is None:
         print("Pas de pr de recalage fourni")
-        return abs_reference
+        return None
+    # Cas A3D présent
+    grip_sens = measures[0].sens # D ou G
+    aigle_sens = SENS_GRIP_TO_AIGLE.get(grip_sens)
+    if grapher is not None:
+        try:
+            abs_reference = grapher.curv_prs[aigle_sens][pr]
+            print(f"abscisse du pr A3D {pr}(Grip{grip_sens} -> aigle{aigle_sens}):{abs_reference}")
+            return abs_reference
+        except KeyError:
+            print(f"Attention le PR A3D saisi '{pr}' est inexistant : pas de recalage")
+
+    # Cas sans A3D
     try:
         abs_reference = measures[0].tops()[pr][0]
-        print(f"abscisse du pr {pr} dans cette mesure : {abs_reference}")
+        print(f"abscisse du pr Grip {pr} dans cette mesure : {abs_reference}")
+        return abs_reference
     except KeyError:
-        print(f"Attention le PR saisi '{pr}' est inexistant : pas de recalage")
-    return abs_reference
+        print(f"Attention le PR Grip saisi '{pr}' est inexistant : pas de recalage")
+        return None
 
+def extract_prd_prf(args):
+    """bornes pour prd/prf """
+    if args.bornes:
+        prd = int(args.bornes[0])
+        prf = int(args.bornes[-1]) if len(args.bornes) > 1 else None
+        return prd, prf
 
-def main(args):
-    """main exe"""
+    if args.pr:
+        return int(args.pr), None
+
+    return None, None
+
+def init_context(args):
+    """Initialise le contexte de graphes (Aigle + matplotlib)."""
+    grapher = None
     nb_graphes = 0
-    if aigle.route and aigle.dep :
+    if aigle.active :
         grapher = GraphStates()
+
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
-        nb_graphes += 3
+        # 3 graphes par sens + 2 graphes pour le texte PR+abs
+        nb_graphes += 3 * len(aigle.sens_list)
+
+    text_helper = PlotText(route=aigle.route)
+    nb_graphes += text_helper.len()
 
     measures = get_measures(int(args.multi))
 
     nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
-    _,axes = init_single_column_plt(nb_graphes)
+    _, axes = init_single_column_plt(nb_graphes)
+
+    return grapher, text_helper, measures, axes
+
+# pylint: disable=too-many-branches
+def main(args):
+    """main exe"""
+    grapher, text_helper, measures, axes = init_context(args)
     plt_index = 0
-    if aigle.route and aigle.dep :
-        aigle.df = grapher.graphe_sens(sens="P", axes=axes[0:3], prd=int(args.pr))
-        plt_index +=3
-
-    abs_reference = fix_abs_reference(measures, args.pr)
-    abscisses = None
-
+    if grapher:
+        fig = axes[0].figure
+        if aigle.route and aigle.dep:
+            fig.suptitle(
+                f"Route : {aigle.route} - Département : {aigle.dep}")
+        fig.legend(
+            handles = surface_state_legend(),
+            loc = "upper right",
+            ncol = len(surface_state_legend()),
+        )
+        for sens in aigle.sens_list :
+            prd, prf = extract_prd_prf(args)
+            aigle.df = grapher.graphe_sens(
+                sens=sens,
+                axes=axes[plt_index:plt_index+3],
+                prd=prd,
+                prf=prf
+            )
+            plt_index += 3
+    abs_reference = fix_abs_reference(
+        measures,
+        args.pr,
+        grapher
+    )
+    nb_sens_mono = len({mes.sens for mes in measures})
     for j, mes in enumerate(measures):
         y_max = 100 if mes.unit in  ("CFT","CFL") else 1
         print(f"mesure {j}")
-        ax = axes[plt_index]
-        if mes.title is not None:
-            ax.set_title(mes.title)
+        ax: Axes = axes[plt_index]
+        habille(ax, y_max, title=mes.title, grid=True)
 
         print(f"tops avant offset {mes.tops()}")
         if j != 0 and mes.sens != measures[0].sens:
             mes.reverse()
-        if j != 0 and abs_reference is not None:
+        elif YAML_CONF.get("force_reverse") and nb_sens_mono == 1:
+            mes.reverse()
+        if abs_reference is not None:
             mes.offset = abs_reference - mes.tops()[args.pr][0]
             print(f""""
             on applique un offset {mes.offset}
             tops après offset : {mes.tops()}
             """)
-
-        abscisses, data = filtre_bornes(mes, args.bornes)
+        # Fusion de abscisse et data en abscisses_data
+        # abscisses_data[0] vaut abscisses et [1] vaut data
+        abscisses_data = filtre_bornes(mes, args.bornes, args.plus_abs)
         if args.bornes and j == 0:
-            ax.set_xlim(min(abscisses), max(abscisses))
-        n = len(data)
+            ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
+        n = len(abscisses_data[1])
         if n == 0:
             continue
-
         draw_colored_horizons(mes.unit, y_max, ax=ax)
 
         print(f"il y a {n} lignes")
@@ -234,30 +318,30 @@ def main(args):
                 handles=format_legend(
                     args.add_percent,
                     mes.unit,
-                    data
+                    abscisses_data[1]
                 ),
                 loc="upper right"
             )
 
-        ax.set_ylim((0, y_max))
-        ax.grid(visible=True, axis="x", linestyle="--")
-        ax.grid(visible=True, axis="y")
         draw_objects(mes.tops(), y_max, ax=ax)
         ax.bar(
-            abscisses,
-            data,
+            abscisses_data[0],
+            abscisses_data[1],
             width = mes.step,
-            color = color_map(data, unit=mes.unit),
-            edgecolor = color_map(data, unit=mes.unit)
+            color = color_map(abscisses_data[1], unit=mes.unit),
+            edgecolor = color_map(abscisses_data[1], unit=mes.unit)
         )
         plt_index += 1
 
         if MEAN_STEP :
             ax = axes[plt_index]
-            ax.set_ylim((0, y_max))
+            habille(ax, y_max)
             draw_mean_histo(mes, y_max, args.rec_zh, ax=ax)
             draw_objects(mes.tops(), y_max, ax=ax)
             plt_index += 1
+    if text_helper.len() and "P" in grapher.curv_prs:
+        text_helper.compute_abs(grapher.curv_prs["P"])
+        text_helper.plot_text(axes[-text_helper.len():])
     return measures
 
 
@@ -304,5 +388,13 @@ if __name__ == "__main__":
         default=None,
         help="événement pour le recalage des zones homogènes"
     )
+    parser.add_argument(
+        "--plus_abs",
+        nargs="*",
+        type=float,
+        default=None,
+        help= "zoom en pr+abs "
+    )
+
     summarize(main(parser.parse_args()))
     plt.show()

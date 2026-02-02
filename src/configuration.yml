@@ -18,15 +18,32 @@ mean_step:
 datas:
 
 # Emplacement du fichier xls des états aigle dans datas
+# pour utiliser aigle, mettre 1 comme valeur pour aigle_3d
+# puis définir aigle_route et aigle_dep
+aigle_3d : 0
 aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
-aigle_route : "N0122"
-aigle_dep : 15
+aigle_route : N0088
+aigle_dep : 43
+aigle_sens:
+  - P 
+  - M
 
 # emplacement d'un fichier contenant des données en PR+abcisse dans datas
-pr_abs_csv: "PR_ABS/exp_N0122_Vauclair.csv"
+# si on a toute la base dans un seul fichier csv, on pourrait écrire simplement
+# pr_abs_csv: "bdd/pr_abs_bdd.csv"
+# mais le plus simple est d'avoir un fichier par route
+pr_abs_csv:
+  N0122: "PR_ABS/exp_N0122_Vauclair.csv"
 
 # affichage des légendes
 # si on précise rien, les légendes sont affichées
 # si on met true ou 1, c'est pareil
 # si on met false ou 0, les légendes ne sont pas affichées
-legend:
+legend: 1
+
+# mettre la valeur 1 pour retourner TOUTES les séries issues d'appareils monomesure
+# exemple de use case : seulement des données de sens gauche sont à traiter
+# en mettant 1, elles seront automatiquement retournées dans le sens plus
+# et la synchro avec aigle se fera bien.
+force_reverse:
+
