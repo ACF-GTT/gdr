@@ -20,7 +20,7 @@ from helpers.consts_etat_descripteur import (
     pct_name,
 )
 from helpers.graph_tools import draw_object, init_single_column_plt
-from helpers.iq3d import habille
+from helpers.graph_tools import habille
 from iq3d_descripteurs import DescripteurAnalyzer
 
 
@@ -87,7 +87,7 @@ def main(
             draw_object(label=pr_label, x_pos=curv, ymax=Y_SCALE_W_PR, ax=ax)
 
         # 3b) Habillage du graphe (titre, axes, limites Y)
-        habille(ax, f"sens {sens}", f"{desc_key}", Y_SCALE_W_PR)
+        habille(ax=ax, scale=Y_SCALE_W_PR, title=f"sens {sens}", label=str(desc_key))
 
         # 3c) Dessine une barre empilée par tronçon
         for _, row in df_tron.iterrows():
