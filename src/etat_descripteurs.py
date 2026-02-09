@@ -9,15 +9,15 @@ from matplotlib.axes import Axes
 from pandas import Series
 
 from helpers.consts_etat_descripteur import (
-    CURV_END,
-    CURV_START,
     DescTypes,
-    Y_SCALE,
-    Y_SCALE_W_PR,
     colors_for_levels,
     legend_patches,
     nb_levels,
     pct_name,
+)
+from helpers.consts_commun_pr_curv import (
+    CURV_START, CURV_END,
+    Y_SCALE_W_PR, Y_SCALE
 )
 from helpers.graph_tools import draw_object, init_single_column_plt
 from helpers.graph_tools import habille

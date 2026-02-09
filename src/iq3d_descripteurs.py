@@ -10,13 +10,13 @@ from pandas import DataFrame
 from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE,
     DESCRIPTEURS, DescTypes,
-    MESSAGE_NO_DF,
     CLE_TRONCON, CLE_TRONCON_LEFT,
-    ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF,
-    ROUTE, DEP, SENS, S_EVALUEE,
     nb_levels, pct_name,
 )
 from helpers.iq3d import SurfaceAnalyzer
+from helpers.consts_commun_pr_curv import (
+    ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF
+)
 
 # Colonne surfacique dans le GPKG (surface de chaque gravité sur le tronçon)
 SHAPE_AREA = "Shape_Area"
@@ -44,7 +44,7 @@ class DescripteurAnalyzer:
 
         # On garde uniquement ce qui nous intéresse
         self.df_surface = self.df_surface[
-            [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, S_EVALUEE]
+            [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL]
         ].copy()
 
     def load(self, desc_key: DescTypes) -> None:
@@ -80,7 +80,7 @@ class DescripteurAnalyzer:
         rank_map = {v: i + 1 for i, v in enumerate(ordered)}
 
         # On gère les surfaces via Shape_Area.
-        occ = self.df[[CLE_TRONCON_LEFT, CLE_TRONCON, S_EVALUEE, SHAPE_AREA]].copy()
+        occ = self.df[[CLE_TRONCON_LEFT, CLE_TRONCON, SURF_EVAL, SHAPE_AREA]].copy()
         occ["rank"] = self._gravite_series(desc_key).map(rank_map)
 
         # Somme des surfaces par tronçon et par rank (A1, A2, A3... surfaces cumulées >= i)
@@ -93,7 +93,7 @@ class DescripteurAnalyzer:
 
         # Surface totale évaluée par tronçon (100% du tronçon)
         seval = (
-            occ.groupby(CLE_TRONCON_LEFT, dropna=False)[S_EVALUEE]
+            occ.groupby(CLE_TRONCON_LEFT, dropna=False)[SURF_EVAL]
             .first()
             .rename("S_evaluee_troncon")
             .reset_index()
@@ -163,11 +163,11 @@ class DescripteurAnalyzer:
         pct_cols = [pct_name(desc_key, lvl) for lvl in range(nlv)]
 
         # Cas 1: S_evaluee vide : on laisse les % à NaN (affichage blanc)
-        mask_no_eval = tron[S_EVALUEE].isna()
+        mask_no_eval = tron[SURF_EVAL].isna()
         tron.loc[mask_no_eval, pct_cols] = float("nan")
 
         # Cas 2: tronçon évalué mais aucune donnée du descripteur -> 100% niveau 0, 0% le reste
-        mask_eval = tron[S_EVALUEE].notna()
+        mask_eval = tron[SURF_EVAL].notna()
         mask_no_desc = tron[pct_name(desc_key, 0)].isna() & mask_eval
         tron.loc[mask_no_desc, pct_name(desc_key, 0)] = 100.0
         tron.loc[mask_no_desc, [pct_name(desc_key, lvl) for lvl in range(1, nlv)]] = 0.0

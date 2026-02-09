@@ -1,10 +1,10 @@
-# pylint: disable=duplicate-code
 """Constantes décrivant les couches, colonnes, types et niveaux des descripteurs
 extraits depuis le fichier GPKG ou XLSX.
 """
 from typing import Any, Dict, List, Literal, TypedDict
 import matplotlib.patches as mpatches
 from helpers.tools_file import parent_dir
+from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
 
 DATAS = f"{parent_dir(__file__, 2)}/datas/"
 
@@ -15,41 +15,7 @@ FILE_SURFACE = f"{DATAS}/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 # Colonnes de ref "surface"
 CLE_TRONCON = "cle_unique_plod"
 CLE_TRONCON_LEFT = "cle_troncon_plod"  # côté gpkg
-ABD = "abs_debut"
-ABF = "abs_fin"
-LONGUEUR_TRONCON = "longueur_troncon"
-PLOD = "plod"
-PLOF = "plof"
-ROUTE = "route"
-DEP = "sectionnement_departement"
-SENS = "sens"
-S_EVALUEE = "S_evaluee"
 
-
-# Champs curvilignes + PR (réutilise logique iq3d)
-CURV_START = "curv_start"
-CURV_END = "curv_end"
-PR_REGEX = r"^([A-Z]*)(\d{2})PR(\d+)[A-Z]?$"
-PRD_NUM = "prd_num"
-PRF_NUM = "prf_num"
-PRD = "PRD"
-PRF = "PRF"
-PRD_NAT = "PRD_NAT"
-
-# Échelle graph
-Y_SCALE = 100
-Y_SCALE_W_PR = 120
-
-# Couleurs "surface" base (5)
-BASE_COLORS = [
-    "green",
-    "#b8dfaf",
-    "orange",
-    "red",
-    "purple",
-]
-
-MESSAGE_NO_DF = "Pas de DataFrame, impossible de continuer"
 
 # Définition des descripteurs et de leurs caractéristiques
 FieldTypes = Literal["layer", "column", "gravite_type", "gravites"]
@@ -148,8 +114,6 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
 }
 
 # Noms colonnes calculées
-LEVEL = "level"
-PCT = "pct"
 DESC = "desc"
 
 def level_name(desc_key: str, level: int) -> str:
@@ -173,10 +137,10 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[
     Retourne une liste de couleurs pour les niveaux.
     Si le descripteur est bool, le niveau 1 (présence) est forcé en purple.
     """
-    if n_levels <= len(BASE_COLORS):
-        cols = BASE_COLORS[:n_levels]
+    if n_levels <= len(COLORS):
+        cols = COLORS[:n_levels]
     else:
-        cols = BASE_COLORS[:4]
+        cols = COLORS[:4]
 
         purple_shades = [
             "#c77cff",
