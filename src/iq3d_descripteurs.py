@@ -2,11 +2,10 @@
 Analyse des descripteurs (GPKG) dans la même logique que etat_surface
 """
 from pathlib import Path
-
 import geopandas as gpd  # type: ignore
 import pandas as pd
 from pandas import DataFrame
-
+from geopandas import GeoDataFrame
 from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE,
     DESCRIPTEURS, DescTypes,
@@ -33,8 +32,8 @@ class DescripteurAnalyzer:
         self.file_path = Path(file_path)
         self.surface_xls = Path(surface_xls)
 
-        self.df = None
-        self.df_troncons = None
+        self.df : GeoDataFrame | None = None
+        self.df_troncons : GeoDataFrame | None = None
 
         # Charger la BONNE feuille Excel
         self.df_surface = pd.read_excel(
@@ -131,11 +130,6 @@ class DescripteurAnalyzer:
                 level_area = (areas_by_rank.get(i, 0.0) - areas_by_rank.get(i + 1, 0.0))
             else:
                 level_area = areas_by_rank.get(i, 0.0)
-                try:
-                    level_area = level_area.clip(lower=0.0)
-                except AttributeError:
-                    level_area = max(0.0, float(level_area))
-
             df_final[pct_name(desc_key, i)] = level_area / df_final["S_evaluee_troncon"] * 100
 
         #  si S_evaluee est vide  on affiche en blanc comme les surfaces
