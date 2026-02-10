@@ -76,3 +76,14 @@ class CheckConf():
         if isinstance(pr_abs_csv, str):
             return f"{self.src_path}/datas/{pr_abs_csv}"
         return None
+
+    def get_descripteurs_raw(self) -> list[str] | None:
+        """
+        Retourne la liste brute des descripteurs depuis la config.
+        """
+        raw = self.yaml.get("descripteurs")
+        if raw is None:
+            return None
+        if not isinstance(raw, list):
+            raise ValueError("La clé 'descripteurs' doit être une liste")
+        return [str(d) for d in raw]

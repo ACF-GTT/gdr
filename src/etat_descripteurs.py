@@ -10,17 +10,25 @@ from pandas import Series
 
 from helpers.consts_etat_descripteur import (
     DescTypes,
+    DESCRIPTEURS,
     colors_for_levels,
     legend_patches,
     nb_levels,
     pct_name,
 )
 from helpers.consts_commun_pr_curv import (
-    CURV_START, CURV_END,
-    Y_SCALE_W_PR, Y_SCALE
+    CURV_START,
+    CURV_END,
+    Y_SCALE_W_PR,
+    Y_SCALE,
 )
-from helpers.graph_tools import draw_object, init_single_column_plt
-from helpers.graph_tools import habille
+from helpers.graph_tools import (
+    draw_object,
+    init_single_column_plt,
+    habille,
+)
+from helpers.tools_file import CheckConf
+
 from iq3d_descripteurs import DescripteurAnalyzer
 
 
@@ -44,13 +52,29 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
         width=width,
         bottom=bottoms,
         height=heights,
-        color=cols
+        color=cols,
     )
 
+
 # pylint: disable=too-many-locals
+def get_configured_descriptors(conf: CheckConf) -> list[DescTypes]:
+    """Retourne la liste des descripteurs à afficher, selon la config."""
+    raw = conf.get_descripteurs_raw()
+
+    if raw is None:
+        # Par défaut : tous les descripteurs
+        return list(DESCRIPTEURS.keys())
+
+    descs: list[DescTypes] = []
+    for d in raw:
+        if d not in DESCRIPTEURS:
+            raise ValueError(f"Descripteur inconnu dans la config: {d}")
+        descs.append(d)  # type: ignore[arg-type]
+
+    return descs
+
 
 def main(
-    desc_key: DescTypes,
     route: str,
     dep: str,
     sens_list: list[str],
@@ -59,65 +83,86 @@ def main(
     """
     Affiche, pour un descripteur, des barres empilées par tronçon le long d'une route.
     """
+    conf = CheckConf()
+    descripteurs = get_configured_descriptors(conf)
 
-    # 1) Création de la figure: 1 ligne = 1 sens
-    fig, axes = init_single_column_plt(len(sens_list))
+    # 1) Création de la figure :
+    # 1 ligne = 1 (descripteur, sens)
+    n_rows = len(descripteurs) * len(sens_list)
+    fig, axes = init_single_column_plt(n_rows)
+    fig.set_size_inches(16.5, 11.7)
 
-    # 2) On Charge les occurrences du descripteur + merge avec la table excel
     analyzer = DescripteurAnalyzer()
-    analyzer.load(desc_key)
+    row_idx = 0
     last_df = None  # Pour caler l'axe X à la fin
 
-    # 3) Pour chaque sens: on récupère les tronçons filtrés + les PR + on dessine
-    for i, sens in enumerate(sens_list):
-        ax = axes[i]
+    # 2) Boucle descripteur × sens
+    for desc_key in descripteurs:
+        analyzer.load(desc_key)
 
-        # DF tronçons (1 ligne = 1 tronçon) avec % par niveau + curv_start/curv_end
-        df_tron, curv_prs = analyzer.troncons_df(
-            desc_key=desc_key,
-            route=route,
-            dep=dep,
-            sens=sens,
-            **kwargs
-        )
-        last_df = df_tron
+        for sens in sens_list:
+            ax = axes[row_idx]
 
-        # 3a) Affiche les PR (lignes verticales / repères)
-        for pr_label, curv in curv_prs.items():
-            draw_object(label=pr_label, x_pos=curv, ymax=Y_SCALE_W_PR, ax=ax)
+            # DF tronçons (1 ligne = 1 tronçon)
+            df_tron, curv_prs = analyzer.troncons_df(
+                desc_key=desc_key,
+                route=route,
+                dep=dep,
+                sens=sens,
+                **kwargs,
+            )
+            last_df = df_tron
 
-        # 3b) Habillage du graphe (titre, axes, limites Y)
-        habille(ax=ax, scale=Y_SCALE_W_PR, title=f"sens {sens}", label=str(desc_key))
+            # 2a) Affiche les PR
+            for pr_label, curv in curv_prs.items():
+                draw_object(
+                    label=pr_label,
+                    x_pos=curv,
+                    ymax=Y_SCALE_W_PR,
+                    ax=ax,
+                )
 
-        # 3c) Dessine une barre empilée par tronçon
-        for _, row in df_tron.iterrows():
-            graphe_desc_section(desc_key, row, ax)
+            # 2b) Habillage du graphe
+            habille(
+                ax=ax,
+                scale=Y_SCALE_W_PR,
+                title=f"{desc_key} – sens {sens}",
+                label=str(desc_key),
+            )
 
-    # 4) Axe X commun : on prend min/max curv sur le dernier DF
+            # 2c) Barres empilées par tronçon
+            for _, row in df_tron.iterrows():
+                graphe_desc_section(desc_key, row, ax)
+
+            row_idx += 1
+
+            # 2d) Légende (une seule fois, sur le premier graphe)
+            if sens == sens_list[0]:
+                ax.legend(
+                handles=legend_patches(desc_key),
+                loc="upper right",
+                ncol=min(6, nb_levels(desc_key)),
+                fontsize="small",
+                frameon=True,
+            )
+
+    # 3) Axe X commun
     if last_df is not None and not last_df.empty:
         axes[-1].set_xlim(last_df[CURV_START].min(), last_df[CURV_END].max())
 
-    # 5) Légende (couleurs = niveaux)
-    fig.legend(
-        handles=legend_patches(desc_key),
-        loc="upper right",
-        ncol=min(6, nb_levels(desc_key))
-    )
-
-    # 6) Affichage final
+    # 4) Affichage final
     plt.tight_layout()
-    plt.suptitle(f"Descripteur {desc_key} - {route} - dpt {dep}")
+    plt.suptitle(f"Descripteurs – {route} – dpt {dep}")
     plt.show()
 
 
 if __name__ == "__main__":
     main(
-        desc_key="DENSITE_FISSURATION",
         route="N0122",
         dep="15",
         sens_list=["P", "M"],
-        prd=None,
+        prd=123,
         abd=None,
-        prf=None,
+        prf=126,
         abf=None,
     )
