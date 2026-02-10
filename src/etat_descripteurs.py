@@ -158,11 +158,11 @@ def main(
 
 if __name__ == "__main__":
     main(
-        route="N0122",
-        dep="15",
+        route="N0088",
+        dep="43",
         sens_list=["P", "M"],
-        prd=123,
+        prd=40,
         abd=None,
-        prf=126,
+        prf=45,
         abf=None,
     )
