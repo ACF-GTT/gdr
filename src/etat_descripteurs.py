@@ -140,7 +140,8 @@ def main(
             if sens == sens_list[0]:
                 ax.legend(
                 handles=legend_patches(desc_key),
-                loc="upper right",
+                loc="lower right",
+                bbox_to_anchor=(1.0, 1.02),
                 ncol=min(6, nb_levels(desc_key)),
                 fontsize="small",
                 frameon=True,
