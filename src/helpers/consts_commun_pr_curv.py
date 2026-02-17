@@ -3,7 +3,7 @@
 """
 
 # PR / REGEX
-PR_REGEX = r"^([A-Z]*)(\d{2})PR(\d+)[A-Z]?$"
+PR_REGEX = r"^([A-Z]*)(\d{2})PR(\d+)[A-Z]*$"
 
 # CHAMPS CURVILIGNES
 CURV_START = "curv_start"
