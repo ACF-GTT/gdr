@@ -21,6 +21,7 @@ STATES = {
     IETP: "T.PROF."
 }
 
+SI ="si"
 
 
 FIELDS_SELECTION = [
