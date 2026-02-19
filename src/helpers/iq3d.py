@@ -110,9 +110,17 @@ class SurfaceAnalyzer:
         assert self.df is not None, MESSAGE_NO_DF
         if route :
             self.df = self.df[self.df[ROUTE] == route]
-        if dep :
-            self.df = self.df[self.df[DEP].astype(str).str.strip() ==
-            str(dep).strip()]
+        if dep:
+            # float d'abord
+            try:
+                dep_float = float(dep)
+                self.df = self.df[self.df[DEP] == dep_float]
+            except ValueError:
+                # sinon on compare avec texte
+                self.df = self.df[self.df[DEP].astype(str).str.strip() == str(dep).strip()]
+
+        print("Après filtre route/dep → nb lignes :", len(self.df))
+
 
     def filter(
         self,

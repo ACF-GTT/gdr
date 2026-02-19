@@ -16,6 +16,7 @@ from helpers.iq3d import SurfaceAnalyzer
 from helpers.consts_commun_pr_curv import (
     ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF
 )
+from helpers.consts_etat_surface import SI
 
 # Colonne surfacique dans le GPKG (surface de chaque gravité sur le tronçon)
 SHAPE_AREA = "Shape_Area"
@@ -38,12 +39,12 @@ class DescripteurAnalyzer:
         # Charger la BONNE feuille Excel
         self.df_surface = pd.read_excel(
             self.surface_xls,
-            sheet_name="ie_troncon_surface_24 — DIRMC"
+            sheet_name="ie_troncon_surface_25 — DIRMC"
         )
 
         # On garde uniquement ce qui nous intéresse
         self.df_surface = self.df_surface[
-            [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL]
+            [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL,SI]
         ].copy()
 
     def load(self, desc_key: DescTypes) -> None:
@@ -149,7 +150,12 @@ class DescripteurAnalyzer:
         if route:
             tron = tron[tron[ROUTE] == route]
         if dep:
-            tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
+            # Comparaison DEP : float d'abord, sinon texte
+            try:
+                dep_float = float(dep)
+                tron = tron[tron[DEP].astype(float) == dep_float]
+            except ValueError:
+                tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
 
         tron = tron.merge(self.levels_pct_by_troncon(desc_key), on=CLE_TRONCON, how="left")
 
