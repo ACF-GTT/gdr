@@ -16,7 +16,7 @@ from helpers.iq3d import SurfaceAnalyzer
 from helpers.consts_commun_pr_curv import (
     ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF
 )
-from helpers.consts_etat_surface import SI
+from helpers.consts_etat_surface import SI, CFT_MOYEN
 
 # Colonne surfacique dans le GPKG (surface de chaque gravité sur le tronçon)
 SHAPE_AREA = "Shape_Area"
@@ -44,11 +44,16 @@ class DescripteurAnalyzer:
 
         # On garde uniquement ce qui nous intéresse
         self.df_surface = self.df_surface[
-            [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL,SI]
+            [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE,
+            DEP, SENS, SURF_EVAL,SI,CFT_MOYEN]
         ].copy()
 
     def load(self, desc_key: DescTypes) -> None:
         """Charge la couche et ajoute les colonnes"""
+        if desc_key == "CFT_MOYEN":
+            self.df = None
+            return
+
         layer = DESCRIPTEURS[desc_key]["layer"]
         self.df = gpd.read_file(self.file_path, layer=layer).merge(
             self.df_surface,
@@ -137,6 +142,7 @@ class DescripteurAnalyzer:
         df_final = df_final.drop(columns=["S_evaluee_troncon"], errors="ignore").reset_index()
         return df_final.rename(columns={CLE_TRONCON_LEFT: CLE_TRONCON})
 
+
     def troncons_df(
         self,
         desc_key: DescTypes,
@@ -146,7 +152,9 @@ class DescripteurAnalyzer:
         **kwargs
     ):
         """Retourne DF tronçons filtré + curviligne + dict PR."""
+
         tron = self.df_surface[self.df_surface[SENS] == sens].copy()
+
         if route:
             tron = tron[tron[ROUTE] == route]
         if dep:
@@ -156,6 +164,14 @@ class DescripteurAnalyzer:
                 tron = tron[tron[DEP].astype(float) == dep_float]
             except ValueError:
                 tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
+
+        if desc_key == "CFT_MOYEN":
+            # on garde juste la colonne cft_moyen déjà présente dans le troncon (Excel)
+            sa = SurfaceAnalyzer(df=tron)
+            sa.compute_pr()
+            sa.filter(**kwargs)
+            tron, curv_prs = sa.compute_curviligne(sens)
+            return tron, curv_prs
 
         tron = tron.merge(self.levels_pct_by_troncon(desc_key), on=CLE_TRONCON, how="left")
 
@@ -179,4 +195,5 @@ class DescripteurAnalyzer:
         sa.compute_pr()
         sa.filter(**kwargs)
         tron, curv_prs = sa.compute_curviligne(sens)
+
         return tron, curv_prs

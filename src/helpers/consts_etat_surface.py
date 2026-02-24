@@ -22,7 +22,7 @@ STATES = {
 }
 
 SI ="si"
-
+CFT_MOYEN = "cft_moyen"
 
 FIELDS_SELECTION = [
     PRD,

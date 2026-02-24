@@ -2,6 +2,7 @@
 extraits depuis le fichier GPKG ou XLSX.
 """
 from typing import Any, Dict, List, Literal, TypedDict
+import pandas as pd
 import matplotlib.patches as mpatches
 from helpers.tools_file import parent_dir
 from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
@@ -9,8 +10,8 @@ from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
 DATAS = f"{parent_dir(__file__, 2)}/datas/"
 
 # Nom du fichier source (GPKG)
-FILE_DESCRIPTEURS = f"{DATAS}/2024_IQRN_descripteurs_DIRMC.gpkg"
-FILE_SURFACE = f"{DATAS}/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+FILE_DESCRIPTEURS = f"{DATAS}/AURA_DIRMC.gpkg"
+FILE_SURFACE = f"{DATAS}/Table surface AURA_DIRMC_DIRMC.xlsx"
 
 # Colonnes de ref "surface"
 CLE_TRONCON = "cle_unique_plod"
@@ -26,7 +27,8 @@ DescTypes = Literal[
     "EPO", "EMO",
     "ESTEX",
     "RAVELING",
-    "ORNIERAGE_GRAND_RAYON", "ORNIERAGE_PETIT_RAYON"
+    "ORNIERAGE_GRAND_RAYON", "ORNIERAGE_PETIT_RAYON",
+    "CFT_MOYEN",
 ]
 
 class DescSpec(TypedDict):
@@ -39,14 +41,14 @@ class DescSpec(TypedDict):
 
 DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "DELAMINATION": {
-        "layer": "Descr_final_Delamination_2024 — DIRMC",
+        "layer": "Descr_final_Delamination_2025 — DIRMC",
         "column": None,               # Pas de gravité = présent/absent
         "gravite_type": "bool",
         "gravites": []
     },
 
     "DENSITE_FISSURATION": {
-        "layer": "Descr_gravite_Densite_Fissuration_2024 — DIRMC",
+        "layer": "Descr_gravite_Densite_Fissuration_2025 — DIRMC",
         "column": "niveau_gravite",
         "gravite_type": "int",
         "gravites": [
@@ -55,14 +57,14 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     },
 
     "MACROTEXTURE": {
-        "layer": "Descr_final_Macrotexture_Fermee_2024 — DIRMC",
+        "layer": "Descr_final_Macrotexture_Fermee_2025 — DIRMC",
         "column": None,
         "gravite_type": "bool",
         "gravites": []
     },
 
     "EPO": {
-        "layer": "Descr_gravite_EPO_2024 — DIRMC",
+        "layer": "Descr_gravite_EPO_2025 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",
         "gravites": [
@@ -71,7 +73,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     },
 
     "EMO": {
-        "layer": "Descr_gravite_EMO_2024 — DIRMC",
+        "layer": "Descr_gravite_EMO_2025 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",
         "gravites": [
@@ -80,7 +82,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     },
 
     "ESTEX": {
-        "layer": "Descr_gravite_eSTex_2024 — DIRMC",
+        "layer": "Descr_gravite_eSTex_2025 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",
         "gravites": [
@@ -88,7 +90,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
         ]
     },
     "RAVELING": {
-        "layer": "Descr_gravite_Raveling_2024 — DIRMC",
+        "layer": "Descr_gravite_Raveling_2025 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",
         "gravites": [
@@ -96,7 +98,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
         ]
     },
     "ORNIERAGE_GRAND_RAYON": {
-        "layer": "Descr_gravite_Orniere_Grand_Rayon_2024 — DIRMC",
+        "layer": "Descr_gravite_Orniere_Grand_Rayon_2025 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",
         "gravites": [
@@ -104,12 +106,18 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
         ]
     },
     "ORNIERAGE_PETIT_RAYON": {
-        "layer": "Descr_gravite_Orniere_Petit_Rayon_2024 — DIRMC",
+        "layer": "Descr_gravite_Orniere_Petit_Rayon_2025 — DIRMC",
         "column": "niveau_gravite_str",
         "gravite_type": "str",
         "gravites": [
             "07 mm", "10 mm", "15 mm", "20 mm"
         ]
+    },
+    "CFT_MOYEN": {
+        "layer": None,
+        "column": None,
+        "gravite_type": "int",
+        "gravites": []
     },
 }
 
@@ -181,3 +189,31 @@ def legend_patches(desc_key: DescTypes) -> list[mpatches.Patch]:
         ])
 
     return [mpatches.Patch(color=cols[i], label=labels[i]) for i in range(nlv)]
+
+# CFT MOYEN (Excel)
+
+
+CFT_SEUIL = [50, 60, 70]
+CFT_COLORS = ["red", "orange", "yellow", "green"]
+CFT_LABELS = ["< 50", "50–60", "60–70", "≥ 70"]
+
+
+def cft_color(v: float) -> str:
+    """Retourne la couleur correspondant au CFT moyen."""
+    if pd.isna(v):
+        return "white"
+    if v < CFT_SEUIL[0]:
+        return CFT_COLORS[0]
+    if v < CFT_SEUIL[1]:
+        return CFT_COLORS[1]
+    if v < CFT_SEUIL[2]:
+        return CFT_COLORS[2]
+    return CFT_COLORS[3]
+
+
+def cft_legend_patches():
+    """Patches de légende pour le CFT."""
+    return [
+        mpatches.Patch(color=c, label=l)
+        for c, l in zip(CFT_COLORS, CFT_LABELS)
+    ]

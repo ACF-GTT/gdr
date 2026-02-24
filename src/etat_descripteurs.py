@@ -7,6 +7,7 @@ from itertools import accumulate
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from pandas import Series
+import pandas as pd
 
 from helpers.consts_etat_descripteur import (
     DescTypes,
@@ -15,6 +16,8 @@ from helpers.consts_etat_descripteur import (
     legend_patches,
     nb_levels,
     pct_name,
+    cft_legend_patches,
+    cft_color
 )
 from helpers.consts_commun_pr_curv import (
     CURV_START,
@@ -29,6 +32,7 @@ from helpers.graph_tools import (
 )
 from helpers.tools_file import CheckConf
 
+from helpers.consts_etat_surface import CFT_MOYEN
 from iq3d_descripteurs import DescripteurAnalyzer
 
 
@@ -37,6 +41,19 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
     curv_start = row[CURV_START]
     curv_end = row[CURV_END]
     width = curv_end - curv_start
+
+    # Cas spécial CFT_MOYEN (Excel)
+    # une seule barre, hauteur = valeur cft_moyen
+    if desc_key == "CFT_MOYEN":
+        v = row.get(CFT_MOYEN, float("nan"))
+        ax.bar(
+            x=curv_start + width / 2,
+            width=width,
+            bottom=0,
+            height=float(v) if pd.notna(v) else 0.0,
+            color=cft_color(v),
+        )
+        return
 
     nlv = nb_levels(desc_key)
     cols = colors_for_levels(nlv, desc_key=desc_key)
@@ -123,12 +140,21 @@ def main(
                 )
 
             # 2b) Habillage du graphe
-            habille(
-                ax=ax,
-                scale=Y_SCALE_W_PR,
-                title=f"{desc_key} – sens {sens}",
-                label=str(desc_key),
-            )
+            # CFT_MOYEN: échelle de 0 à 100
+            if desc_key == "CFT_MOYEN":
+                habille(
+                    ax=ax,
+                    scale=100,
+                    title=f"CFT_MOYEN – sens {sens}",
+                    label="CFT moyen",
+                )
+            else:
+                habille(
+                    ax=ax,
+                    scale=Y_SCALE_W_PR,
+                    title=f"{desc_key} – sens {sens}",
+                    label=str(desc_key),
+                )
 
             # 2c) Barres empilées par tronçon
             for _, row in df_tron.iterrows():
@@ -138,14 +164,24 @@ def main(
 
             # 2d) Légende (une seule fois, sur le premier graphe)
             if sens == sens_list[0]:
-                ax.legend(
-                handles=legend_patches(desc_key),
-                loc="lower right",
-                bbox_to_anchor=(1.0, 1.02),
-                ncol=min(6, nb_levels(desc_key)),
-                fontsize="small",
-                frameon=True,
-            )
+                if desc_key == "CFT_MOYEN":
+                    ax.legend(
+                        handles=cft_legend_patches(),
+                        loc="lower right",
+                        bbox_to_anchor=(1.0, 1.02),
+                        ncol=4,
+                        fontsize="small",
+                        frameon=True,
+                    )
+                else:
+                    ax.legend(
+                        handles=legend_patches(desc_key),
+                        loc="lower right",
+                        bbox_to_anchor=(1.0, 1.02),
+                        ncol=min(6, nb_levels(desc_key)),
+                        fontsize="small",
+                        frameon=True,
+                    )
 
     # 3) Axe X commun
     if last_df is not None and not last_df.empty:
@@ -159,11 +195,11 @@ def main(
 
 if __name__ == "__main__":
     main(
-        route="N0088",
-        dep="43",
-        sens_list=["P", "M"],
-        prd=40,
+        route="N0122",
+        dep="15",
+        sens_list=["P"],
+        prd=123,
         abd=None,
-        prf=45,
+        prf=126,
         abf=None,
     )
