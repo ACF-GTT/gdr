@@ -10,10 +10,6 @@ from helpers.graph_tools import draw_object, habille
 
 from helpers.consts_etat_surface import (
     FILE,
-    COLORS,
-    ABD, ABF,
-    PLOD, PLOF,SENS,
-    LONGUEUR_TRONCON,
     STATES,IES,IEP,IETP,
     D_SUP,NB_LEVELS,
     level_name,
@@ -21,6 +17,10 @@ from helpers.consts_etat_surface import (
 )
 from helpers.consts_commun_pr_curv import (
     PR_REGEX,
+    COLORS,
+    ABD,ABF,
+    PLOD,PLOF,SENS,
+    LONGUEUR_TRONCON,
     CURV_START, CURV_END,
     PRD_NUM, PRF_NUM, PRD, PRF, PRD_NAT,
     Y_SCALE, Y_SCALE_W_PR,
