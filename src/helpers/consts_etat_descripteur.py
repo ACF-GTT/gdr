@@ -6,6 +6,15 @@ import pandas as pd
 import matplotlib.patches as mpatches
 from helpers.tools_file import parent_dir
 from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
+from helpers.consts import (
+    EXCELLENT,
+    FINE,
+    GOOD,
+    POOR,
+    COLORS as METRIC_COLORS,
+    UNKNOWN_COLOR,
+    get_color,
+)
 
 DATAS = f"{parent_dir(__file__, 2)}/datas/"
 
@@ -166,7 +175,6 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[
     if desc_key is not None:
         spec = DESCRIPTEURS.get(desc_key)
         if spec and spec["gravite_type"] == "bool" and len(cols) > 1:
-            cols = cols.copy()
             cols[1] = "purple"
 
     return cols
@@ -192,28 +200,25 @@ def legend_patches(desc_key: DescTypes) -> list[mpatches.Patch]:
 
 # CFT MOYEN (Excel)
 
-
-CFT_SEUIL = [50, 60, 70]
-CFT_COLORS = ["red", "orange", "yellow", "green"]
-CFT_LABELS = ["< 50", "50–60", "60–70", "≥ 70"]
+CFT_LABELS = {
+    POOR: "CFT<=50",
+    FINE: "50<CFT<=60",
+    GOOD: "60<CFT<=70",
+    EXCELLENT: "CFT>70",
+}
 
 
 def cft_color(v: float) -> str:
     """Retourne la couleur correspondant au CFT moyen."""
     if pd.isna(v):
-        return "white"
-    if v < CFT_SEUIL[0]:
-        return CFT_COLORS[0]
-    if v < CFT_SEUIL[1]:
-        return CFT_COLORS[1]
-    if v < CFT_SEUIL[2]:
-        return CFT_COLORS[2]
-    return CFT_COLORS[3]
+        return UNKNOWN_COLOR
+    return get_color(float(v), unit="CFT")
 
 
 def cft_legend_patches():
     """Patches de légende pour le CFT."""
+    order = [POOR, FINE, GOOD, EXCELLENT]
     return [
-        mpatches.Patch(color=c, label=l)
-        for c, l in zip(CFT_COLORS, CFT_LABELS)
+        mpatches.Patch(color=METRIC_COLORS["CFT"][level], label=CFT_LABELS[level])
+        for level in order
     ]
