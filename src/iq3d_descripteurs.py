@@ -70,7 +70,6 @@ class DescripteurAnalyzer:
             return pd.Series("Oui", index=self.df.index)
         return self.df[spec["column"]]
 
-    # pylint: disable=too-many-locals
     def levels_pct_by_troncon(self, desc_key: DescTypes) -> DataFrame:
         """Retourne: cle_unique_plod + pct_desc_<key>_level_i."""
         assert self.df is not None, MESSAGE_NO_DF
