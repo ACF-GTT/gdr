@@ -25,8 +25,7 @@ CLE_TRONCON_LEFT = "cle_troncon_plod"  # côté gpkg
 
 
 # Définition des descripteurs et de leurs caractéristiques
-FieldTypes = Literal["layer", "column", "gravite_type", "gravites"]
-DescTypes = Literal[
+DescWeights = Literal[
     "DELAMINATION",
     "DENSITE_FISSURATION",
     "MACROTEXTURE",
@@ -34,21 +33,27 @@ DescTypes = Literal[
     "ESTEX",
     "RAVELING",
     "ORNIERAGE_GRAND_RAYON", "ORNIERAGE_PETIT_RAYON",
+]
+DescScores = Literal[
     "CFT_MOYEN",
 ]
 
+DescTypes = DescWeights | DescScores
+DescCategory = Literal["weight", "score"]
 class DescSpec(TypedDict):
     """Spécification d'un descripteur."""
     layer: str
     column: str
+    category: DescCategory
     gravite_type: Literal["bool", "int", "str"]
     gravites: List[Any]  # list[int] ou list[str] selon type
 
 
-DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
+DESCRIPTEURS: Dict[DescTypes, DescSpec] = {
     "DELAMINATION": {
         "layer": "Descr_final_Delamination_2025 — DIRMC",
         "column": None,               # Pas de gravité = présent/absent
+        "category": "weight",
         "gravite_type": "bool",
         "gravites": []
     },
@@ -56,6 +61,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "DENSITE_FISSURATION": {
         "layer": "Descr_gravite_Densite_Fissuration_2025 — DIRMC",
         "column": "niveau_gravite",
+        "category": "weight",
         "gravite_type": "int",
         "gravites": [
             1, 2, 3, 4
@@ -65,6 +71,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "MACROTEXTURE": {
         "layer": "Descr_final_Macrotexture_Fermee_2025 — DIRMC",
         "column": None,
+        "category": "weight",
         "gravite_type": "bool",
         "gravites": []
     },
@@ -72,6 +79,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "EPO": {
         "layer": "Descr_gravite_EPO_2025 — DIRMC",
         "column": "niveau_gravite_str",
+        "category": "weight",
         "gravite_type": "str",
         "gravites": [
             "0,25 cm3", "0,50 cm3", "1,00 cm3", "4,00 cm3"
@@ -81,6 +89,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "EMO": {
         "layer": "Descr_gravite_EMO_2025 — DIRMC",
         "column": "niveau_gravite_str",
+        "category": "weight",
         "gravite_type": "str",
         "gravites": [
             "02,5 cm3", "05,0 cm3", "07,5 cm3", "10,0 cm3", "20,0 cm3", "25,0 cm3", "40,0 cm3"
@@ -90,6 +99,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "ESTEX": {
         "layer": "Descr_gravite_eSTex_2025 — DIRMC",
         "column": "niveau_gravite_str",
+        "category": "weight",
         "gravite_type": "str",
         "gravites": [
             "0,025 cm3", "0,050 cm3", "0,100 cm3", "0,250 cm3"
@@ -98,6 +108,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "RAVELING": {
         "layer": "Descr_gravite_Raveling_2025 — DIRMC",
         "column": "niveau_gravite_str",
+        "category": "weight",
         "gravite_type": "str",
         "gravites": [
             "080 cm3/m2", "120 cm3/m2", "150 cm3/cm", "250 cm3/m2", "500 cm3/m2", "750 cm3/m2"
@@ -106,6 +117,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "ORNIERAGE_GRAND_RAYON": {
         "layer": "Descr_gravite_Orniere_Grand_Rayon_2025 — DIRMC",
         "column": "niveau_gravite_str",
+        "category": "weight",
         "gravite_type": "str",
         "gravites": [
             "07 mm", "10 mm", "15 mm", "20 mm", "25 mm", "30 mm"
@@ -114,6 +126,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "ORNIERAGE_PETIT_RAYON": {
         "layer": "Descr_gravite_Orniere_Petit_Rayon_2025 — DIRMC",
         "column": "niveau_gravite_str",
+        "category": "weight",
         "gravite_type": "str",
         "gravites": [
             "07 mm", "10 mm", "15 mm", "20 mm"
@@ -122,6 +135,7 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
     "CFT_MOYEN": {
         "layer": None,
         "column": None,
+        "category": "score",
         "gravite_type": "int",
         "gravites": []
     },
@@ -129,6 +143,14 @@ DESCRIPTEURS: Dict[DescTypes, Dict[str, Any]] = {
 
 # Noms colonnes calculées
 DESC = "desc"
+def is_score(desc_key: DescTypes) -> bool:
+    """Retourne True si le descripteur est un score brut."""
+    return DESCRIPTEURS[desc_key]["category"] == "score"
+
+def is_weight(desc_key: DescTypes) -> bool:
+    """Retourne True si le descripteur est un poids / ratio."""
+    return DESCRIPTEURS[desc_key]["category"] == "weight"
+
 
 def level_name(desc_key: str, level: int) -> str:
     """Nom de la colonne niveau i pour un descripteur donné."""
