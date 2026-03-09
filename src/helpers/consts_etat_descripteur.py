@@ -4,7 +4,7 @@ extraits depuis le fichier GPKG ou XLSX.
 from typing import Any, Dict, List, Literal, TypedDict
 import pandas as pd
 import matplotlib.patches as mpatches
-from helpers.tools_file import parent_dir
+from helpers.tools_file import parent_dir, CheckConf
 from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
 from helpers.consts import (
     COLORS as METRIC_COLORS,
@@ -16,7 +16,8 @@ from helpers.consts import (
 DATAS = f"{parent_dir(__file__, 2)}/datas/"
 
 # Nom du fichier source (GPKG)
-FILE_DESCRIPTEURS = f"{DATAS}/AURA_DIRMC.gpkg"
+conf = CheckConf()
+FILE_DESCRIPTEURS = f"{DATAS}/{conf.get('aigle_gpkg')}"
 FILE_SURFACE = f"{DATAS}/Table surface AURA_DIRMC_DIRMC.xlsx"
 
 # Colonnes de ref "surface"
