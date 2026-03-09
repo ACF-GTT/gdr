@@ -73,7 +73,6 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
     )
 
 
-# pylint: disable=too-many-locals
 def get_configured_descriptors(conf: CheckConf) -> list[DescTypes]:
     """Retourne la liste des descripteurs à afficher, selon la config."""
     raw = conf.get_descripteurs_raw()
@@ -144,7 +143,7 @@ def main(
             if desc_key == "CFT_MOYEN":
                 habille(
                     ax=ax,
-                    scale=100,
+                    scale=Y_SCALE,
                     title=f"CFT_MOYEN – sens {sens}",
                     label="CFT moyen",
                 )
