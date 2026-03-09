@@ -7,7 +7,7 @@ import pandas as pd
 from pandas import DataFrame
 from geopandas import GeoDataFrame
 from helpers.consts_etat_descripteur import (
-    FILE_DESCRIPTEURS, FILE_SURFACE,
+    FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
     CLE_TRONCON, CLE_TRONCON_LEFT,
     nb_levels, pct_name,
@@ -40,7 +40,7 @@ class DescripteurAnalyzer:
         # Charger la BONNE feuille Excel
         self.df_surface = pd.read_excel(
             self.surface_xls,
-            sheet_name="ie_troncon_surface_25 — DIRMC"
+            sheet_name=SHEET_SURFACE
         )
 
         # On garde uniquement ce qui nous intéresse

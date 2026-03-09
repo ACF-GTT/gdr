@@ -17,8 +17,10 @@ DATAS = f"{parent_dir(__file__, 2)}/datas/"
 
 # Nom du fichier source (GPKG)
 conf = CheckConf()
+
 FILE_DESCRIPTEURS = f"{DATAS}/{conf.get('aigle_gpkg')}"
-FILE_SURFACE = f"{DATAS}/Table surface AURA_DIRMC_DIRMC.xlsx"
+FILE_SURFACE = f"{DATAS}/{conf.get('aigle_xls')}"
+SHEET_SURFACE = conf.get("aigle_sheet")
 
 # Colonnes de ref "surface"
 CLE_TRONCON = "cle_unique_plod"

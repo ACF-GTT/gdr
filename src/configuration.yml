@@ -22,6 +22,7 @@ datas:
 # puis définir aigle_route et aigle_dep
 aigle_3d : 0
 aigle_xls : "Aigle3D/Table surface AURA_DIRMC_DIRMC.xlsx"
+aigle_sheet : "ie_troncon_surface_25 — DIRMC"
 aigle_gpkg: "Aigle3D/AURA_DIRMC.gpkg"
 aigle_route : N0088
 aigle_dep : 43
