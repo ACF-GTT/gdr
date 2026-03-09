@@ -7,13 +7,10 @@ import matplotlib.patches as mpatches
 from helpers.tools_file import parent_dir
 from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
 from helpers.consts import (
-    EXCELLENT,
-    FINE,
-    GOOD,
-    POOR,
     COLORS as METRIC_COLORS,
     UNKNOWN_COLOR,
     get_color,
+    LEGENDS,
 )
 
 DATAS = f"{parent_dir(__file__, 2)}/datas/"
@@ -200,12 +197,6 @@ def legend_patches(desc_key: DescTypes) -> list[mpatches.Patch]:
 
 # CFT MOYEN (Excel)
 
-CFT_LABELS = {
-    POOR: "CFT<=50",
-    FINE: "50<CFT<=60",
-    GOOD: "60<CFT<=70",
-    EXCELLENT: "CFT>70",
-}
 
 
 def cft_color(v: float) -> str:
@@ -217,8 +208,7 @@ def cft_color(v: float) -> str:
 
 def cft_legend_patches():
     """Patches de légende pour le CFT."""
-    order = [POOR, FINE, GOOD, EXCELLENT]
     return [
-        mpatches.Patch(color=METRIC_COLORS["CFT"][level], label=CFT_LABELS[level])
-        for level in order
+        mpatches.Patch(color=METRIC_COLORS["CFT"][level], label=label)
+        for level, label in LEGENDS["CFT"].items()
     ]
