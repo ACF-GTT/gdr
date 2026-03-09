@@ -1,7 +1,8 @@
 """Constantes décrivant les couches, colonnes, types et niveaux des descripteurs
 extraits depuis le fichier GPKG ou XLSX.
 """
-from typing import Any, Dict, List, Literal, TypedDict
+from dataclasses import dataclass, field
+from typing import Literal, List
 import pandas as pd
 import matplotlib.patches as mpatches
 from helpers.tools_file import parent_dir, CheckConf
@@ -43,116 +44,133 @@ DescScores = Literal[
 
 DescTypes = DescWeights | DescScores
 DescCategory = Literal["weight", "score"]
-class DescSpec(TypedDict):
+GraviteType = Literal["bool", "int", "str"]
+GraviteValue = int | str
+
+
+@dataclass
+class DescSpec:
     """Spécification d'un descripteur."""
     layer: str | None
     column: str | None
     category: DescCategory
-    gravite_type: Literal["bool", "int", "str"]
-    gravites: List[Any]  # list[int] ou list[str] selon type
+    gravite_type: GraviteType
+    gravites: list[GraviteValue] = field(default_factory=list)
+
+    @property
+    def is_score(self) -> bool:
+        return self.category == "score"
+
+    @property
+    def is_weight(self) -> bool:
+        return self.category == "weight"
+
+    @property
+    def nb_levels(self) -> int:
+        """Niveaux au total = 1 (niveau 0) + nb gravités."""
+        if self.gravite_type == "bool":
+            return 2
+        return 1 + len(self.gravites)
 
 
-DESCRIPTEURS: Dict[DescTypes, DescSpec] = {
-    "DELAMINATION": {
-        "layer": "Descr_final_Delamination_2025 — DIRMC",
-        "column": None,               # Pas de gravité = présent/absent
-        "category": "weight",
-        "gravite_type": "bool",
-        "gravites": []
-    },
+DESCRIPTEURS: dict[DescTypes, DescSpec] = {
+    "DELAMINATION": DescSpec(
+        layer="Descr_final_Delamination_2025 — DIRMC",
+        column=None,                # Pas de gravité = présent/absent
+        category="weight",
+        gravite_type="bool",
+    ),
 
-    "DENSITE_FISSURATION": {
-        "layer": "Descr_gravite_Densite_Fissuration_2025 — DIRMC",
-        "column": "niveau_gravite",
-        "category": "weight",
-        "gravite_type": "int",
-        "gravites": [
+    "DENSITE_FISSURATION": DescSpec(
+        layer="Descr_gravite_Densite_Fissuration_2025 — DIRMC",
+        column="niveau_gravite",
+        category="weight",
+        gravite_type="int",
+        gravites=[
             1, 2, 3, 4
         ]
-    },
+    ),
 
-    "MACROTEXTURE": {
-        "layer": "Descr_final_Macrotexture_Fermee_2025 — DIRMC",
-        "column": None,
-        "category": "weight",
-        "gravite_type": "bool",
-        "gravites": []
-    },
+    "MACROTEXTURE": DescSpec(
+        layer="Descr_final_Macrotexture_Fermee_2025 — DIRMC",
+        column=None,
+        category="weight",
+        gravite_type="bool",
+    ),
 
-    "EPO": {
-        "layer": "Descr_gravite_EPO_2025 — DIRMC",
-        "column": "niveau_gravite_str",
-        "category": "weight",
-        "gravite_type": "str",
-        "gravites": [
+    "EPO": DescSpec(
+        layer="Descr_gravite_EPO_2025 — DIRMC",
+        column="niveau_gravite_str",
+        category="weight",
+        gravite_type="str",
+        gravites=[
             "0,25 cm3", "0,50 cm3", "1,00 cm3", "4,00 cm3"
         ]
-    },
+    ),
 
-    "EMO": {
-        "layer": "Descr_gravite_EMO_2025 — DIRMC",
-        "column": "niveau_gravite_str",
-        "category": "weight",
-        "gravite_type": "str",
-        "gravites": [
+    "EMO": DescSpec(
+        layer="Descr_gravite_EMO_2025 — DIRMC",
+        column="niveau_gravite_str",
+        category="weight",
+        gravite_type="str",
+        gravites=[
             "02,5 cm3", "05,0 cm3", "07,5 cm3", "10,0 cm3", "20,0 cm3", "25,0 cm3", "40,0 cm3"
         ]
-    },
+    ),
 
-    "ESTEX": {
-        "layer": "Descr_gravite_eSTex_2025 — DIRMC",
-        "column": "niveau_gravite_str",
-        "category": "weight",
-        "gravite_type": "str",
-        "gravites": [
+    "ESTEX": DescSpec(
+        layer="Descr_gravite_eSTex_2025 — DIRMC",
+        column="niveau_gravite_str",
+        category="weight",
+        gravite_type="str",
+        gravites=[
             "0,025 cm3", "0,050 cm3", "0,100 cm3", "0,250 cm3"
         ]
-    },
-    "RAVELING": {
-        "layer": "Descr_gravite_Raveling_2025 — DIRMC",
-        "column": "niveau_gravite_str",
-        "category": "weight",
-        "gravite_type": "str",
-        "gravites": [
+    ),
+    "RAVELING": DescSpec(
+        layer="Descr_gravite_Raveling_2025 — DIRMC",
+        column="niveau_gravite_str",
+        category="weight",
+        gravite_type="str",
+        gravites=[
             "080 cm3/m2", "120 cm3/m2", "150 cm3/cm", "250 cm3/m2", "500 cm3/m2", "750 cm3/m2"
         ]
-    },
-    "ORNIERAGE_GRAND_RAYON": {
-        "layer": "Descr_gravite_Orniere_Grand_Rayon_2025 — DIRMC",
-        "column": "niveau_gravite_str",
-        "category": "weight",
-        "gravite_type": "str",
-        "gravites": [
+    ),
+    "ORNIERAGE_GRAND_RAYON": DescSpec(
+        layer="Descr_gravite_Orniere_Grand_Rayon_2025 — DIRMC",
+        column="niveau_gravite_str",
+        category="weight",
+        gravite_type="str",
+        gravites=[
             "07 mm", "10 mm", "15 mm", "20 mm", "25 mm", "30 mm"
         ]
-    },
-    "ORNIERAGE_PETIT_RAYON": {
-        "layer": "Descr_gravite_Orniere_Petit_Rayon_2025 — DIRMC",
-        "column": "niveau_gravite_str",
-        "category": "weight",
-        "gravite_type": "str",
-        "gravites": [
+    ),
+    "ORNIERAGE_PETIT_RAYON": DescSpec(
+        layer="Descr_gravite_Orniere_Petit_Rayon_2025 — DIRMC",
+        column="niveau_gravite_str",
+        category="weight",
+        gravite_type="str",
+        gravites=[
             "07 mm", "10 mm", "15 mm", "20 mm"
         ]
-    },
-    "CFT_MOYEN": {
-        "layer": None,
-        "column": None,
-        "category": "score",
-        "gravite_type": "int",
-        "gravites": []
-    },
+    ),
+    "CFT_MOYEN": DescSpec(
+        layer=None,
+        column=None,
+        category="score",
+        gravite_type="int",
+    ),
 }
 
 # Noms colonnes calculées
 DESC = "desc"
 def is_score(desc_key: DescTypes) -> bool:
     """Retourne True si le descripteur est un score brut."""
-    return DESCRIPTEURS[desc_key]["category"] == "score"
+    return DESCRIPTEURS[desc_key].is_score
 
 def is_weight(desc_key: DescTypes) -> bool:
     """Retourne True si le descripteur est un poids / ratio."""
-    return DESCRIPTEURS[desc_key]["category"] == "weight"
+    return DESCRIPTEURS[desc_key].is_weight
 
 
 def level_name(desc_key: str, level: int) -> str:
@@ -165,11 +183,7 @@ def pct_name(desc_key: str, level: int) -> str:
 
 # spec pour le type DescTypes
 def nb_levels(desc_key: DescTypes) -> int:
-    """Niveaux au total = 1 (niveau 0) + nb gravités."""
-    spec = DESCRIPTEURS[desc_key]
-    if spec["gravite_type"] == "bool":
-        return 2
-    return 1 + len(spec["gravites"])
+    return DESCRIPTEURS[desc_key].nb_levels
 
 def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[str]:
     """
@@ -196,7 +210,7 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[
     #  couleur purple pour bool
     if desc_key is not None:
         spec = DESCRIPTEURS.get(desc_key)
-        if spec and spec["gravite_type"] == "bool" and len(cols) > 1:
+        if spec and spec.gravite_type == "bool" and len(cols) > 1:
             cols[1] = "purple"
 
     return cols
@@ -210,12 +224,12 @@ def legend_patches(desc_key: DescTypes) -> list[mpatches.Patch]:
     spec = DESCRIPTEURS[desc_key]
 
     labels: list[str] = ["Niveau 0 (tronçon)"]
-    if spec["gravite_type"] == "bool":
+    if spec.gravite_type == "bool":
         labels.append(">=1 (présence)")
     else:
         labels.extend([
             f">={g}" if not str(g).startswith(">=") else str(g)
-            for g in spec["gravites"]
+            for g in spec.gravites
         ])
 
     return [mpatches.Patch(color=cols[i], label=labels[i]) for i in range(nlv)]

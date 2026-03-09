@@ -9,7 +9,7 @@ from geopandas import GeoDataFrame
 from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
-    CLE_TRONCON, CLE_TRONCON_LEFT,
+    CLE_TRONCON, CLE_TRONCON_LEFT, GraviteValue,
     nb_levels, pct_name,
 )
 from helpers.iq3d import SurfaceAnalyzer
@@ -55,7 +55,7 @@ class DescripteurAnalyzer:
             self.df = None
             return
 
-        layer = DESCRIPTEURS[desc_key]["layer"]
+        layer = DESCRIPTEURS[desc_key].layer
         self.df = gpd.read_file(self.file_path, layer=layer).merge(
             self.df_surface,
             how="left",
@@ -67,9 +67,9 @@ class DescripteurAnalyzer:
         """Renvoie une série 'gravite' normalisée (bool -> 'Oui', sinon colonne)."""
         assert self.df is not None, MESSAGE_NO_DF
         spec = DESCRIPTEURS[desc_key]
-        if spec["gravite_type"] == "bool":
+        if spec.gravite_type == "bool":
             return pd.Series("Oui", index=self.df.index)
-        return self.df[spec["column"]]
+        return self.df[spec.column]
 
     def levels_pct_by_troncon(self, desc_key: DescTypes) -> DataFrame:
         """Retourne: cle_unique_plod + pct_desc_<key>_level_i."""
@@ -81,7 +81,7 @@ class DescripteurAnalyzer:
                 f"Colonne '{SHAPE_AREA}' absente de la couche GPKG chargée. "
             )
 
-        ordered = ["Oui"] if spec["gravite_type"] == "bool" else list(spec["gravites"])
+        ordered : list[GraviteValue] = ["Oui"] if spec.gravite_type == "bool" else list(spec.gravites)
         rank_map = {v: i + 1 for i, v in enumerate(ordered)}
 
         # On gère les surfaces via Shape_Area.
