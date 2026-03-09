@@ -20,6 +20,7 @@ from helpers.consts_etat_surface import SI, CFT_MOYEN
 
 # Colonne surfacique dans le GPKG (surface de chaque gravité sur le tronçon)
 SHAPE_AREA = "Shape_Area"
+SURF_EVAL_TRON = f"{SURF_EVAL}_troncon"
 
 
 class DescripteurAnalyzer:
@@ -99,7 +100,7 @@ class DescripteurAnalyzer:
         seval = (
             occ.groupby(CLE_TRONCON_LEFT, dropna=False)[SURF_EVAL]
             .first()
-            .rename("S_evaluee_troncon")
+            .rename(SURF_EVAL_TRON)
             .reset_index()
         )
 
@@ -126,8 +127,8 @@ class DescripteurAnalyzer:
 
         # Niveau 0
         area_rank_1 = areas_by_rank.get(1, 0.0)
-        lvl0_area = df_final["S_evaluee_troncon"] - area_rank_1
-        df_final[pct_name(desc_key, 0)] = lvl0_area / df_final["S_evaluee_troncon"] * 100
+        lvl0_area = df_final[SURF_EVAL_TRON] - area_rank_1
+        df_final[pct_name(desc_key, 0)] = lvl0_area / df_final[SURF_EVAL_TRON] * 100
 
         # Niveaux 1..n
         for i in range(1, n_grav + 1):
@@ -135,10 +136,10 @@ class DescripteurAnalyzer:
                 level_area = (areas_by_rank.get(i, 0.0) - areas_by_rank.get(i + 1, 0.0))
             else:
                 level_area = areas_by_rank.get(i, 0.0)
-            df_final[pct_name(desc_key, i)] = level_area / df_final["S_evaluee_troncon"] * 100
+            df_final[pct_name(desc_key, i)] = level_area / df_final[SURF_EVAL_TRON] * 100
 
         #  si S_evaluee est vide  on affiche en blanc comme les surfaces
-        df_final = df_final.drop(columns=["S_evaluee_troncon"], errors="ignore").reset_index()
+        df_final = df_final.drop(columns=[SURF_EVAL_TRON], errors="ignore").reset_index()
         return df_final.rename(columns={CLE_TRONCON_LEFT: CLE_TRONCON})
 
 
