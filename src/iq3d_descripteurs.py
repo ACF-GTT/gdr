@@ -81,7 +81,7 @@ class DescripteurAnalyzer:
                 f"Colonne '{SHAPE_AREA}' absente de la couche GPKG chargée. "
             )
 
-        ordered : list[GraviteValue] = ["Oui"] if spec.gravite_type == "bool" else list(spec.gravites)
+        ordered : list[GraviteValue] = ["Oui"] if spec.gravite_type=="bool" else list(spec.gravites)
         rank_map = {v: i + 1 for i, v in enumerate(ordered)}
 
         # On gère les surfaces via Shape_Area.
