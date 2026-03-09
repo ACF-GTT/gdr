@@ -149,7 +149,7 @@ class DescripteurAnalyzer:
         dep: str | None,
         sens: str,
         **kwargs
-    ):
+    ) -> tuple[DataFrame, dict]:
         """Retourne DF tronçons filtré + curviligne + dict PR."""
 
         tron = self.df_surface[self.df_surface[SENS] == sens].copy()
@@ -169,8 +169,7 @@ class DescripteurAnalyzer:
             sa = SurfaceAnalyzer(df=tron)
             sa.compute_pr()
             sa.filter(**kwargs)
-            tron, curv_prs = sa.compute_curviligne(sens)
-            return tron, curv_prs
+            return sa.compute_curviligne(sens)
 
         tron = tron.merge(self.levels_pct_by_troncon(desc_key), on=CLE_TRONCON, how="left")
 
@@ -193,6 +192,4 @@ class DescripteurAnalyzer:
         sa = SurfaceAnalyzer(df=tron)
         sa.compute_pr()
         sa.filter(**kwargs)
-        tron, curv_prs = sa.compute_curviligne(sens)
-
-        return tron, curv_prs
+        return sa.compute_curviligne(sens)
