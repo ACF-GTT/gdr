@@ -59,10 +59,12 @@ class DescSpec:
 
     @property
     def is_score(self) -> bool:
+        """Retourne True si le descripteur est un score brut."""
         return self.category == "score"
 
     @property
     def is_weight(self) -> bool:
+        """Retourne True si le descripteur est un poids / ratio."""
         return self.category == "weight"
 
     @property
@@ -183,6 +185,7 @@ def pct_name(desc_key: str, level: int) -> str:
 
 # spec pour le type DescTypes
 def nb_levels(desc_key: DescTypes) -> int:
+    """Niveaux au total = 1 (niveau 0) + nb gravités."""
     return DESCRIPTEURS[desc_key].nb_levels
 
 def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[str]:
