@@ -42,8 +42,8 @@ DescTypes = DescWeights | DescScores
 DescCategory = Literal["weight", "score"]
 class DescSpec(TypedDict):
     """Spécification d'un descripteur."""
-    layer: str
-    column: str
+    layer: str | None
+    column: str | None
     category: DescCategory
     gravite_type: Literal["bool", "int", "str"]
     gravites: List[Any]  # list[int] ou list[str] selon type

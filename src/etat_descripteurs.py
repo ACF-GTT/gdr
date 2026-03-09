@@ -17,7 +17,8 @@ from helpers.consts_etat_descripteur import (
     nb_levels,
     pct_name,
     cft_legend_patches,
-    cft_color
+    cft_color,
+    is_score
 )
 from helpers.consts_commun_pr_curv import (
     CURV_START,
@@ -44,7 +45,7 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
 
     # Cas spécial CFT_MOYEN (Excel)
     # une seule barre, hauteur = valeur cft_moyen
-    if desc_key == "CFT_MOYEN":
+    if is_score(desc_key) :
         v = row.get(CFT_MOYEN, float("nan"))
         ax.bar(
             x=curv_start + width / 2,
@@ -140,7 +141,7 @@ def main(
 
             # 2b) Habillage du graphe
             # CFT_MOYEN: échelle de 0 à 100
-            if desc_key == "CFT_MOYEN":
+            if is_score(desc_key):
                 habille(
                     ax=ax,
                     scale=Y_SCALE,
