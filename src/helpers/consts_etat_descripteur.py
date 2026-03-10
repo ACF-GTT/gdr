@@ -6,7 +6,7 @@ from typing import Literal, List
 import pandas as pd
 import matplotlib.patches as mpatches
 from helpers.tools_file import parent_dir, CheckConf
-from helpers.consts_commun_pr_curv import COLORS, LEVEL, PCT
+from helpers.consts_commun_pr_curv import LEVEL, PCT
 from helpers.consts import (
     COLORS as METRIC_COLORS,
     UNKNOWN_COLOR,
@@ -164,6 +164,25 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
     ),
 }
 
+DESC_COLORS = [
+    "green",
+    "#b8dfaf",
+    "orange",
+    "red",
+]
+
+DESC_BOOL_COLOR = "purple"
+
+DESC_EXTRA_COLORS = [
+    "#c77cff",
+    "#9b4dca",
+    "#6a0dad",
+    "#4b0082",
+    "#2B002B",
+    "#0A000A",
+]
+
+
 # Noms colonnes calculées
 DESC = "desc"
 def is_score(desc_key: DescTypes) -> bool:
@@ -193,28 +212,20 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[
     Retourne une liste de couleurs pour les niveaux.
     Si le descripteur est bool, le niveau 1 (présence) est forcé en purple.
     """
-    if n_levels <= len(COLORS):
-        cols = COLORS[:n_levels]
+    if n_levels <= len(DESC_COLORS):
+        cols = DESC_COLORS[:n_levels]
     else:
-        cols = COLORS[:4]
+        cols = DESC_COLORS[:4]
 
-        purple_shades = [
-            "#c77cff",
-            "#9b4dca",
-            "#6a0dad",
-            "#4b0082",
-            "#2B002B",
-            "#0A000A",
-        ]
         # On ajoute des nuances de purple si besoin
         needed = n_levels - 4
-        cols.extend(purple_shades[:needed])
+        cols.extend(DESC_EXTRA_COLORS[:needed])
 
-    #  couleur purple pour bool
+    # couleur purple pour bool
     if desc_key is not None:
         spec = DESCRIPTEURS.get(desc_key)
         if spec and spec.gravite_type == "bool" and len(cols) > 1:
-            cols[1] = "purple"
+            cols[1] = DESC_BOOL_COLOR
 
     return cols
 
