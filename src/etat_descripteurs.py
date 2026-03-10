@@ -164,7 +164,7 @@ def main(
 
             # 2d) Légende (une seule fois, sur le premier graphe)
             if sens == sens_list[0]:
-                if desc_key == "CFT_MOYEN":
+                if is_score(desc_key):
                     ax.legend(
                         handles=cft_legend_patches(),
                         loc="lower right",

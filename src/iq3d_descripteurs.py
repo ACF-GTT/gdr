@@ -10,7 +10,7 @@ from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
     CLE_TRONCON, CLE_TRONCON_LEFT, GraviteValue,
-    nb_levels, pct_name,
+    nb_levels, pct_name,is_score,
 )
 from helpers.iq3d import SurfaceAnalyzer
 from helpers.consts_commun_pr_curv import (
@@ -51,7 +51,7 @@ class DescripteurAnalyzer:
 
     def load(self, desc_key: DescTypes) -> None:
         """Charge la couche et ajoute les colonnes"""
-        if desc_key == "CFT_MOYEN":
+        if is_score(desc_key) :
             self.df = None
             return
 
@@ -165,7 +165,7 @@ class DescripteurAnalyzer:
             except ValueError:
                 tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
 
-        if desc_key == "CFT_MOYEN":
+        if is_score(desc_key) :
             # on garde juste la colonne cft_moyen déjà présente dans le troncon (Excel)
             sa = SurfaceAnalyzer(df=tron)
             sa.compute_pr()
