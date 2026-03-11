@@ -10,7 +10,7 @@ from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
     CLE_TRONCON, CLE_TRONCON_LEFT, GraviteValue,
-    nb_levels, pct_name,is_score,
+    pct_name
 )
 from helpers.iq3d import SurfaceAnalyzer
 from helpers.consts_commun_pr_curv import (
@@ -51,7 +51,7 @@ class DescripteurAnalyzer:
 
     def load(self, desc_key: DescTypes) -> None:
         """Charge la couche et ajoute les colonnes"""
-        if is_score(desc_key) :
+        if DESCRIPTEURS[desc_key].is_score:
             self.df = None
             return
 
@@ -113,7 +113,7 @@ class DescripteurAnalyzer:
             fill_value=0.0
         )
 
-        n_grav = nb_levels(desc_key) - 1  # ranks 1..n_grav
+        n_grav = DESCRIPTEURS[desc_key].nb_levels - 1  # ranks 1..n_grav
 
         # les surfaces par gravité sont déjà imbriquées (gravité 1 comprend 2 ect...)
         # On calcule les niveaux non cumulés via les différences:
@@ -165,7 +165,7 @@ class DescripteurAnalyzer:
             except ValueError:
                 tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
 
-        if is_score(desc_key) :
+        if DESCRIPTEURS[desc_key].is_score:
             # on garde juste la colonne cft_moyen déjà présente dans le troncon (Excel)
             sa = SurfaceAnalyzer(df=tron)
             sa.compute_pr()
@@ -174,7 +174,7 @@ class DescripteurAnalyzer:
 
         tron = tron.merge(self.levels_pct_by_troncon(desc_key), on=CLE_TRONCON, how="left")
 
-        nlv = nb_levels(desc_key)
+        nlv = DESCRIPTEURS[desc_key].nb_levels
         pct_cols = [pct_name(desc_key, lvl) for lvl in range(nlv)]
 
         # Cas 1: S_evaluee vide : on laisse les % à NaN (affichage blanc)

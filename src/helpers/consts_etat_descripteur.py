@@ -185,13 +185,6 @@ DESC_EXTRA_COLORS = [
 
 # Noms colonnes calculées
 DESC = "desc"
-def is_score(desc_key: DescTypes) -> bool:
-    """Retourne True si le descripteur est un score brut."""
-    return DESCRIPTEURS[desc_key].is_score
-
-def is_weight(desc_key: DescTypes) -> bool:
-    """Retourne True si le descripteur est un poids / ratio."""
-    return DESCRIPTEURS[desc_key].is_weight
 
 
 def level_name(desc_key: str, level: int) -> str:
@@ -202,10 +195,6 @@ def pct_name(desc_key: str, level: int) -> str:
     """Nom de la colonne % niveau i pour un descripteur donné."""
     return f"{PCT}_{DESC}_{desc_key}_{LEVEL}_{level}"
 
-# spec pour le type DescTypes
-def nb_levels(desc_key: DescTypes) -> int:
-    """Niveaux au total = 1 (niveau 0) + nb gravités."""
-    return DESCRIPTEURS[desc_key].nb_levels
 
 def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[str]:
     """
@@ -233,7 +222,7 @@ def legend_patches(desc_key: DescTypes) -> list[mpatches.Patch]:
     """
     Légende: level 0 = tronçon, level 1.. = gravités.
     """
-    nlv = nb_levels(desc_key)
+    nlv = DESCRIPTEURS[desc_key].nb_levels
     cols = colors_for_levels(nlv, desc_key=desc_key)
     spec = DESCRIPTEURS[desc_key]
 

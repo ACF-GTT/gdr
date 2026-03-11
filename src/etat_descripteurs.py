@@ -14,11 +14,9 @@ from helpers.consts_etat_descripteur import (
     DESCRIPTEURS,
     colors_for_levels,
     legend_patches,
-    nb_levels,
     pct_name,
     cft_legend_patches,
     cft_color,
-    is_score
 )
 from helpers.consts_commun_pr_curv import (
     CURV_START,
@@ -45,7 +43,7 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
 
     # Cas spécial CFT_MOYEN (Excel)
     # une seule barre, hauteur = valeur cft_moyen
-    if is_score(desc_key) :
+    if DESCRIPTEURS[desc_key].is_score :
         v = row.get(CFT_MOYEN, float("nan"))
         ax.bar(
             x=curv_start + width / 2,
@@ -56,7 +54,7 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
         )
         return
 
-    nlv = nb_levels(desc_key)
+    nlv = DESCRIPTEURS[desc_key].nb_levels
     cols = colors_for_levels(nlv, desc_key=desc_key)
 
     heights = [
@@ -141,7 +139,7 @@ def main(
 
             # 2b) Habillage du graphe
             # CFT_MOYEN: échelle de 0 à 100
-            if is_score(desc_key):
+            if DESCRIPTEURS[desc_key].is_score:
                 habille(
                     ax=ax,
                     scale=Y_SCALE,
@@ -164,7 +162,7 @@ def main(
 
             # 2d) Légende (une seule fois, sur le premier graphe)
             if sens == sens_list[0]:
-                if is_score(desc_key):
+                if DESCRIPTEURS[desc_key].is_score:
                     ax.legend(
                         handles=cft_legend_patches(),
                         loc="lower right",
@@ -178,7 +176,7 @@ def main(
                         handles=legend_patches(desc_key),
                         loc="lower right",
                         bbox_to_anchor=(1.0, 1.02),
-                        ncol=min(6, nb_levels(desc_key)),
+                        ncol=min(6, DESCRIPTEURS[desc_key].nb_levels),
                         fontsize="small",
                         frameon=True,
                     )
