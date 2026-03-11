@@ -177,8 +177,10 @@ DESC_COLORS = [
     "#0A000A",
 ]
 
-DESC_BOOL_COLOR = "purple"
-
+DESC_BOOL_COLORS = [
+    "green",
+    "purple",
+]
 # Noms colonnes calculées
 DESC = "desc"
 
@@ -197,13 +199,12 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes) -> List[str]:
     Retourne une liste de couleurs pour les niveaux.
     Si le descripteur est bool, le niveau 1 (présence) est forcé en purple.
     """
-    cols = DESC_COLORS[:n_levels]
-
     spec = DESCRIPTEURS[desc_key]
-    if spec.gravite_type == "bool" and len(cols) > 1:
-        cols[1] = DESC_BOOL_COLOR
 
-    return cols
+    if spec.gravite_type == "bool":
+        return DESC_BOOL_COLORS[:n_levels]
+
+    return DESC_COLORS[:n_levels]
 
 def legend_patches(desc_key: DescTypes) -> list[mpatches.Patch]:
     """
