@@ -169,11 +169,6 @@ DESC_COLORS = [
     "#b8dfaf",
     "orange",
     "red",
-]
-
-DESC_BOOL_COLOR = "purple"
-
-DESC_EXTRA_COLORS = [
     "#c77cff",
     "#9b4dca",
     "#6a0dad",
@@ -182,6 +177,7 @@ DESC_EXTRA_COLORS = [
     "#0A000A",
 ]
 
+DESC_BOOL_COLOR = "purple"
 
 # Noms colonnes calculées
 DESC = "desc"
@@ -196,25 +192,16 @@ def pct_name(desc_key: str, level: int) -> str:
     return f"{PCT}_{DESC}_{desc_key}_{LEVEL}_{level}"
 
 
-def colors_for_levels(n_levels: int, desc_key: DescTypes | None = None) -> List[str]:
+def colors_for_levels(n_levels: int, desc_key: DescTypes) -> List[str]:
     """
     Retourne une liste de couleurs pour les niveaux.
     Si le descripteur est bool, le niveau 1 (présence) est forcé en purple.
     """
-    if n_levels <= len(DESC_COLORS):
-        cols = DESC_COLORS[:n_levels]
-    else:
-        cols = DESC_COLORS[:4]
+    cols = DESC_COLORS[:n_levels]
 
-        # On ajoute des nuances de purple si besoin
-        needed = n_levels - 4
-        cols.extend(DESC_EXTRA_COLORS[:needed])
-
-    # couleur purple pour bool
-    if desc_key is not None:
-        spec = DESCRIPTEURS.get(desc_key)
-        if spec and spec.gravite_type == "bool" and len(cols) > 1:
-            cols[1] = DESC_BOOL_COLOR
+    spec = DESCRIPTEURS[desc_key]
+    if spec.gravite_type == "bool" and len(cols) > 1:
+        cols[1] = DESC_BOOL_COLOR
 
     return cols
 
