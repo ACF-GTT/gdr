@@ -67,7 +67,7 @@ if __name__ == "__main__":
         route="N0122",
         dep="15",
         sens_list=["P", "M"],
-        prd = 123,
+        prd = 120,
         abd = None,
         prf = 126,
         abf = None

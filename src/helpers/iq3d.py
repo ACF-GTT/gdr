@@ -10,21 +10,21 @@ from helpers.graph_tools import draw_object, habille
 
 from helpers.consts_etat_surface import (
     FILE,
-    COLORS,
-    ABD, ABF,
-    PLOD, PLOF,
-    ROUTE, DEP, SENS,
-    LONGUEUR_TRONCON,
-    SURF_EVAL,
-    PR_REGEX,
     STATES,IES,IEP,IETP,
-    PRD_NUM, PRF_NUM, PRD, PRF, PRD_NAT,
-    CURV_START, CURV_END,
-    Y_SCALE, Y_SCALE_W_PR,
     D_SUP,NB_LEVELS,
-    MESSAGE_NO_DF,
     level_name,
     pct_name
+)
+from helpers.consts_commun_pr_curv import (
+    PR_REGEX,
+    COLORS,
+    ABD,ABF,
+    PLOD,PLOF,SENS,
+    LONGUEUR_TRONCON,
+    CURV_START, CURV_END,
+    PRD_NUM, PRF_NUM, PRD, PRF, PRD_NAT,
+    Y_SCALE, Y_SCALE_W_PR,
+    MESSAGE_NO_DF, ROUTE, DEP, SURF_EVAL
 )
 
 class SurfaceAnalyzer:
@@ -110,9 +110,17 @@ class SurfaceAnalyzer:
         assert self.df is not None, MESSAGE_NO_DF
         if route :
             self.df = self.df[self.df[ROUTE] == route]
-        if dep :
-            self.df = self.df[self.df[DEP].astype(str).str.strip() ==
-            str(dep).strip()]
+        if dep:
+            # float d'abord
+            try:
+                dep_float = float(dep)
+                self.df = self.df[self.df[DEP] == dep_float]
+            except ValueError:
+                # sinon on compare avec texte
+                self.df = self.df[self.df[DEP].astype(str).str.strip() == str(dep).strip()]
+
+        print("Après filtre route/dep → nb lignes :", len(self.df))
+
 
     def filter(
         self,

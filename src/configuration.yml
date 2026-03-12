@@ -21,7 +21,9 @@ datas:
 # pour utiliser aigle, mettre 1 comme valeur pour aigle_3d
 # puis définir aigle_route et aigle_dep
 aigle_3d : 0
-aigle_xls : "Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+aigle_xls : "Aigle3D/Table surface AURA_DIRMC_DIRMC.xlsx"
+aigle_sheet : "ie_troncon_surface_25 — DIRMC"
+aigle_gpkg: "Aigle3D/AURA_DIRMC.gpkg"
 aigle_route : N0088
 aigle_dep : 43
 aigle_sens:
@@ -46,4 +48,8 @@ legend: 1
 # en mettant 1, elles seront automatiquement retournées dans le sens plus
 # et la synchro avec aigle se fera bien.
 force_reverse:
+
+descripteurs:
+  - CFT_MOYEN
+  - RAVELING
 
