@@ -1,22 +1,11 @@
 """
 Affichage des descripteurs comme les états de surface: barres empilées (niveaux par gravités).
 """
-
-from itertools import accumulate
-
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-from pandas import Series
-import pandas as pd
-
 from helpers.consts_etat_descripteur import (
-    DescTypes,
     DESCRIPTEURS,
-    colors_for_levels,
     legend_patches,
-    pct_name,
     cft_legend_patches,
-    cft_color,
 )
 from helpers.consts_commun_pr_curv import (
     CURV_START,
@@ -31,62 +20,7 @@ from helpers.graph_tools import (
 )
 from helpers.tools_file import CheckConf
 
-from helpers.consts_etat_surface import CFT_MOYEN
-from iq3d_descripteurs import DescripteurAnalyzer
-
-
-def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
-    """Trace la barre empilée pour un tronçon (niveaux 0..N)."""
-    curv_start = row[CURV_START]
-    curv_end = row[CURV_END]
-    width = curv_end - curv_start
-
-    # Cas spécial CFT_MOYEN (Excel)
-    # une seule barre, hauteur = valeur cft_moyen
-    if DESCRIPTEURS[desc_key].is_score :
-        v = row.get(CFT_MOYEN, float("nan"))
-        ax.bar(
-            x=curv_start + width / 2,
-            width=width,
-            bottom=0,
-            height=float(v) if pd.notna(v) else 0.0,
-            color=cft_color(v),
-        )
-        return
-
-    nlv = DESCRIPTEURS[desc_key].nb_levels
-    cols = colors_for_levels(nlv, desc_key=desc_key)
-
-    heights = [
-        Y_SCALE * row[pct_name(desc_key, lvl)] / 100
-        for lvl in range(nlv)
-    ]
-    bottoms = [0, *accumulate(heights[:-1])]
-
-    ax.bar(
-        x=curv_start + width / 2,
-        width=width,
-        bottom=bottoms,
-        height=heights,
-        color=cols,
-    )
-
-
-def get_configured_descriptors(conf: CheckConf) -> list[DescTypes]:
-    """Retourne la liste des descripteurs à afficher, selon la config."""
-    raw = conf.get_descripteurs_raw()
-
-    if raw is None:
-        # Par défaut : tous les descripteurs
-        return list(DESCRIPTEURS.keys())
-
-    descs: list[DescTypes] = []
-    for d in raw:
-        if d not in DESCRIPTEURS:
-            raise ValueError(f"Descripteur inconnu dans la config: {d}")
-        descs.append(d)  # type: ignore[arg-type]
-
-    return descs
+from iq3d_descripteurs import DescripteurAnalyzer, get_configured_descriptors, graphe_desc_section
 
 
 def main(
@@ -196,8 +130,8 @@ if __name__ == "__main__":
         route="A0711",
         dep="63",
         sens_list=["P"],
-        prd=5,
+        prd=1,
         abd=None,
-        prf=10,
+        prf=6,
         abf=None,
     )

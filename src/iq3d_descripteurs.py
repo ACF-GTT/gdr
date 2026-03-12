@@ -1,21 +1,26 @@
 """
 Analyse des descripteurs (GPKG) dans la même logique que etat_surface
 """
+from itertools import accumulate
 from pathlib import Path
 import geopandas as gpd  # type: ignore
 import pandas as pd
-from pandas import DataFrame
+from pandas import DataFrame, Series
+from matplotlib.axes import Axes
+from typing import cast
 from geopandas import GeoDataFrame
 from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
     CLE_TRONCON, CLE_TRONCON_LEFT, GraviteValue,
-    pct_name
+    pct_name, colors_for_levels, cft_color,
 )
 from helpers.iq3d import SurfaceAnalyzer
 from helpers.consts_commun_pr_curv import (
-    ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF
+    ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF,
+    CURV_START, CURV_END, Y_SCALE,
 )
+from helpers.tools_file import CheckConf
 from helpers.consts_etat_surface import SI, CFT_MOYEN
 
 # Colonne surfacique dans le GPKG (surface de chaque gravité sur le tronçon)
@@ -194,3 +199,51 @@ class DescripteurAnalyzer:
         sa.compute_pr()
         sa.filter(**kwargs)
         return sa.compute_curviligne(sens)
+
+
+def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
+    """Trace la barre empilée pour un tronçon (niveaux 0..N)."""
+    curv_start = row[CURV_START]
+    curv_end = row[CURV_END]
+    width = curv_end - curv_start
+
+    # Cas spécial CFT_MOYEN (Excel)
+    # une seule barre, hauteur = valeur cft_moyen
+    if DESCRIPTEURS[desc_key].is_score :
+        v = row.get(CFT_MOYEN, float("nan"))
+        ax.bar(
+            x=curv_start + width / 2,
+            width=width,
+            bottom=0,
+            height=float(v) if pd.notna(v) else 0.0,
+            color=cft_color(v),
+        )
+        return
+
+    nlv = DESCRIPTEURS[desc_key].nb_levels
+    cols = colors_for_levels(nlv, desc_key=desc_key)
+
+    heights = [
+        Y_SCALE * row[pct_name(desc_key, lvl)] / 100
+        for lvl in range(nlv)
+    ]
+    bottoms = [0, *accumulate(heights[:-1])]
+
+    ax.bar(
+        x=curv_start + width / 2,
+        width=width,
+        bottom=bottoms,
+        height=heights,
+        color=cols,
+    )
+
+
+
+def get_configured_descriptors(conf: CheckConf) -> list[DescTypes]:
+    """Retourne la liste des descripteurs à afficher, selon la config."""
+    raw = conf.get_descripteurs_raw()
+
+    if raw is None:
+        return list(DESCRIPTEURS.keys())
+
+    return [cast(DescTypes, d) for d in raw if d in DESCRIPTEURS]
