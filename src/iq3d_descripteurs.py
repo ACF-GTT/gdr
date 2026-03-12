@@ -3,25 +3,27 @@ Analyse des descripteurs (GPKG) dans la même logique que etat_surface
 """
 from itertools import accumulate
 from pathlib import Path
+from typing import cast
+
 import geopandas as gpd  # type: ignore
 import pandas as pd
-from pandas import DataFrame, Series
-from matplotlib.axes import Axes
-from typing import cast
 from geopandas import GeoDataFrame
+from matplotlib.axes import Axes
+from pandas import DataFrame, Series
+
 from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
     CLE_TRONCON, CLE_TRONCON_LEFT, GraviteValue,
     pct_name, colors_for_levels, cft_color,
 )
-from helpers.iq3d import SurfaceAnalyzer
 from helpers.consts_commun_pr_curv import (
     ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF,
     CURV_START, CURV_END, Y_SCALE,
 )
-from helpers.tools_file import CheckConf
 from helpers.consts_etat_surface import SI, CFT_MOYEN
+from helpers.iq3d import SurfaceAnalyzer
+from helpers.tools_file import CheckConf
 
 # Colonne surfacique dans le GPKG (surface de chaque gravité sur le tronçon)
 SHAPE_AREA = "Shape_Area"
