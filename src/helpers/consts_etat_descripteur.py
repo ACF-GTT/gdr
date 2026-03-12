@@ -202,7 +202,7 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes) -> List[str]:
     spec = DESCRIPTEURS[desc_key]
 
     if spec.gravite_type == "bool":
-        return DESC_BOOL_COLORS[:n_levels]
+        return DESC_BOOL_COLORS
 
     return DESC_COLORS[:n_levels]
 
