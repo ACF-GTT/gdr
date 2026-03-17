@@ -6,6 +6,7 @@ from helpers.consts_etat_descripteur import (
     DESCRIPTEURS,
     legend_patches,
     cft_legend_patches,
+    classe_iqp_legend_patches,
 )
 from helpers.consts_commun_pr_curv import (
     CURV_START,
@@ -77,12 +78,20 @@ def main(
 
             # 2b) Habillage du graphe
             # CFT_MOYEN: échelle de 0 à 100
-            if DESCRIPTEURS[desc_key].is_score:
+            # CLASSE_IQP : 3 classes
+            if desc_key == "CFT_MOYEN":
                 habille(
                     ax=ax,
                     scale=Y_SCALE,
                     title=f"CFT_MOYEN – sens {sens}",
                     label="CFT moyen",
+                )
+            elif desc_key == "CLASSE_IQP":
+                habille(
+                    ax=ax,
+                    scale=Y_SCALE,
+                    title=f"CLASSE_IQP – sens {sens}",
+                    label="Classe IQP",
                 )
             else:
                 habille(
@@ -100,12 +109,21 @@ def main(
 
             # 2d) Légende (une seule fois, sur le premier graphe)
             if sens == sens_list[0]:
-                if DESCRIPTEURS[desc_key].is_score:
+                if desc_key == "CFT_MOYEN":
                     ax.legend(
                         handles=cft_legend_patches(),
                         loc="lower right",
                         bbox_to_anchor=(1.0, 1.02),
                         ncol=4,
+                        fontsize="small",
+                        frameon=True,
+                    )
+                elif desc_key == "CLASSE_IQP":
+                    ax.legend(
+                        handles=classe_iqp_legend_patches(),
+                        loc="lower right",
+                        bbox_to_anchor=(1.0, 1.02),
+                        ncol=3,
                         fontsize="small",
                         frameon=True,
                     )
