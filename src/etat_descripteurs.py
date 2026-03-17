@@ -21,8 +21,8 @@ from helpers.graph_tools import (
 from helpers.tools_file import CheckConf
 
 from helpers.iq3d_descripteurs import (
-    DescripteurAnalyzer, 
-    get_configured_descriptors, 
+    DescripteurAnalyzer,
+    get_configured_descriptors,
     graphe_desc_section
 )
 
