@@ -210,6 +210,8 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes) -> List[str]:
 
     if spec.gravite_type == "bool":
         return DESC_BOOL_COLORS
+    if desc_key == "ORNIERAGE_PETIT_RAYON":
+        return ["white"] + DESC_COLORS[1:n_levels]
 
     return DESC_COLORS[:n_levels]
 
