@@ -23,6 +23,7 @@ STATES = {
 
 SI ="si"
 CFT_MOYEN = "cft_moyen"
+CLASSE_IQP = "iqp_avec_iu"
 
 FIELDS_SELECTION = [
     PRD,

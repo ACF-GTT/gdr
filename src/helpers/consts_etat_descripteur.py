@@ -40,6 +40,7 @@ DescWeights = Literal[
 ]
 DescScores = Literal[
     "CFT_MOYEN",
+    "CLASSE_IQP",
 ]
 
 DescTypes = DescWeights | DescScores
@@ -162,6 +163,12 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
         category="score",
         gravite_type="int",
     ),
+    "CLASSE_IQP": DescSpec(
+        layer=None,
+        column=None,
+        category="score",
+        gravite_type="str",
+    ),
 }
 
 DESC_COLORS = [
@@ -241,4 +248,24 @@ def cft_legend_patches():
     return [
         mpatches.Patch(color=METRIC_COLORS["CFT"][level], label=label)
         for level, label in LEGENDS["CFT"].items()
+    ]
+
+CLASSE_IQP_COLORS = {
+    "A": "green", "B": "green", "C": "green",
+    "D": "yellow", "E": "yellow", "F": "yellow",
+    "G": "red", "H": "red", "I": "red",
+}
+
+def classe_iqp_color(v: str | None) -> str:
+    """Retourne la couleur correspondant à la classe IQP."""
+    if pd.isna(v):
+        return UNKNOWN_COLOR
+    return CLASSE_IQP_COLORS.get(v, UNKNOWN_COLOR)
+
+def classe_iqp_legend_patches():
+    """Patches de légende pour la classe IQP."""
+    return [
+        mpatches.Patch(color="green", label="Niveau 1 : A, B, C"),
+        mpatches.Patch(color="yellow", label="Niveau 2 : D, E, F"),
+        mpatches.Patch(color="red", label="Niveau 3 : G, H, I"),
     ]
