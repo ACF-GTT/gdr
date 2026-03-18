@@ -79,18 +79,18 @@ def main(
             # 2b) Habillage du graphe
             # CFT_MOYEN: échelle de 0 à 100
             # CLASSE_IQP : 3 classes
-            if desc_key == "CFT_MOYEN":
+            if DESCRIPTEURS[desc_key].is_score:
                 habille(
                     ax=ax,
                     scale=Y_SCALE,
-                    title=f"CFT_MOYEN – sens {sens}",
+                    title=f"{desc_key} – sens {sens}",
                     label="CFT moyen",
                 )
-            elif desc_key == "CLASSE_IQP":
+            elif DESCRIPTEURS[desc_key].is_iqp:
                 habille(
                     ax=ax,
                     scale=Y_SCALE,
-                    title=f"CLASSE_IQP – sens {sens}",
+                    title=f"{desc_key} – sens {sens}",
                     label="Classe IQP",
                 )
             else:
@@ -109,7 +109,7 @@ def main(
 
             # 2d) Légende (une seule fois, sur le premier graphe)
             if sens == sens_list[0]:
-                if desc_key == "CFT_MOYEN":
+                if DESCRIPTEURS[desc_key].is_score:
                     ax.legend(
                         handles=cft_legend_patches(),
                         loc="lower right",
@@ -118,7 +118,7 @@ def main(
                         fontsize="small",
                         frameon=True,
                     )
-                elif desc_key == "CLASSE_IQP":
+                elif DESCRIPTEURS[desc_key].is_iqp:
                     ax.legend(
                         handles=classe_iqp_legend_patches(),
                         loc="lower right",
@@ -149,11 +149,11 @@ def main(
 
 if __name__ == "__main__":
     main(
-        route="A0711",
-        dep="63",
+        route="N0122",
+        dep="15",
         sens_list=["P"],
-        prd=1,
+        prd=120,
         abd=None,
-        prf=6,
+        prf=123,
         abf=None,
     )

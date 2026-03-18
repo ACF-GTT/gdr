@@ -40,11 +40,14 @@ DescWeights = Literal[
 ]
 DescScores = Literal[
     "CFT_MOYEN",
+]
+
+DescIqp = Literal[
     "CLASSE_IQP",
 ]
 
-DescTypes = DescWeights | DescScores
-DescCategory = Literal["weight", "score"]
+DescTypes = DescWeights | DescScores | DescIqp
+DescCategory = Literal["weight", "score", "iqp"]
 GraviteType = Literal["bool", "int", "str"]
 GraviteValue = int | str
 
@@ -67,6 +70,11 @@ class DescSpec:
     def is_weight(self) -> bool:
         """Retourne True si le descripteur est un poids / ratio."""
         return self.category == "weight"
+
+    @property
+    def is_iqp(self) -> bool:
+        """Retourne True si le descripteur est une classe IQP."""
+        return self.category == "iqp"
 
     @property
     def nb_levels(self) -> int:
@@ -166,8 +174,9 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
     "CLASSE_IQP": DescSpec(
         layer=None,
         column=None,
-        category="score",
+        category="iqp",
         gravite_type="str",
+        gravites=["A,B,C", "D,E,F", "G,H,I"],
     ),
 }
 

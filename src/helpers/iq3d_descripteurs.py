@@ -58,7 +58,7 @@ class DescripteurAnalyzer:
 
     def load(self, desc_key: DescTypes) -> None:
         """Charge la couche et ajoute les colonnes"""
-        if DESCRIPTEURS[desc_key].is_score:
+        if DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp:
             self.df = None
             return
 
@@ -172,7 +172,7 @@ class DescripteurAnalyzer:
             except ValueError:
                 tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
 
-        if DESCRIPTEURS[desc_key].is_score:
+        if DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp:
             # on garde juste la colonne cft_moyen déjà présente dans le troncon (Excel)
             sa = SurfaceAnalyzer(df=tron)
             sa.compute_pr()
@@ -208,9 +208,10 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
     curv_start = row[CURV_START]
     curv_end = row[CURV_END]
     width = curv_end - curv_start
+    spec = DESCRIPTEURS[desc_key]
 
     # Cas spécial CFT_MOYEN (Excel)
-    if desc_key == "CFT_MOYEN":
+    if spec.is_score:
         v = row.get(CFT_MOYEN, float("nan"))
         ax.bar(
             x=curv_start + width / 2,
@@ -222,7 +223,7 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
         return
 
     # Cas spécial CLASSE_IQP (Excel)
-    if desc_key == "CLASSE_IQP":
+    if spec.is_iqp:
         v = row.get(CLASSE_IQP, None)
 
         ax.bar(
