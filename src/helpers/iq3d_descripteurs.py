@@ -15,13 +15,13 @@ from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
     CLE_TRONCON, CLE_TRONCON_LEFT, GraviteValue,
-    pct_name, colors_for_levels, cft_color,
+    pct_name, colors_for_levels, cft_color, classe_iqp_color
 )
 from helpers.consts_commun_pr_curv import (
     ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE, DEP, SENS, SURF_EVAL, MESSAGE_NO_DF,
     CURV_START, CURV_END, Y_SCALE,
 )
-from helpers.consts_etat_surface import SI, CFT_MOYEN
+from helpers.consts_etat_surface import SI, ANNEE_CDR, CFT_MOYEN, CLASSE_IQP
 from helpers.iq3d import SurfaceAnalyzer
 from helpers.tools_file import CheckConf
 
@@ -53,12 +53,12 @@ class DescripteurAnalyzer:
         # On garde uniquement ce qui nous intéresse
         self.df_surface = self.df_surface[
             [CLE_TRONCON, ABD, ABF, LONGUEUR_TRONCON, PLOD, PLOF, ROUTE,
-            DEP, SENS, SURF_EVAL,SI,CFT_MOYEN]
+            DEP, SENS, SURF_EVAL,SI,ANNEE_CDR,CFT_MOYEN, CLASSE_IQP]
         ].copy()
 
     def load(self, desc_key: DescTypes) -> None:
         """Charge la couche et ajoute les colonnes"""
-        if DESCRIPTEURS[desc_key].is_score:
+        if DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp:
             self.df = None
             return
 
@@ -172,7 +172,7 @@ class DescripteurAnalyzer:
             except ValueError:
                 tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
 
-        if DESCRIPTEURS[desc_key].is_score:
+        if DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp:
             # on garde juste la colonne cft_moyen déjà présente dans le troncon (Excel)
             sa = SurfaceAnalyzer(df=tron)
             sa.compute_pr()
@@ -208,10 +208,10 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
     curv_start = row[CURV_START]
     curv_end = row[CURV_END]
     width = curv_end - curv_start
+    spec = DESCRIPTEURS[desc_key]
 
     # Cas spécial CFT_MOYEN (Excel)
-    # une seule barre, hauteur = valeur cft_moyen
-    if DESCRIPTEURS[desc_key].is_score :
+    if spec.is_score:
         v = row.get(CFT_MOYEN, float("nan"))
         ax.bar(
             x=curv_start + width / 2,
@@ -219,6 +219,19 @@ def graphe_desc_section(desc_key: DescTypes, row: Series, ax: Axes) -> None:
             bottom=0,
             height=float(v) if pd.notna(v) else 0.0,
             color=cft_color(v),
+        )
+        return
+
+    # Cas spécial CLASSE_IQP (Excel)
+    if spec.is_iqp:
+        v = row.get(CLASSE_IQP, None)
+
+        ax.bar(
+            x=curv_start + width / 2,
+            width=width,
+            bottom=0,
+            height=Y_SCALE if pd.notna(v) else 0.0,
+            color=classe_iqp_color(v),
         )
         return
 

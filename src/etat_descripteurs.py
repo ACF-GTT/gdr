@@ -6,6 +6,7 @@ from helpers.consts_etat_descripteur import (
     DESCRIPTEURS,
     legend_patches,
     cft_legend_patches,
+    classe_iqp_legend_patches,
 )
 from helpers.consts_commun_pr_curv import (
     CURV_START,
@@ -20,7 +21,11 @@ from helpers.graph_tools import (
 )
 from helpers.tools_file import CheckConf
 
-from iq3d_descripteurs import DescripteurAnalyzer, get_configured_descriptors, graphe_desc_section
+from helpers.iq3d_descripteurs import (
+    DescripteurAnalyzer,
+    get_configured_descriptors,
+    graphe_desc_section
+)
 
 
 def main(
@@ -73,12 +78,20 @@ def main(
 
             # 2b) Habillage du graphe
             # CFT_MOYEN: échelle de 0 à 100
+            # CLASSE_IQP : 3 classes
             if DESCRIPTEURS[desc_key].is_score:
                 habille(
                     ax=ax,
                     scale=Y_SCALE,
-                    title=f"CFT_MOYEN – sens {sens}",
+                    title=f"{desc_key} – sens {sens}",
                     label="CFT moyen",
+                )
+            elif DESCRIPTEURS[desc_key].is_iqp:
+                habille(
+                    ax=ax,
+                    scale=Y_SCALE,
+                    title=f"{desc_key} – sens {sens}",
+                    label="Classe IQP",
                 )
             else:
                 habille(
@@ -102,6 +115,15 @@ def main(
                         loc="lower right",
                         bbox_to_anchor=(1.0, 1.02),
                         ncol=4,
+                        fontsize="small",
+                        frameon=True,
+                    )
+                elif DESCRIPTEURS[desc_key].is_iqp:
+                    ax.legend(
+                        handles=classe_iqp_legend_patches(),
+                        loc="lower right",
+                        bbox_to_anchor=(1.0, 1.02),
+                        ncol=3,
                         fontsize="small",
                         frameon=True,
                     )
@@ -130,8 +152,8 @@ if __name__ == "__main__":
         route="A0711",
         dep="63",
         sens_list=["P"],
-        prd=1,
+        prd=None,
         abd=None,
-        prf=6,
+        prf=None,
         abf=None,
     )

@@ -42,8 +42,12 @@ DescScores = Literal[
     "CFT_MOYEN",
 ]
 
-DescTypes = DescWeights | DescScores
-DescCategory = Literal["weight", "score"]
+DescIqp = Literal[
+    "CLASSE_IQP",
+]
+
+DescTypes = DescWeights | DescScores | DescIqp
+DescCategory = Literal["weight", "score", "iqp"]
 GraviteType = Literal["bool", "int", "str"]
 GraviteValue = int | str
 
@@ -66,6 +70,11 @@ class DescSpec:
     def is_weight(self) -> bool:
         """Retourne True si le descripteur est un poids / ratio."""
         return self.category == "weight"
+
+    @property
+    def is_iqp(self) -> bool:
+        """Retourne True si le descripteur est une classe IQP."""
+        return self.category == "iqp"
 
     @property
     def nb_levels(self) -> int:
@@ -162,6 +171,13 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
         category="score",
         gravite_type="int",
     ),
+    "CLASSE_IQP": DescSpec(
+        layer=None,
+        column=None,
+        category="iqp",
+        gravite_type="str",
+        gravites=["A,B,C", "D,E,F", "G,H,I"],
+    ),
 }
 
 DESC_COLORS = [
@@ -203,6 +219,8 @@ def colors_for_levels(n_levels: int, desc_key: DescTypes) -> List[str]:
 
     if spec.gravite_type == "bool":
         return DESC_BOOL_COLORS
+    if desc_key == "ORNIERAGE_PETIT_RAYON":
+        return ["white"] + DESC_COLORS[1:n_levels]
 
     return DESC_COLORS[:n_levels]
 
@@ -241,4 +259,24 @@ def cft_legend_patches():
     return [
         mpatches.Patch(color=METRIC_COLORS["CFT"][level], label=label)
         for level, label in LEGENDS["CFT"].items()
+    ]
+
+CLASSE_IQP_COLORS = {
+    "A": "green", "B": "green", "C": "green",
+    "D": "yellow", "E": "yellow", "F": "yellow",
+    "G": "red", "H": "red", "I": "red",
+}
+
+def classe_iqp_color(v: str | None) -> str:
+    """Retourne la couleur correspondant à la classe IQP."""
+    if pd.isna(v):
+        return UNKNOWN_COLOR
+    return CLASSE_IQP_COLORS.get(v, UNKNOWN_COLOR)
+
+def classe_iqp_legend_patches():
+    """Patches de légende pour la classe IQP."""
+    return [
+        mpatches.Patch(color="green", label="Niveau 1 : A, B, C"),
+        mpatches.Patch(color="yellow", label="Niveau 2 : D, E, F"),
+        mpatches.Patch(color="red", label="Niveau 3 : G, H, I"),
     ]
