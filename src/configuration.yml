@@ -23,7 +23,7 @@ datas:
 aigle_3d : 0
 aigle_xls : "Aigle3D/Table surface AURA_DIRMC_DIRMC.xlsx"
 aigle_sheet : "ie_troncon_surface_25 — DIRMC"
-aigle_gpkg: "Aigle3D/AURA_DIRMC.gpkg"
+aigle_gpkg: "Aigle3D/DIRMC_2025.gpkg"
 aigle_route : N0088
 aigle_dep : 43
 aigle_sens:
@@ -50,6 +50,14 @@ legend: 1
 force_reverse:
 
 descripteurs:
-  - CFT_MOYEN
-  - RAVELING
-
+  DELAMINATION: 0
+  DENSITE_FISSURATION: 1
+  MACROTEXTURE: 0
+  EPO: 0
+  EMO: 0
+  ESTEX: 0
+  RAVELING: 1
+  ORNIERAGE_GRAND_RAYON: 0
+  ORNIERAGE_PETIT_RAYON: 1
+  CFT_MOYEN: 1
+  CLASSE_IQP: 1
