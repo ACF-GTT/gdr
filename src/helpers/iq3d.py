@@ -185,6 +185,21 @@ def graphe_state_section(
         color=COLORS
     )
 
+# On détermine le niveau dominant d'un état de surface pour un tronçon donné
+# Quel niveau représente la plus grande part de la surface évaluée ? (en %)
+def dominant_level(row: Series, state: str) -> int | None:
+    """Retourne le niveau majoritaire d'un état de surface."""
+    values = [
+        row[pct_name(state, level)]
+        for level in range(NB_LEVELS)
+    ]
+
+    if pd.isna(values).all():
+        return None
+
+    return values.index(max(values))
+
+
 class GraphStates:
     """Classe pour grapher les états de surface IQRN 3D"""
     def __init__(self, df: DataFrame | None = None):
