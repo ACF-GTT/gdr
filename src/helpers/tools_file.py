@@ -79,11 +79,17 @@ class CheckConf():
 
     def get_descripteurs_raw(self) -> list[str] | None:
         """
-        Retourne la liste brute des descripteurs depuis la config.
+        Retourne la liste brute des descripteurs activés.
         """
         raw = self.yaml.get("descripteurs")
         if raw is None:
             return None
-        if not isinstance(raw, list):
-            raise ValueError("La clé 'descripteurs' doit être une liste")
-        return [str(d) for d in raw]
+
+        if not isinstance(raw, dict):
+            raise ValueError("La clé 'descripteurs' doit être un dictionnaire")
+
+        return [
+            str(name)
+            for name, enabled in raw.items()
+            if bool(enabled)
+        ]
