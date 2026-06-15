@@ -1,28 +1,28 @@
 """
 Cinétique des états de surface AIGLE3D.
-Compare deux années et affiche les écarts de niveaux dominants.
+Compare deux années et affiche les écarts en % par niveaux.
 """
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from helpers.consts_etat_surface import (
-    FILE, STATES, IES, IEP, IETP, SENS_LIST
+    FILE, STATES, IES, IEP, IETP, SENS_LIST, NB_LEVELS, pct_name
 )
-
 from helpers.consts_cinetique_surface import (
-    DELTA_COLORS, dom_name, delta_name, cinetique_legend
+    DELTA_PCT_COLORS, delta_pct_name, cinetique_legend
 )
-
-from helpers.iq3d import SurfaceAnalyzer, dominant_level
+from helpers.iq3d import SurfaceAnalyzer
 from helpers.graph_tools import draw_object, habille, init_single_column_plt
-
 from helpers.consts_commun_pr_curv import (
     SENS, PRD, PRD_NUM, PRF_NUM,
     ABD, ABF, PLOD, PLOF,
     CURV_START, CURV_END,
-    Y_SCALE, Y_SCALE_W_PR,
+    Y_SCALE_W_PR,
 )
+
+
+Y_MAX = 100
 
 
 def choose_sheets():
@@ -53,68 +53,68 @@ def load_analyzer(sheet_name, route, dep, **kwargs):
 
     return analyzer
 
-#Pour chaque ligne du DataFrame, on calcule le niveau dominant
-def add_dominants(df):
-    """Ajoute les niveaux dominants pour chaque état."""
-    for state in STATES:
-        df[dom_name(state)] = df.apply(
-            dominant_level,
-            axis=1,
-            state=state,
-        )
-    return df
 
-# 1 : On compare un même tronçon
-# 2 : On fusionne les deux DataFrames sur les clés de tronçon
-# 3 : On calcule les différentiels pour chaque état de surface
 def compare(analyzer_old, analyzer_new, sens):
     """Compare deux années sur un même sens."""
     df_old, _ = analyzer_old.compute_curviligne(sens)
     df_new, prs = analyzer_new.compute_curviligne(sens)
 
-    df_old = add_dominants(df_old)
-    df_new = add_dominants(df_new)
-
     keys = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
-    dom_cols = [dom_name(state) for state in STATES]
+    pct_cols = [
+        pct_name(state, level)
+        for state in STATES
+        for level in range(NB_LEVELS)
+    ]
 
     df = df_new[
-        keys + [PRD, CURV_START, CURV_END] + dom_cols
+        keys + [PRD, CURV_START, CURV_END] + pct_cols
     ].merge(
-        df_old[keys + dom_cols],
+        df_old[keys + pct_cols],
         on=keys,
         suffixes=("_new", "_old")
     )
 
     for state in STATES:
-        df = df.dropna(
-            subset=[
-                f"{dom_name(state)}_new",
-                f"{dom_name(state)}_old"
-            ]
-        )
-
-        df[delta_name(state)] = (
-            df[f"{dom_name(state)}_new"]
-            - df[f"{dom_name(state)}_old"]
-        )
+        for level in range(NB_LEVELS):
+            col = pct_name(state, level)
+            df[delta_pct_name(state, level)] = (
+                df[f"{col}_new"] - df[f"{col}_old"]
+            )
 
     return df, prs
 
 
 def draw_delta(row, state, ax):
     """Trace le différentiel d'un tronçon."""
-    delta = int(row[delta_name(state)])
     width = row[CURV_END] - row[CURV_START]
+    x = row[CURV_START] + width / 2
 
-    ax.bar(
-        x=row[CURV_START] + width / 2,
-        width=width,
-        height=Y_SCALE,
-        color=DELTA_COLORS[delta],
-        edgecolor="black",
-        linewidth=0.2,
-    )
+    bottom_pos = 0
+    bottom_neg = 0
+
+    for level in range(NB_LEVELS):
+        delta = row[delta_pct_name(state, level)]
+
+        if pd.isna(delta) or delta == 0:
+            continue
+
+        # On empile les barres positives et négatives séparément
+        if delta > 0:
+            bottom = bottom_pos
+            bottom_pos += delta
+        else:
+            bottom = bottom_neg
+            bottom_neg += delta
+
+        ax.bar(
+            x=x,
+            width=width,
+            bottom=bottom,
+            height=delta,
+            color=DELTA_PCT_COLORS[level],
+            edgecolor=None,
+            linewidth=0.2,
+        )
 
 
 def main(route, dep, sens_list, **kwargs):
@@ -139,9 +139,13 @@ def main(route, dep, sens_list, **kwargs):
         for pr, curv in prs.items():
             draw_object(pr, curv, Y_SCALE_W_PR, sub_axes[0])
 
-        habille(sub_axes[0], Y_SCALE_W_PR, f"sens {sens}", STATES[IES], grid=True)
-        habille(sub_axes[1], Y_SCALE, f"sens {sens}", STATES[IEP], grid=True)
-        habille(sub_axes[2], Y_SCALE, f"sens {sens}", STATES[IETP], grid=True)
+        habille(sub_axes[0], Y_MAX, f"sens {sens}", STATES[IES], grid=True)
+        habille(sub_axes[1], Y_MAX, f"sens {sens}", STATES[IEP], grid=True)
+        habille(sub_axes[2], Y_MAX, f"sens {sens}", STATES[IETP], grid=True)
+
+        for ax in sub_axes:
+            ax.axhline(0, color="black", linewidth=0.8)
+            ax.set_ylim(-100, 120)
 
         for _, row in df.iterrows():
             draw_delta(row, IES, sub_axes[0])
@@ -151,9 +155,24 @@ def main(route, dep, sens_list, **kwargs):
         axes[-1].set_xlim(df[CURV_START].min(), df[CURV_END].max())
 
         print(f"\n=== Delta sens {sens} ===")
-        print(df[[PRD, ABD, delta_name(IES), delta_name(IEP), delta_name(IETP)]].head(200))
+        print(
+            df[
+                [
+                    PRD, ABD,
+                    delta_pct_name(IES, 0),
+                    delta_pct_name(IES, 1),
+                    delta_pct_name(IES, 2),
+                    delta_pct_name(IES, 3),
+                    delta_pct_name(IES, 4),
+                ]
+            ].head(200)
+        )
 
-    fig.legend(handles=cinetique_legend(), loc="upper right", ncol=9)
+    fig.legend(
+        handles=cinetique_legend(),
+        loc="upper right",
+        ncol=9,
+    )
 
     plt.suptitle(
         f"Cinétique surface : {new_sheet} - {old_sheet} - {route} - dpt {dep}"
