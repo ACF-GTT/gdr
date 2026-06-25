@@ -12,6 +12,7 @@ def draw_prs(prs: dict, ax) -> None:
         draw_object(pr, curv, Y_SCALE_W_PR, ax)
 
 
+# pylint: disable=too-many-arguments
 def draw_delta(row, key, delta_name, colors, n_levels, ax) -> None:
     """Trace les deltas positifs/négatifs empilés."""
     width = row[CURV_END] - row[CURV_START]
