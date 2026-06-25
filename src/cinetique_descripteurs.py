@@ -1,5 +1,5 @@
 """Cinétique des descripteurs AIGLE3D : delta % entre deux GPKG."""
-# pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+# pylint: disable=too-many-arguments,too-many-locals
 
 from pathlib import Path
 
@@ -67,6 +67,7 @@ def compare(
     old: DescripteurAnalyzer,
     new: DescripteurAnalyzer,
     desc: DescTypes,
+    *,
     route: str,
     dep: str,
     sens: str,
@@ -115,7 +116,7 @@ def main(route: str, dep: str, sens_list: list[str], **kwargs) -> None:
 
         for sens in sens_list:
             ax = axes[row_idx]
-            df, prs = compare(old, new, desc, route, dep, sens, **kwargs)
+            df, prs = compare(old, new, desc, route=route, dep=dep, sens=sens, **kwargs)
             last_df = df
 
             draw_prs(prs, ax)
