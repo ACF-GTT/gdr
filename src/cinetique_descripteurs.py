@@ -6,7 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from helpers.consts_cinetique_commun import draw_delta, draw_prs, merge_old_new, setup_delta_axis
+from helpers.consts_cinetique_commun import draw_delta, draw_prs, merge_old_new, setup_delta_axis,DeltaStyle
 from helpers.consts_cinetique_descripteurs import (
     cinetique_legend,
     delta_pct_name,
@@ -34,24 +34,12 @@ from helpers.consts_commun_pr_curv import (
 from helpers.graph_tools import habille, init_single_column_plt
 from helpers.iq3d_descripteurs import DescripteurAnalyzer, get_configured_descriptors
 from helpers.tools_file import CheckConf
+from helpers.shared import pick_files
 
 
 Y_MAX = 100
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
 
-
-def choose_gpkgs() -> tuple[Path, Path]:
-    """Choix des deux fichiers GPKG à comparer."""
-    files = sorted(Path(DATAS).rglob("*.gpkg"))
-
-    print("Fichiers GPKG disponibles :")
-    for i, file in enumerate(files):
-        print(f"{i}: {file}")
-
-    return (
-        files[int(input("Fichier année ancienne : "))],
-        files[int(input("Fichier année récente : "))],
-    )
 
 
 def weight_descriptors() -> list[DescTypes]:
@@ -98,8 +86,23 @@ def main(route: str, dep: str, sens_list: list[str], **kwargs) -> None:
     for sens in sens_list:
         assert sens in SENS_LIST
 
+    files = pick_files(
+        old={
+            "folder_path": DATAS,
+            "ext": ["gpkg"],
+            "message": "Choisir le GPKG ancien",
+        },
+        new={
+            "folder_path": DATAS,
+            "ext": ["gpkg"],
+            "message": "Choisir le GPKG récent",
+        },
+    )
+
+    old_gpkg = Path(files["old"])
+    new_gpkg = Path(files["new"])
+
     descs = weight_descriptors()
-    old_gpkg, new_gpkg = choose_gpkgs()
 
     old = DescripteurAnalyzer(file_path=old_gpkg)
     new = DescripteurAnalyzer(file_path=new_gpkg)
@@ -112,7 +115,7 @@ def main(route: str, dep: str, sens_list: list[str], **kwargs) -> None:
 
     for desc in descs:
         n_levels = DESCRIPTEURS[desc].nb_levels
-        colors = colors_for_levels(n_levels, desc)
+        style = DeltaStyle(colors=colors_for_levels(n_levels, desc))
 
         for sens in sens_list:
             ax = axes[row_idx]
@@ -136,8 +139,7 @@ def main(route: str, dep: str, sens_list: list[str], **kwargs) -> None:
                     row,
                     desc,
                     delta_pct_name,
-                    colors,
-                    n_levels,
+                    style,
                     ax,
                 )
 
@@ -176,11 +178,11 @@ def main(route: str, dep: str, sens_list: list[str], **kwargs) -> None:
 
 if __name__ == "__main__":
     main(
-        route="N0102",
-        dep="43",
+        route="A0711",
+        dep="63",
         sens_list=["P"],
-        prd=60,
+        prd=None,
         abd=None,
-        prf=80,
+        prf=None,
         abf=None,
     )

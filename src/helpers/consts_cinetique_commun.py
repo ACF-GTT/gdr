@@ -1,9 +1,15 @@
 """Fonctions communes aux cinétiques."""
-
+from dataclasses import dataclass
 import pandas as pd
 
 from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD, Y_SCALE_W_PR
 from helpers.graph_tools import draw_object
+
+
+@dataclass(frozen=True)
+class DeltaStyle:
+    """Style de dessin des deltas."""
+    colors: list
 
 
 def draw_prs(prs: dict, ax) -> None:
@@ -12,8 +18,7 @@ def draw_prs(prs: dict, ax) -> None:
         draw_object(pr, curv, Y_SCALE_W_PR, ax)
 
 
-# pylint: disable=too-many-arguments
-def draw_delta(row, key, delta_name, colors, n_levels, ax) -> None:
+def draw_delta(row, key, delta_name, style: DeltaStyle, ax) -> None:
     """Trace les deltas positifs/négatifs empilés."""
     width = row[CURV_END] - row[CURV_START]
     x = row[CURV_START] + width / 2
@@ -21,7 +26,7 @@ def draw_delta(row, key, delta_name, colors, n_levels, ax) -> None:
     bottom_pos = 0
     bottom_neg = 0
 
-    for level in range(n_levels):
+    for level, color in enumerate(style.colors):
         delta = row[delta_name(key, level)]
 
         if pd.isna(delta) or delta == 0:
@@ -39,7 +44,7 @@ def draw_delta(row, key, delta_name, colors, n_levels, ax) -> None:
             width=width,
             bottom=bottom,
             height=delta,
-            color=colors[level],
+            color=color,
             edgecolor=None,
             linewidth=0.2,
         )
