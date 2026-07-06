@@ -6,7 +6,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from helpers.consts_cinetique_commun import draw_delta, draw_prs, merge_old_new, setup_delta_axis,DeltaStyle
+from helpers.consts_cinetique_commun import (
+    draw_delta,
+    draw_prs,
+    merge_old_new,
+    setup_delta_axis,
+    DeltaStyle
+)
 from helpers.consts_cinetique_descripteurs import (
     cinetique_legend,
     delta_pct_name,
@@ -175,6 +181,7 @@ def main(route: str, dep: str, sens_list: list[str], **kwargs) -> None:
     plt.tight_layout()
     plt.show()
 
+# pylint: disable=duplicate-code  # bloc main identique entre scripts cinétiques
 
 if __name__ == "__main__":
     main(

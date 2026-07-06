@@ -6,7 +6,13 @@ Compare deux années et affiche les écarts en % par niveaux.
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from helpers.consts_cinetique_commun import draw_delta, draw_prs, merge_old_new, setup_delta_axis
+from helpers.consts_cinetique_commun import (
+    DeltaStyle,
+    draw_delta,
+    draw_prs,
+    merge_old_new,
+    setup_delta_axis,
+)
 from helpers.consts_cinetique_surface import (
     DELTA_PCT_COLORS,
     cinetique_legend,
@@ -122,34 +128,17 @@ def main(route, dep, sens_list, **kwargs):
         habille(sub_axes[1], Y_MAX, f"sens {sens}", STATES[IEP], grid=True)
         habille(sub_axes[2], Y_MAX, f"sens {sens}", STATES[IETP], grid=True)
 
+        style = DeltaStyle(
+            colors=[DELTA_PCT_COLORS[i] for i in sorted(DELTA_PCT_COLORS)]
+        )
+
         for ax in sub_axes:
             setup_delta_axis(ax)
 
         for _, row in df.iterrows():
-            draw_delta(
-                row,
-                IES,
-                delta_pct_name,
-                DELTA_PCT_COLORS,
-                NB_LEVELS,
-                sub_axes[0],
-            )
-            draw_delta(
-                row,
-                IEP,
-                delta_pct_name,
-                DELTA_PCT_COLORS,
-                NB_LEVELS,
-                sub_axes[1],
-            )
-            draw_delta(
-                row,
-                IETP,
-                delta_pct_name,
-                DELTA_PCT_COLORS,
-                NB_LEVELS,
-                sub_axes[2],
-            )
+            draw_delta(row, IES, delta_pct_name, style, sub_axes[0])
+            draw_delta(row, IEP, delta_pct_name, style, sub_axes[1])
+            draw_delta(row, IETP, delta_pct_name, style, sub_axes[2])
 
         print(f"\n=== Delta sens {sens} ===")
         print(
@@ -177,14 +166,15 @@ def main(route, dep, sens_list, **kwargs):
     plt.tight_layout()
     plt.show()
 
+# pylint: disable=duplicate-code  # bloc main identique entre scripts cinétiques
 
 if __name__ == "__main__":
     main(
-        route="N0088",
-        dep="07",
+        route="N0122",
+        dep="15",
         sens_list=["P"],
-        prd=0,
+        prd=78,
         abd=None,
-        prf=2,
+        prf=83,
         abf=None,
     )
