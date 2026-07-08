@@ -4,9 +4,9 @@ Analyse des descripteurs (GPKG) dans la même logique que etat_surface
 from itertools import accumulate
 from pathlib import Path
 from typing import cast
+import re
 
 import fiona # type: ignore
-import re
 import geopandas as gpd  # type: ignore
 import pandas as pd
 from geopandas import GeoDataFrame
