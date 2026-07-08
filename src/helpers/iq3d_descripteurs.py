@@ -5,7 +5,6 @@ from itertools import accumulate
 from pathlib import Path
 from typing import cast
 import re
-
 import fiona # type: ignore
 import geopandas as gpd  # type: ignore
 import pandas as pd
