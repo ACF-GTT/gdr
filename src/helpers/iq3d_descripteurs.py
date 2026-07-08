@@ -5,6 +5,8 @@ from itertools import accumulate
 from pathlib import Path
 from typing import cast
 
+import fiona # type: ignore
+import re
 import geopandas as gpd  # type: ignore
 import pandas as pd
 from geopandas import GeoDataFrame
@@ -40,9 +42,11 @@ class DescripteurAnalyzer:
     ) -> None:
         self.file_path = Path(file_path)
         self.surface_xls = Path(surface_xls)
+        self.layers = fiona.listlayers(self.file_path)
 
         self.df : GeoDataFrame | None = None
         self.df_troncons : GeoDataFrame | None = None
+        self.year = self._extract_year()
 
         # Charger la BONNE feuille Excel
         self.df_surface = pd.read_excel(
@@ -56,14 +60,54 @@ class DescripteurAnalyzer:
             DEP, SENS, SURF_EVAL,SI,ANNEE_CDR,CFT_MOYEN, CLASSE_IQP]
         ].copy()
 
+
+    def _extract_year(self) -> str:
+        """Extrait l'année du nom du fichier GPKG."""
+
+        match = re.search(r"(20\d{2})", self.file_path.stem)
+
+        if match:
+            return match.group(1)
+
+        raise ValueError(
+            f"Impossible de trouver l'année dans {self.file_path.name}"
+        )
+
+    def _find_layer(self, prefix: str) -> str:
+        """
+        Retourne le nom réel de la couche présente dans le GPKG.
+
+        Le nom des couches dépend de l'année :
+        - Descr_gravite_Raveling_2024 — DIRMC
+        - Descr_gravite_Raveling_2025 — DIRMC
+
+        L'année est récupérée depuis le nom du GPKG.
+        """
+
+        expected = f"{prefix}_{self.year}"
+
+        for layer in self.layers:
+            if layer.startswith(expected):
+                return layer
+
+        raise ValueError(
+            f"Aucune couche '{expected}' trouvée dans {self.file_path.name}. "
+            f"Couches disponibles : {self.layers}"
+        )
+
     def load(self, desc_key: DescTypes) -> None:
         """Charge la couche et ajoute les colonnes"""
         if DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp:
             self.df = None
             return
 
-        layer = DESCRIPTEURS[desc_key].layer
-        self.df = gpd.read_file(self.file_path, layer=layer).merge(
+        layer_prefix = cast(str, DESCRIPTEURS[desc_key].layer)
+        layer = self._find_layer(layer_prefix)
+
+        self.df = gpd.read_file(
+            self.file_path,
+            layer=layer
+        ).merge(
             self.df_surface,
             how="left",
             left_on=CLE_TRONCON_LEFT,
