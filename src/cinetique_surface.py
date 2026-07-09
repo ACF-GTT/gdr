@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from helpers.consts_cinetique_commun import (
-    DeltaStyle,
     draw_delta,
     draw_prs,
     merge_old_new,
@@ -130,15 +129,15 @@ class CinetiqueSurface:
             habille(sub_axes[1], Y_MAX, f"sens {sens}", STATES[IEP], grid=True)
             habille(sub_axes[2], Y_MAX, f"sens {sens}", STATES[IETP], grid=True)
 
-            style = DeltaStyle(colors=list(DELTA_PCT_COLORS.values()))
+            colors = list(DELTA_PCT_COLORS.values())
 
             for ax in sub_axes:
                 setup_delta_axis(ax)
 
             for _, row in df.iterrows():
-                draw_delta(row, IES, delta_pct_name, style, sub_axes[0])
-                draw_delta(row, IEP, delta_pct_name, style, sub_axes[1])
-                draw_delta(row, IETP, delta_pct_name, style, sub_axes[2])
+                draw_delta(row, IES, delta_pct_name, colors, sub_axes[0])
+                draw_delta(row, IEP, delta_pct_name, colors, sub_axes[1])
+                draw_delta(row, IETP, delta_pct_name, colors, sub_axes[2])
 
             print(f"\n=== Delta sens {sens} ===")
             print(

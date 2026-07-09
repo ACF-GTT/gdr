@@ -5,7 +5,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from helpers.consts_cinetique_commun import (
-    DeltaStyle,
     draw_delta,
     draw_prs,
     merge_old_new,
@@ -101,7 +100,7 @@ class CinetiqueDescripteurs:
 
         for desc in descs:
             n_levels = DESCRIPTEURS[desc].nb_levels
-            style = DeltaStyle(colors=colors_for_levels(n_levels, desc))
+            colors = colors_for_levels(n_levels, desc)
 
             for sens in sens_list:
                 ax = axes[row_idx]
@@ -122,7 +121,7 @@ class CinetiqueDescripteurs:
                 setup_delta_axis(ax)
 
                 for _, row in df.iterrows():
-                    draw_delta(row, desc, delta_pct_name, style, ax)
+                    draw_delta(row, desc, delta_pct_name, colors, ax)
 
                 if sens == sens_list[0]:
                     ax.legend(
