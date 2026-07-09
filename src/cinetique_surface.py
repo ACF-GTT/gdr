@@ -47,6 +47,22 @@ Y_MAX = 100
 NB_GRAPHS_PER_SENS = 3
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
 
+def load_analyzer(sheet_name, route=None, dep=None, **kwargs):
+    """Charge une année et applique les traitements de base."""
+    df = pd.read_excel(FILE, sheet_name=sheet_name)
+
+    analyzer = SurfaceAnalyzer(df=df)
+    analyzer.sheet_name = sheet_name
+    analyzer.compute_pr()
+    analyzer.compute_levels()
+    analyzer.compute_percent()
+
+    if route is not None and dep is not None:
+        analyzer.set(route, dep)
+        analyzer.filter(**kwargs)
+
+    return analyzer
+
 
 class CinetiqueSurface:
     """Cinétique des états de surface AIGLE3D : delta % entre deux années."""
@@ -63,24 +79,8 @@ class CinetiqueSurface:
         self.old_sheet = excel_file.sheet_names[old_idx]
         self.new_sheet = excel_file.sheet_names[new_idx]
 
-        self.old = self.load_analyzer(self.old_sheet)
-        self.new = self.load_analyzer(self.new_sheet)
-
-    def load_analyzer(self, sheet_name, route=None, dep=None, **kwargs):
-        """Charge une année et applique les traitements de base."""
-        df = pd.read_excel(FILE, sheet_name=sheet_name)
-
-        analyzer = SurfaceAnalyzer(df=df)
-        analyzer.sheet_name = sheet_name
-        analyzer.compute_pr()
-        analyzer.compute_levels()
-        analyzer.compute_percent()
-
-        if route is not None and dep is not None:
-            analyzer.set(route, dep)
-            analyzer.filter(**kwargs)
-
-        return analyzer
+        self.old = load_analyzer(self.old_sheet)
+        self.new = load_analyzer(self.new_sheet)
 
     def compare(self, sens):
         """Compare deux années sur un même sens."""
@@ -109,8 +109,8 @@ class CinetiqueSurface:
         for sens in sens_list:
             assert sens in SENS_LIST
 
-        self.old = self.load_analyzer(self.old_sheet, route, dep, **kwargs)
-        self.new = self.load_analyzer(self.new_sheet, route, dep, **kwargs)
+        self.old = load_analyzer(self.old_sheet, route, dep, **kwargs)
+        self.new = load_analyzer(self.new_sheet, route, dep, **kwargs)
 
         fig, axes = init_single_column_plt(NB_GRAPHS_PER_SENS * len(sens_list))
 
