@@ -23,8 +23,7 @@ def draw_delta(
     width = row[CURV_END] - row[CURV_START]
     x = row[CURV_START] + width / 2
 
-    bottom_pos = 0
-    bottom_neg = 0
+    bottom = {"pos": 0, "neg": 0}
 
     for level, color in enumerate(colors):
         delta = row[delta_pct_name(key, level)]
@@ -32,17 +31,15 @@ def draw_delta(
         if pd.isna(delta) or delta == 0:
             continue
 
-        if delta > 0:
-            bottom = bottom_pos
-            bottom_pos += delta
-        else:
-            bottom = bottom_neg
-            bottom_neg += delta
+        field = "pos" if delta > 0 else "neg"
+
+        bar_bottom = bottom[field]
+        bottom[field] += delta
 
         ax.bar(
             x=x,
             width=width,
-            bottom=bottom,
+            bottom=bar_bottom,
             height=delta,
             color=color,
             edgecolor=None,
