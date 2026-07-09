@@ -8,12 +8,6 @@ from helpers.consts_etat_descripteur import (
     colors_for_levels,
 )
 
-
-def delta_pct_name(desc_key: str, level: int) -> str:
-    """Nom de colonne du différentiel."""
-    return f"delta_pct_desc_{desc_key}_level_{level}"
-
-
 def cinetique_legend(desc_key: DescTypes):
     """Légende des différentiels par niveau."""
     colors = colors_for_levels(
