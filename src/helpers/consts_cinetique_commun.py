@@ -1,9 +1,9 @@
 """Fonctions communes aux cinétiques."""
-from collections.abc import Callable
 
 import pandas as pd
 from matplotlib.axes import Axes
 
+from helpers.consts_cinetique_surface import delta_pct_name
 from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD, Y_SCALE_W_PR
 from helpers.graph_tools import draw_object
 
@@ -16,7 +16,6 @@ def draw_prs(prs: dict[str, float], ax: Axes) -> None:
 def draw_delta(
     row: pd.Series,
     key: str,
-    delta_name: Callable[[str, int], str],
     colors: list[str],
     ax: Axes,
 ) -> None:
@@ -28,7 +27,7 @@ def draw_delta(
     bottom_neg = 0
 
     for level, color in enumerate(colors):
-        delta = row[delta_name(key, level)]
+        delta = row[delta_pct_name(key, level)]
 
         if pd.isna(delta) or delta == 0:
             continue

@@ -135,9 +135,9 @@ class CinetiqueSurface:
                 setup_delta_axis(ax)
 
             for _, row in df.iterrows():
-                draw_delta(row, IES, delta_pct_name, colors, sub_axes[0])
-                draw_delta(row, IEP, delta_pct_name, colors, sub_axes[1])
-                draw_delta(row, IETP, delta_pct_name, colors, sub_axes[2])
+                draw_delta(row, IES, colors, sub_axes[0])
+                draw_delta(row, IEP, colors, sub_axes[1])
+                draw_delta(row, IETP, colors, sub_axes[2])
 
             print(f"\n=== Delta sens {sens} ===")
             print(
