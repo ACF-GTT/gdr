@@ -44,6 +44,14 @@ Y_MAX = 100
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
 
 
+def weight_descriptors() -> list[DescTypes]:
+    """Descripteurs configurés, uniquement les weight."""
+    return [
+        desc
+        for desc in get_configured_descriptors(CheckConf())
+        if DESCRIPTEURS[desc].is_weight
+    ]
+
 class CinetiqueDescripteurs:
     """Cinétique des descripteurs AIGLE3D : delta % entre deux GPKG."""
     def __init__(self):
@@ -58,13 +66,6 @@ class CinetiqueDescripteurs:
         self.old = DescripteurAnalyzer(file_path=self.old_gpkg)
         self.new = DescripteurAnalyzer(file_path=self.new_gpkg)
 
-    def weight_descriptors(self) -> list[DescTypes]:
-        """Descripteurs configurés, uniquement les weight."""
-        return [
-            desc
-            for desc in get_configured_descriptors(CheckConf())
-            if DESCRIPTEURS[desc].is_weight
-        ]
 
     def compare(self, desc: DescTypes, *, route: str, dep: str, sens: str, **kwargs):
         """Compare ancien/nouveau pour un descripteur et un sens."""
@@ -90,7 +91,7 @@ class CinetiqueDescripteurs:
         for sens in sens_list:
             assert sens in SENS_LIST
 
-        descs = self.weight_descriptors()
+        descs = weight_descriptors()
 
         fig, axes = init_single_column_plt(len(descs) * len(sens_list))
         fig.set_size_inches(16.5, 11.7)
