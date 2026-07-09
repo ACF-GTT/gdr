@@ -33,18 +33,17 @@ def draw_delta(
 
         field = "pos" if delta > 0 else "neg"
 
-        bar_bottom = bottom[field]
-        bottom[field] += delta
-
         ax.bar(
             x=x,
             width=width,
-            bottom=bar_bottom,
+            bottom=bottom[field],
             height=delta,
             color=color,
             edgecolor=None,
             linewidth=0.2,
         )
+
+        bottom[field] += delta
 
 def merge_old_new(
     df_old: pd.DataFrame,
