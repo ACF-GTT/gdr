@@ -121,7 +121,7 @@ class CinetiqueDescripteurs:
                 setup_delta_axis(ax)
 
                 for _, row in df.iterrows():
-                    draw_delta(row, desc, delta_pct_name, colors, ax)
+                    draw_delta(row, desc, colors, ax)
 
                 if sens == sens_list[0]:
                     ax.legend(
