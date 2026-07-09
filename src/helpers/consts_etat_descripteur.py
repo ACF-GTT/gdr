@@ -86,14 +86,14 @@ class DescSpec:
 
 DESCRIPTEURS: dict[DescTypes, DescSpec] = {
     "DELAMINATION": DescSpec(
-        layer="Descr_final_Delamination_2025 — DIRMC",
+        layer="Descr_final_Delamination",
         column=None,                # Pas de gravité = présent/absent
         category="weight",
         gravite_type="bool",
     ),
 
     "DENSITE_FISSURATION": DescSpec(
-        layer="Descr_gravite_Densite_Fissuration_2025 — DIRMC",
+        layer="Descr_gravite_Densite_Fissuration",
         column="niveau_gravite",
         category="weight",
         gravite_type="int",
@@ -103,14 +103,14 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
     ),
 
     "MACROTEXTURE": DescSpec(
-        layer="Descr_final_Macrotexture_Fermee_2025 — DIRMC",
+        layer="Descr_final_Macrotexture_Fermee",
         column=None,
         category="weight",
         gravite_type="bool",
     ),
 
     "EPO": DescSpec(
-        layer="Descr_gravite_EPO_2025 — DIRMC",
+        layer="Descr_gravite_EPO",
         column="niveau_gravite_str",
         category="weight",
         gravite_type="str",
@@ -120,7 +120,7 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
     ),
 
     "EMO": DescSpec(
-        layer="Descr_gravite_EMO_2025 — DIRMC",
+        layer="Descr_gravite_EMO",
         column="niveau_gravite_str",
         category="weight",
         gravite_type="str",
@@ -130,7 +130,7 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
     ),
 
     "ESTEX": DescSpec(
-        layer="Descr_gravite_eSTex_2025 — DIRMC",
+        layer="Descr_gravite_eSTex",
         column="niveau_gravite_str",
         category="weight",
         gravite_type="str",
@@ -139,7 +139,7 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
         ]
     ),
     "RAVELING": DescSpec(
-        layer="Descr_gravite_Raveling_2025 — DIRMC",
+        layer="Descr_gravite_Raveling",
         column="niveau_gravite_str",
         category="weight",
         gravite_type="str",
@@ -148,7 +148,7 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
         ]
     ),
     "ORNIERAGE_GRAND_RAYON": DescSpec(
-        layer="Descr_gravite_Orniere_Grand_Rayon_2025 — DIRMC",
+        layer="Descr_gravite_Orniere_Grand_Rayon",
         column="niveau_gravite_str",
         category="weight",
         gravite_type="str",
@@ -157,7 +157,7 @@ DESCRIPTEURS: dict[DescTypes, DescSpec] = {
         ]
     ),
     "ORNIERAGE_PETIT_RAYON": DescSpec(
-        layer="Descr_gravite_Orniere_Petit_Rayon_2025 — DIRMC",
+        layer="Descr_gravite_Orniere_Petit_Rayon",
         column="niveau_gravite_str",
         category="weight",
         gravite_type="str",
