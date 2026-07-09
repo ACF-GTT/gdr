@@ -3,7 +3,6 @@
 import pandas as pd
 from matplotlib.axes import Axes
 
-from helpers.consts_cinetique_surface import delta_pct_name
 from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD, Y_SCALE_W_PR
 from helpers.graph_tools import draw_object
 
@@ -12,6 +11,9 @@ def draw_prs(prs: dict[str, float], ax: Axes) -> None:
     for pr, curv in prs.items():
         draw_object(pr, curv, Y_SCALE_W_PR, ax)
 
+def delta_pct_name(key: str, level: int) -> str:
+    """Nom de la colonne contenant le delta en pourcentage."""
+    return f"delta_pct_{key}_level_{level}"
 
 def draw_delta(
     row: pd.Series,

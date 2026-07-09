@@ -7,15 +7,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from helpers.consts_cinetique_commun import (
+    delta_pct_name,
     draw_delta,
     draw_prs,
     merge_old_new,
     setup_delta_axis,
 )
+
 from helpers.consts_cinetique_surface import (
     DELTA_PCT_COLORS,
     cinetique_legend,
-    delta_pct_name,
 )
 from helpers.consts_etat_surface import (
     FILE,

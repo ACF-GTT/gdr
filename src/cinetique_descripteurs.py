@@ -12,8 +12,8 @@ from helpers.consts_cinetique_commun import (
 )
 from helpers.consts_cinetique_descripteurs import (
     cinetique_legend,
-    delta_pct_name,
 )
+from helpers.consts_cinetique_commun import delta_pct_name
 from helpers.consts_etat_descripteur import (
     DATAS,
     DESCRIPTEURS,
@@ -156,8 +156,8 @@ if __name__ == "__main__":
         route="N0122",
         dep="15",
         sens_list=["P"],
-        prd=89,
+        prd=85,
         abd=None,
-        prf=92,
+        prf=89,
         abf=None,
     )

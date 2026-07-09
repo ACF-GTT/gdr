@@ -11,9 +11,6 @@ DELTA_PCT_COLORS = {
 }
 
 
-def delta_pct_name(state: str, level: int) -> str:
-    """Nom de colonne du différentiel."""
-    return f"delta_pct_{state}_level_{level}"
 
 
 def cinetique_legend():
