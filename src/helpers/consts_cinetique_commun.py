@@ -1,16 +1,25 @@
 """Fonctions communes aux cinétiques."""
+from collections.abc import Callable
+
 import pandas as pd
+from matplotlib.axes import Axes
 
 from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD, Y_SCALE_W_PR
 from helpers.graph_tools import draw_object
 
-def draw_prs(prs: dict, ax) -> None:
+def draw_prs(prs: dict[str, float], ax: Axes) -> None:
     """Affiche les PR."""
     for pr, curv in prs.items():
         draw_object(pr, curv, Y_SCALE_W_PR, ax)
 
 
-def draw_delta(row, key, delta_name, colors, ax) -> None:
+def draw_delta(
+    row: pd.Series,
+    key: str,
+    delta_name: Callable[[str, int], str],
+    colors: list[str],
+    ax: Axes,
+) -> None:
     """Trace les deltas positifs/négatifs empilés."""
     width = row[CURV_END] - row[CURV_START]
     x = row[CURV_START] + width / 2
@@ -41,7 +50,12 @@ def draw_delta(row, key, delta_name, colors, ax) -> None:
             linewidth=0.2,
         )
 
-def merge_old_new(df_old, df_new, pct_cols, keys):
+def merge_old_new(
+    df_old: pd.DataFrame,
+    df_new: pd.DataFrame,
+    pct_cols: list[str],
+    keys: list[str],
+) -> pd.DataFrame:
     """Fusionne les deux années sur les clés communes."""
     return df_new[
         keys + [PRD, CURV_START, CURV_END] + pct_cols
@@ -51,7 +65,7 @@ def merge_old_new(df_old, df_new, pct_cols, keys):
         suffixes=("_new", "_old"),
     )
 
-def setup_delta_axis(ax) -> None:
+def setup_delta_axis(ax: Axes) -> None:
     """Ajoute la ligne 0 et fixe l'échelle des deltas."""
     ax.axhline(0, color="black", linewidth=0.8)
     ax.set_ylim(-100, 120)
