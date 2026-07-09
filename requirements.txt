@@ -3,3 +3,4 @@ inquirer
 folium
 geopandas
 pyyaml
+openpyxl
