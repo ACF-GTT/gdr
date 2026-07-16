@@ -254,10 +254,21 @@ def init_context(args):
     return grapher, text_helper, measures, axes
 
 # pylint: disable=too-many-branches
+# pylint: disable=too-many-statements
 def main(args):
     """main exe"""
     grapher, text_helper, measures, axes = init_context(args)
     plt_index = 0
+
+    # groupement des mesures par sens Aigle
+    measures_by_aigle_sens: dict[str, list[RoadMeasure]] = {}
+    for mes in measures:
+        aigle_sens = SENS_GRIP_TO_AIGLE.get(mes.sens, mes.sens)
+        measures_by_aigle_sens.setdefault(aigle_sens, []).append(mes)
+
+    # Ordre des sens à traiter (P puis M)
+    sens_order = aigle.sens_list if aigle.active else list(measures_by_aigle_sens.keys())
+
     if grapher:
         fig = axes[0].figure
         if aigle.route and aigle.dep:
@@ -268,7 +279,14 @@ def main(args):
             loc = "upper right",
             ncol = len(surface_state_legend()),
         )
-        for sens in aigle.sens_list :
+
+    abs_reference = None
+    nb_sens_mono = len({mes.sens for mes in measures})
+
+    # Boucle par sens : Sens Aigle puis Sens mesures Grip
+    for sens in sens_order:
+        # 1) Mesures Aigle
+        if grapher and sens in aigle.sens_list:
             prd, prf = extract_prd_prf(args)
             aigle.df = grapher.graphe_sens(
                 sens=sens,
@@ -277,72 +295,72 @@ def main(args):
                 prf=prf
             )
             plt_index += 3
-    abs_reference = fix_abs_reference(
-        measures,
-        args.pr,
-        grapher
-    )
-    nb_sens_mono = len({mes.sens for mes in measures})
-    for j, mes in enumerate(measures):
-        y_max = 100 if mes.unit in  ("CFT","CFL") else 1
-        print(f"mesure {j}")
-        ax: Axes = axes[plt_index]
-        habille(ax, y_max, title=mes.title, grid=True)
+            if abs_reference is None:
+                abs_reference = fix_abs_reference(
+                    measures,
+                    args.pr,
+                    grapher
+                )
+        # 2) Mesures Grip
+        for mes in measures_by_aigle_sens.get(sens, []):
+            y_max = 100 if mes.unit in ("CFT", "CFL") else 1
+            ax: Axes = axes[plt_index]
+            habille(ax, y_max, title=mes.title, grid=True)
 
-        print(f"tops avant offset {mes.tops()}")
-        if j != 0 and mes.sens != measures[0].sens:
-            mes.reverse()
-        elif YAML_CONF.get("force_reverse") and nb_sens_mono == 1:
-            mes.reverse()
-        if abs_reference is not None:
-            mes.offset = abs_reference - mes.tops()[args.pr][0]
-            print(f""""
-            on applique un offset {mes.offset}
-            tops après offset : {mes.tops()}
-            """)
-        # Fusion de abscisse et data en abscisses_data
-        # abscisses_data[0] vaut abscisses et [1] vaut data
-        abscisses_data = filtre_bornes(mes, args.bornes, args.plus_abs)
-        if args.bornes and j == 0:
-            ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
-        n = len(abscisses_data[1])
-        if n == 0:
-            continue
-        draw_colored_horizons(mes.unit, y_max, ax=ax)
+            # Reverse si nécessaire (sens opposé à la 1re mesure)
+            if mes.sens != measures[0].sens:
+                mes.reverse()
+            elif YAML_CONF.get("force_reverse") and nb_sens_mono == 1:
+                mes.reverse()
 
-        print(f"il y a {n} lignes")
-        if mes.unit is None:
-            continue
-        if YAML_CONF.view_legend():
-            ax.legend(
-                handles=format_legend(
-                    args.add_percent,
-                    mes.unit,
-                    abscisses_data[1]
-                ),
-                loc="upper right"
-            )
+            if abs_reference is not None:
+                mes.offset = abs_reference - mes.tops()[args.pr][0]
 
-        draw_objects(mes.tops(), y_max, ax=ax)
-        ax.bar(
-            abscisses_data[0],
-            abscisses_data[1],
-            width = mes.step,
-            color = color_map(abscisses_data[1], unit=mes.unit),
-            edgecolor = color_map(abscisses_data[1], unit=mes.unit)
-        )
-        plt_index += 1
+            abscisses_data = filtre_bornes(mes, args.bornes, args.plus_abs)
+            if args.bornes and mes == measures[0]:
+                ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
 
-        if MEAN_STEP :
-            ax = axes[plt_index]
-            habille(ax, y_max)
-            draw_mean_histo(mes, y_max, args.rec_zh, ax=ax)
+            n = len(abscisses_data[1])
+            if n == 0:
+                plt_index += 1
+                continue
+
+            draw_colored_horizons(mes.unit, y_max, ax=ax)
+
+            if mes.unit is None:
+                plt_index += 1
+                continue
+
+            if YAML_CONF.view_legend():
+                ax.legend(
+                    handles=format_legend(args.add_percent, mes.unit, abscisses_data[1]),
+                    loc="upper right"
+                )
+
             draw_objects(mes.tops(), y_max, ax=ax)
+            ax.bar(
+                abscisses_data[0],
+                abscisses_data[1],
+                width=mes.step,
+                color=color_map(abscisses_data[1], unit=mes.unit),
+                edgecolor=color_map(abscisses_data[1], unit=mes.unit)
+            )
             plt_index += 1
-    if text_helper.len() and "P" in grapher.curv_prs:
+
+            if MEAN_STEP:
+                ax = axes[plt_index]
+                habille(ax, y_max)
+                draw_mean_histo(mes, y_max, args.rec_zh, ax=ax)
+                draw_objects(mes.tops(), y_max, ax=ax)
+                plt_index += 1
+
+    # Texte PR+abs
+    if text_helper.len() and grapher and "P" in grapher.curv_prs:
         text_helper.compute_abs(grapher.curv_prs["P"])
         text_helper.plot_text(axes[-text_helper.len():])
+
     return measures
+
 
 
 def summarize(list_of_measures):
