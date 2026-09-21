@@ -27,7 +27,7 @@ def get_grip_datas(
                 index_header = i
             if index_header is not None:
                 if i == index_header + 2:
-                    title = SITitle("CFL")
+                    title = SITitle("CFT")
                     # le nom de la section est le dernier champ....
                     # on pourrait utiliser la colonne 21...
                     title.add(row[-1])
@@ -39,7 +39,9 @@ def get_grip_datas(
                 step = float(row[0])
             if index_start and i > index_start + 1:
                 x_val = float(row[0])
-                y_val = float(row[1]) *100
+                cft_val = float(row[1])
+                cft_val = 0.7801 * cft_val + 0.1789
+                y_val = cft_val *100
                 if PR in row[14].lower():
                     pr_nb = row[14].split("@")[0].lower()
                     pr_nb = pr_nb.replace(PR,"").replace(" ","")
@@ -55,7 +57,7 @@ def get_grip_datas(
             step=step,
             datas=y_datas,
             tops=tops,
-            unit="CFL",
+            unit="CFT",
             title=title.title,
             force_sens=force_sens
         )
