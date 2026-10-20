@@ -90,7 +90,7 @@ def filtre_bornes(
     return mes.abs_zoomed(), mes.datas_zoomed
 
 
-def get_measures(nb_mes) -> list[RoadMeasure]:
+def get_measures(nb_mes) -> dict[str, list[RoadMeasure]]:
     """construit la liste des mesures."""
     questions = {}
     for j in range(nb_mes):
@@ -103,7 +103,10 @@ def get_measures(nb_mes) -> list[RoadMeasure]:
     file_names = pick_files(
         **questions
     )
-    measures: list[RoadMeasure] = []
+    measures: dict[str, list[RoadMeasure]] = {
+        "D": [],
+        "G": []
+    }
 
     for name in file_names.values():
         mes_unit = which_measure(name)
@@ -121,7 +124,7 @@ def get_measures(nb_mes) -> list[RoadMeasure]:
         if mes_unit == "CFT":
             datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=force_sens)
         if datas is not None:
-            measures.append(datas)
+            measures[datas.sens].append(datas)
     return measures
 
 
@@ -195,30 +198,38 @@ def draw_mean_histo(
         )
 
 
-def fix_abs_reference(measures: list[RoadMeasure], pr: str | None, grapher = None):
+def fix_abs_reference(
+    measures: dict[str, list[RoadMeasure]],
+    pr: str | None,
+    grapher = None
+):
     """fixe l'abscisse de référence"""
     if pr is None:
         print("Pas de pr de recalage fourni")
         return None
-    # Cas A3D présent
-    grip_sens = measures[0].sens # D ou G
-    aigle_sens = SENS_GRIP_TO_AIGLE.get(grip_sens)
     if grapher is not None:
+        print("données aigle3d impliquées")
+        grip_sens = "D" if len(measures["D"]) > 0 else "G"
+        aigle_sens = SENS_GRIP_TO_AIGLE.get(grip_sens)
         try:
             abs_reference = grapher.curv_prs[aigle_sens][pr]
             print(f"abscisse du pr A3D {pr}(Grip{grip_sens} -> aigle{aigle_sens}):{abs_reference}")
             return abs_reference
         except KeyError:
-            print(f"Attention le PR A3D saisi '{pr}' est inexistant : pas de recalage")
-
-    # Cas sans A3D
+            print(f"! PR A3D saisi {pr} inexistant : pas de recalage")
+    print("pas de données aigle3d impliquées")
     try:
-        abs_reference = measures[0].tops()[pr][0]
+        for mes_list in measures.values():
+            if len(mes_list) > 0:
+                mes = mes_list[0]
+                break
+        abs_reference = mes.tops()[pr][0]
         print(f"abscisse du pr Grip {pr} dans cette mesure : {abs_reference}")
         return abs_reference
     except KeyError:
-        print(f"Attention le PR Grip saisi '{pr}' est inexistant : pas de recalage")
+        print(f"! PR Grip saisi {pr} inexistant : pas de recalage")
         return None
+
 
 def extract_prd_prf(args):
     """bornes pour prd/prf """
@@ -248,26 +259,17 @@ def init_context(args):
 
     measures = get_measures(int(args.multi))
 
-    nb_graphes += len(measures) if MEAN_STEP == 0 else 2*len(measures)
+    nb_mes = len(measures["D"]) + len(measures["G"])
+    nb_graphes += nb_mes if MEAN_STEP == 0 else 2 * nb_mes
     _, axes = init_single_column_plt(nb_graphes)
 
     return grapher, text_helper, measures, axes
 
 # pylint: disable=too-many-branches
-# pylint: disable=too-many-statements
 def main(args):
     """main exe"""
     grapher, text_helper, measures, axes = init_context(args)
     plt_index = 0
-
-    # groupement des mesures par sens Aigle
-    measures_by_aigle_sens: dict[str, list[RoadMeasure]] = {}
-    for mes in measures:
-        aigle_sens = SENS_GRIP_TO_AIGLE.get(mes.sens, mes.sens)
-        measures_by_aigle_sens.setdefault(aigle_sens, []).append(mes)
-
-    # Ordre des sens à traiter (P puis M)
-    sens_order = aigle.sens_list if aigle.active else list(measures_by_aigle_sens.keys())
 
     if grapher:
         fig = axes[0].figure
@@ -281,44 +283,46 @@ def main(args):
         )
 
     abs_reference = None
-    nb_sens_mono = len({mes.sens for mes in measures})
+    index_mes = 0
 
     # Boucle par sens : Sens Aigle puis Sens mesures Grip
-    for sens in sens_order:
+    for sens, mes_list in measures.items():
+
         # 1) Mesures Aigle
-        if grapher and sens in aigle.sens_list:
+        aigle_sens = SENS_GRIP_TO_AIGLE.get(sens)
+        if grapher and aigle_sens in aigle.sens_list:
             prd, prf = extract_prd_prf(args)
             aigle.df = grapher.graphe_sens(
-                sens=sens,
+                sens=aigle_sens,
                 axes=axes[plt_index:plt_index+3],
                 prd=prd,
                 prf=prf
             )
             plt_index += 3
-            if abs_reference is None:
-                abs_reference = fix_abs_reference(
-                    measures,
-                    args.pr,
-                    grapher
-                )
-        # 2) Mesures Grip
-        for mes in measures_by_aigle_sens.get(sens, []):
+        # 2) abscisse de référence
+        if abs_reference is None:
+            abs_reference = fix_abs_reference(
+                measures,
+                pr=args.pr,
+                grapher=grapher,
+            )
+        # 3) Autres mesures
+        for mes in mes_list:
             y_max = 100 if mes.unit in ("CFT", "CFL") else 1
             ax: Axes = axes[plt_index]
             habille(ax, y_max, title=mes.title, grid=True)
 
-            # Reverse si nécessaire (sens opposé à la 1re mesure)
-            if mes.sens != measures[0].sens:
-                mes.reverse()
-            elif YAML_CONF.get("force_reverse") and nb_sens_mono == 1:
+            # Reverse des sens moins
+            if mes.sens == "G":
                 mes.reverse()
 
             if abs_reference is not None:
                 mes.offset = abs_reference - mes.tops()[args.pr][0]
 
             abscisses_data = filtre_bornes(mes, args.bornes, args.plus_abs)
-            if args.bornes and mes == measures[0]:
+            if args.bornes and index_mes == 0:
                 ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
+                index_mes = 1
 
             n = len(abscisses_data[1])
             if n == 0:
@@ -363,17 +367,20 @@ def main(args):
 
 
 
-def summarize(list_of_measures):
+def summarize(measures):
     """affiche des éléments synthétiques sur les mesures."""
-    for index, measure in enumerate(list_of_measures):
-        msg = f"""
-        SUMMARY mesure {index}
-        sens {measure.sens}
-        offset {measure.offset}
-        abscisse départ {measure.abs()[0]}
-        abscisse fin {measure.abs()[-1]}
-        """
-        print(msg)
+    index = 0
+    for mes_list in measures.values():
+        for measure in mes_list:
+            msg = f"""
+            SUMMARY mesure {index}
+            sens {measure.sens}
+            offset {measure.offset}
+            abscisse départ {measure.abs()[0]}
+            abscisse fin {measure.abs()[-1]}
+            """
+            print(msg)
+            index += 1
 
 
 if __name__ == "__main__":
