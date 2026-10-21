@@ -64,27 +64,27 @@ def color_map(
 
 def filtre_bornes(
     mes: RoadMeasure,
-    bornes: list[str] | None,
-    plus_abs: list[float] | None = None,
+    args: argparse.Namespace
 ):
     """Filtre les données de la mesure fonction des bornes fournies."""
-    if not bornes or bornes is None:
+
+    if not args.bornes or args.bornes is None:
         return mes.abs_zoomed(), mes.datas_zoomed
 
-    start_pr = bornes[0]
-    end_pr = bornes[-1] if len(bornes) > 1 else None
+    start_pr = args.bornes[0]
+    end_pr = args.bornes[-1] if len(args.bornes) > 1 else None
     start_abs = mes.top_abs(start_pr)
     end_abs = mes.top_abs(end_pr)
 
-    if not plus_abs:
+    if not args.plus_abs:
         mes.set_zoom_by_abs(start_abs, end_abs)
         return mes.abs_zoomed(), mes.datas_zoomed
 
     # On applique les décalages
     if start_abs is not None :
-        start_abs += plus_abs[0]
-    if end_abs is not None and len(plus_abs) > 1:
-        end_abs += plus_abs[-1]
+        start_abs += args.plus_abs[0]
+    if end_abs is not None and len(args.plus_abs) > 1:
+        end_abs += args.plus_abs[-1]
     # Zoom final
     mes.set_zoom_by_abs(start_abs, end_abs)
     return mes.abs_zoomed(), mes.datas_zoomed
@@ -307,7 +307,7 @@ def main(args):
             if abs_reference is not None:
                 mes.offset = abs_reference - mes.tops()[args.pr][0]
 
-            abscisses_data = filtre_bornes(mes, args.bornes, args.plus_abs)
+            abscisses_data = filtre_bornes(mes, args)
             if args.bornes and index_mes == 0:
                 ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
                 index_mes = 1
