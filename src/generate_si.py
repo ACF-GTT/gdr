@@ -235,15 +235,14 @@ def init_context(args):
     """Initialise le contexte de graphes (Aigle + matplotlib)."""
     grapher = None
     nb_graphes = 0
+    text_helper = PlotText(route=aigle.route)
     if aigle.active :
         grapher = GraphStates(user_pr=args.pr)
 
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         # 3 graphes par sens + 2 graphes pour le texte PR+abs
         nb_graphes += 3 * len(aigle.sens_list)
-
-    text_helper = PlotText(route=aigle.route)
-    nb_graphes += text_helper.len()
+        nb_graphes += text_helper.len()
 
     measures = get_measures(int(args.multi))
 
@@ -345,7 +344,7 @@ def main(args):
                 plt_index += 1
 
     # Texte PR+abs
-    if text_helper.len() and grapher and "P" in grapher.curv_prs:
+    if text_helper.len() and aigle.active:
         text_helper.compute_abs(grapher.curv_prs["P"])
         text_helper.plot_text(axes[-text_helper.len():])
 
