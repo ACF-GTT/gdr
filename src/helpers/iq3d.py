@@ -202,7 +202,11 @@ def dominant_level(row: Series, state: str) -> int | None:
 
 class GraphStates:
     """Classe pour grapher les états de surface IQRN 3D"""
-    def __init__(self, df: DataFrame | None = None):
+    def __init__(
+        self,
+        df: DataFrame | None = None,
+        user_pr: str|None = None
+    ):
         """initialisation"""
         if df is None:
             self.analyzer = SurfaceAnalyzer(FILE)
@@ -214,6 +218,8 @@ class GraphStates:
             self.analyzer = SurfaceAnalyzer(df=df)
         self.route : str | None = None
         self.dep : str | None = None
+        self.user_pr : str | None = user_pr
+        self.abs_reference : float | None = None
         self.curv_prs : dict[str, dict[str, float]] = defaultdict(dict)
 
     def set_route_dep(
@@ -226,6 +232,19 @@ class GraphStates:
         self.dep = dep
         self.analyzer.set(route=route, dep=dep)
 
+    def _fix_abs_reference(
+        self,
+        sens: str
+    ) -> None:
+        """renseigne l'abscisse curviligne du pr choisi par l'utilisateur"""
+        if self.user_pr is None:
+            return
+        prefix = f"A3D sens {sens} pr {self.user_pr}"
+        try:
+            self.abs_reference = self.curv_prs[sens][self.user_pr]
+            print(f"{prefix} abs = {self.abs_reference}")
+        except KeyError:
+            print(f"{prefix} inexistant : pas de recalage !")
 
     def graphe_sens(
         self,
@@ -238,6 +257,8 @@ class GraphStates:
         assert self.dep is not None
         self.analyzer.filter(**kwargs)
         df, self.curv_prs[sens] = self.analyzer.compute_curviligne(sens)
+        if self.abs_reference is None:
+            self._fix_abs_reference(sens)
         # Affichage des PR sur le premier axe
         for pr, curv in self.curv_prs[sens].items():
             draw_object(

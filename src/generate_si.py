@@ -198,36 +198,24 @@ def draw_mean_histo(
         )
 
 
-def fix_abs_reference(
+def get_abs_reference(
     measures: dict[str, list[RoadMeasure]],
-    pr: str | None,
-    grapher = None
+    pr: str | None
 ):
     """fixe l'abscisse de référence"""
     if pr is None:
         print("Pas de pr de recalage fourni")
         return None
-    if grapher is not None:
-        print("données aigle3d impliquées")
-        grip_sens = "D" if len(measures["D"]) > 0 else "G"
-        aigle_sens = SENS_GRIP_TO_AIGLE.get(grip_sens)
-        try:
-            abs_reference = grapher.curv_prs[aigle_sens][pr]
-            print(f"abscisse du pr A3D {pr}(Grip{grip_sens} -> aigle{aigle_sens}):{abs_reference}")
-            return abs_reference
-        except KeyError:
-            print(f"! PR A3D saisi {pr} inexistant : pas de recalage")
-    print("pas de données aigle3d impliquées")
     try:
         for mes_list in measures.values():
             if len(mes_list) > 0:
                 mes = mes_list[0]
                 break
         abs_reference = mes.tops()[pr][0]
-        print(f"abscisse du pr Grip {pr} dans cette mesure : {abs_reference}")
+        print(f"Grip sens {mes.sens} - abs pr {pr} = {abs_reference}")
         return abs_reference
     except KeyError:
-        print(f"! PR Grip saisi {pr} inexistant : pas de recalage")
+        print(f"! pr {pr} inexistant : pas de recalage")
         return None
 
 
@@ -248,7 +236,7 @@ def init_context(args):
     grapher = None
     nb_graphes = 0
     if aigle.active :
-        grapher = GraphStates()
+        grapher = GraphStates(user_pr=args.pr)
 
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         # 3 graphes par sens + 2 graphes pour le texte PR+abs
@@ -299,12 +287,13 @@ def main(args):
                 prf=prf
             )
             plt_index += 3
+            if abs_reference is None:
+                abs_reference = grapher.abs_reference
         # 2) abscisse de référence
         if abs_reference is None:
-            abs_reference = fix_abs_reference(
+            abs_reference = get_abs_reference(
                 measures,
-                pr=args.pr,
-                grapher=grapher,
+                pr=args.pr
             )
         # 3) Autres mesures
         for mes in mes_list:
