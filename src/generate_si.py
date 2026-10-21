@@ -1,5 +1,5 @@
-"""Traitement des fichiers du griptester MK2.
-sous la forme de schémas itinéraires SI
+"""Schémas itinéraires SI
+pour suivi de chantiers routiers d'innovation
 """
 import argparse
 from dataclasses import dataclass
@@ -325,15 +325,12 @@ def main(args):
                 index_mes = 1
 
             n = len(abscisses_data[1])
-            if n == 0:
+
+            if n == 0 or mes.unit is None:
                 plt_index += 1
                 continue
 
             draw_colored_horizons(mes.unit, y_max, ax=ax)
-
-            if mes.unit is None:
-                plt_index += 1
-                continue
 
             if YAML_CONF.view_legend():
                 ax.legend(
