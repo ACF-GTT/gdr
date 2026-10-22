@@ -38,6 +38,8 @@ class SurfaceAnalyzer:
         self.file_path = file_path
         self.df = df
         self.sheet_name : str | None = None
+        self.user_pr : str | None = None
+        self.force_abs : float | None = None
 
 
     def load_sheet(self):
@@ -155,6 +157,11 @@ class SurfaceAnalyzer:
         df = df.sort_values(by=[PRD_NUM, PRD_NAT, ABD], ascending=True)
         df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
         df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
+        if self.force_abs is not None:
+            sel = df[(df[PRD] == self.user_pr) & (df[ABD] == 0)]
+            abs_user_pr = float(sel[CURV_START].item())
+            df[CURV_START] += self.force_abs - abs_user_pr
+            df[CURV_END] += self.force_abs - abs_user_pr
         return df, {
             el[PRD]: el[CURV_START]
             for _, el in df.iterrows()
@@ -250,12 +257,17 @@ class GraphStates:
         self,
         sens: str,
         axes: list[Axes],
-        **kwargs
+        force_abs: float|None = None,
+        **kwargs,
     ) -> DataFrame:
         """graphes de tous les états pour un sens donné"""
         assert self.route is not None
         assert self.dep is not None
         self.analyzer.filter(**kwargs)
+        if force_abs is not None and self.abs_reference is None:
+            self.abs_reference = force_abs
+            self.analyzer.user_pr = self.user_pr
+            self.analyzer.force_abs = force_abs
         df, self.curv_prs[sens] = self.analyzer.compute_curviligne(sens)
         if self.abs_reference is None:
             self._fix_abs_reference(sens)

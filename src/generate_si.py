@@ -282,6 +282,7 @@ def main(args):
             aigle.df = grapher.graphe_sens(
                 sens=aigle_sens,
                 axes=axes[plt_index:plt_index+3],
+                force_abs=abs_reference,
                 prd=prd,
                 prf=prf
             )
