@@ -346,7 +346,10 @@ def main(args):
 
     # Texte PR+abs
     if text_helper.len() and aigle.active:
-        text_helper.compute_abs(grapher.curv_prs["P"])
+        try:
+            text_helper.compute_abs(grapher.curv_prs["P"])
+        except KeyError:
+            text_helper.compute_abs(grapher.curv_prs["M"])
         text_helper.plot_text(axes[-text_helper.len():])
 
     return measures
