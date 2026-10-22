@@ -103,15 +103,8 @@ py .\src\generate_si.py --multi=0 --bornes 30 37
 ```
 le paramètre bornes sert à préciser les numéros de PR pour délimiter la fenêtre d'affichage
 
-## Synchronisation de données monomesures et de données Aigle3D
 
-
-Si les données monomesures sont uniquement dans un sens, par exemple le sens moins, le recalage ne peut se faire que si on force le retournement. 
-
-Pour celà on impose `force_reverse: 1` dans [configuration.yml](src/configuration.yml)
-
-
-## Exemple Intégration grip + A3D
+## Intégration grip + A3D
 
 ![](images/exemple_grip_aigle.png)
 

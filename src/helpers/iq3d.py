@@ -38,6 +38,8 @@ class SurfaceAnalyzer:
         self.file_path = file_path
         self.df = df
         self.sheet_name : str | None = None
+        self.user_pr : str | None = None
+        self.force_abs : float | None = None
 
 
     def load_sheet(self):
@@ -155,6 +157,11 @@ class SurfaceAnalyzer:
         df = df.sort_values(by=[PRD_NUM, PRD_NAT, ABD], ascending=True)
         df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
         df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
+        if self.force_abs is not None:
+            sel = df[(df[PRD] == self.user_pr) & (df[ABD] == 0)]
+            abs_user_pr = float(sel[CURV_START].item())
+            df[CURV_START] += self.force_abs - abs_user_pr
+            df[CURV_END] += self.force_abs - abs_user_pr
         return df, {
             el[PRD]: el[CURV_START]
             for _, el in df.iterrows()
@@ -202,7 +209,11 @@ def dominant_level(row: Series, state: str) -> int | None:
 
 class GraphStates:
     """Classe pour grapher les états de surface IQRN 3D"""
-    def __init__(self, df: DataFrame | None = None):
+    def __init__(
+        self,
+        df: DataFrame | None = None,
+        user_pr: str|None = None
+    ):
         """initialisation"""
         if df is None:
             self.analyzer = SurfaceAnalyzer(FILE)
@@ -214,6 +225,8 @@ class GraphStates:
             self.analyzer = SurfaceAnalyzer(df=df)
         self.route : str | None = None
         self.dep : str | None = None
+        self.user_pr : str | None = user_pr
+        self.abs_reference : float | None = None
         self.curv_prs : dict[str, dict[str, float]] = defaultdict(dict)
 
     def set_route_dep(
@@ -226,18 +239,38 @@ class GraphStates:
         self.dep = dep
         self.analyzer.set(route=route, dep=dep)
 
+    def _fix_abs_reference(
+        self,
+        sens: str
+    ) -> None:
+        """renseigne l'abscisse curviligne du pr choisi par l'utilisateur"""
+        if self.user_pr is None:
+            return
+        prefix = f"A3D sens {sens} pr {self.user_pr}"
+        try:
+            self.abs_reference = self.curv_prs[sens][self.user_pr]
+            print(f"{prefix} abs = {self.abs_reference}")
+        except KeyError:
+            print(f"{prefix} inexistant : pas de recalage !")
 
     def graphe_sens(
         self,
         sens: str,
         axes: list[Axes],
-        **kwargs
+        force_abs: float|None = None,
+        **kwargs,
     ) -> DataFrame:
         """graphes de tous les états pour un sens donné"""
         assert self.route is not None
         assert self.dep is not None
         self.analyzer.filter(**kwargs)
+        if force_abs is not None and self.abs_reference is None:
+            self.abs_reference = force_abs
+            self.analyzer.user_pr = self.user_pr
+            self.analyzer.force_abs = force_abs
         df, self.curv_prs[sens] = self.analyzer.compute_curviligne(sens)
+        if self.abs_reference is None:
+            self._fix_abs_reference(sens)
         # Affichage des PR sur le premier axe
         for pr, curv in self.curv_prs[sens].items():
             draw_object(
