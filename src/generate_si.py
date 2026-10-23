@@ -312,7 +312,6 @@ def main(args):
             if mes.sens == "G":
                 mes.reverse()
 
-            #if abs_reference is not None:
             mes.offset = abs_reference - mes.tops()[args.pr][0]
 
             abscisses_data = filtre_bornes(mes, args)
