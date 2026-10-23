@@ -160,7 +160,7 @@ class SurfaceAnalyzer:
         df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
         df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
         self.computed += 1
-        delta = 0
+        delta: float = 0
         user_pr_abs = None
         if self.user_pr is not None:
             sel = df[(df[PRD] == self.user_pr) & (df[ABD] == 0)]
