@@ -177,7 +177,7 @@ class SurfaceAnalyzer:
         if self.computed > 1 and delta != 0:
             df[CURV_START] += delta
             df[CURV_END] += delta
-            print(">"*10, f"Aigle recalage inter sens")
+            print(">"*10, "Aigle recalage inter sens")
         return df, {
             el[PRD]: el[CURV_START]
             for _, el in df.iterrows()
