@@ -39,7 +39,9 @@ class SurfaceAnalyzer:
         self.df = df
         self.sheet_name : str | None = None
         self.user_pr : str | None = None
+        self.user_pr_abs: float | None = None
         self.force_abs : float | None = None
+        self.computed = 0
 
 
     def load_sheet(self):
@@ -157,11 +159,25 @@ class SurfaceAnalyzer:
         df = df.sort_values(by=[PRD_NUM, PRD_NAT, ABD], ascending=True)
         df[CURV_END]= df[LONGUEUR_TRONCON].cumsum()
         df[CURV_START] = df[CURV_END] - df[LONGUEUR_TRONCON]
-        if self.force_abs is not None:
+        self.computed += 1
+        delta = 0
+        user_pr_abs = None
+        if self.user_pr is not None:
             sel = df[(df[PRD] == self.user_pr) & (df[ABD] == 0)]
-            abs_user_pr = float(sel[CURV_START].item())
-            df[CURV_START] += self.force_abs - abs_user_pr
-            df[CURV_END] += self.force_abs - abs_user_pr
+            user_pr_abs = float(sel[CURV_START].item())
+            if self.user_pr_abs is None:
+                self.user_pr_abs = user_pr_abs
+            else:
+                delta = self.user_pr_abs - user_pr_abs
+            print(">"*10, f"Aigle sens {sens} pr {self.user_pr} delta {delta}")
+        if self.force_abs is not None and user_pr_abs is not None:
+            df[CURV_START] += self.force_abs - user_pr_abs
+            df[CURV_END] += self.force_abs - user_pr_abs
+            print(">"*10, f"Aigle forcing abs {self.force_abs}")
+        if self.computed > 1 and delta != 0:
+            df[CURV_START] += delta
+            df[CURV_END] += delta
+            print(">"*10, f"Aigle recalage inter sens")
         return df, {
             el[PRD]: el[CURV_START]
             for _, el in df.iterrows()
@@ -264,9 +280,9 @@ class GraphStates:
         assert self.route is not None
         assert self.dep is not None
         self.analyzer.filter(**kwargs)
+        self.analyzer.user_pr = self.user_pr
         if force_abs is not None and self.abs_reference is None:
             self.abs_reference = force_abs
-            self.analyzer.user_pr = self.user_pr
             self.analyzer.force_abs = force_abs
         df, self.curv_prs[sens] = self.analyzer.compute_curviligne(sens)
         if self.abs_reference is None:
