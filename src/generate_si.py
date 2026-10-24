@@ -252,12 +252,6 @@ def init_context(args):
 
     return grapher, text_helper, measures, axes
 
-def compute_abs(text_helper, grapher):
-    """calcule les abscisses curvilignes des textes en PR+ABS"""
-    try:
-        text_helper.compute_abs(grapher.curv_prs["P"])
-    except KeyError:
-        text_helper.compute_abs(grapher.curv_prs["M"])
 
 # pylint: disable=too-many-branches
 def main(args):
@@ -350,13 +344,15 @@ def main(args):
                 draw_objects(mes.tops(), y_max, ax=ax)
                 plt_index += 1
 
-    # Texte PR+abs
-    if text_helper.len() and aigle.active:
-        compute_abs(text_helper, grapher)
-        text_helper.plot_text(axes[-text_helper.len():])
-
+        # Texte PR+abs
+        if text_helper.len(aigle_sens) and aigle.active:
+            text_helper.compute_abs(grapher.curv_prs[aigle_sens], aigle_sens)
+            for txt_type in text_helper.filtered[aigle_sens]:
+                text_helper.plot_text_line(txt_type, axes[plt_index], aigle_sens)
+                plt_index += 1
+    if text_helper.len():
+        text_helper.adjust(axes[-1])
     return measures
-
 
 
 def summarize(measures):
