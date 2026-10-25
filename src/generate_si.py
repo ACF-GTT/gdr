@@ -123,7 +123,7 @@ def get_measures(nb_mes) -> dict[str, list[RoadMeasure]]:
             datas = get_apo_datas(name, unit=mes_unit, force_sens=force_sens)
         if mes_unit == "CFT":
             datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=force_sens)
-        if datas is not None:
+        if datas is not None and datas.sens in measures:
             measures[datas.sens].append(datas)
     return measures
 
@@ -270,14 +270,13 @@ def main(args):
             ncol = len(surface_state_legend()),
         )
 
-    abs_reference = None
-    index_mes = 0
+    abs_reference, xlim_set = None, False
 
     # Boucle par sens : Sens Aigle puis Sens mesures Grip
     for sens, mes_list in measures.items():
 
         # 1) Mesures Aigle
-        aigle_sens = SENS_GRIP_TO_AIGLE.get(sens)
+        aigle_sens = SENS_GRIP_TO_AIGLE[sens]
         if grapher and aigle_sens in aigle.sens_list:
             prd, prf = extract_prd_prf(args)
             aigle.df = grapher.graphe_sens(
@@ -305,17 +304,14 @@ def main(args):
             # Reverse des sens moins
             if mes.sens == "G":
                 mes.reverse()
-
-            mes.offset = abs_reference - mes.tops()[args.pr][0]
+            mes.offset = abs_reference - mes.tops().get(args.pr, [0])[0]
 
             abscisses_data = filtre_bornes(mes, args)
-            if args.bornes and index_mes == 0:
+            if args.bornes and not xlim_set:
                 ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
-                index_mes = 1
+                xlim_set = True
 
-            n = len(abscisses_data[1])
-
-            if n == 0 or mes.unit is None:
+            if len(abscisses_data[1]) == 0 or mes.unit is None:
                 plt_index += 1
                 continue
 
