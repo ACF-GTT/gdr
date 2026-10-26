@@ -205,7 +205,7 @@ def get_abs_reference(
     """fixe l'abscisse de référence"""
     if pr is None:
         print("Pas de pr de recalage fourni")
-        return None
+        return 0
     try:
         for mes_list in measures.values():
             if len(mes_list) > 0:
@@ -216,7 +216,7 @@ def get_abs_reference(
         return abs_reference
     except KeyError:
         print(f"! pr {pr} inexistant : pas de recalage")
-        return None
+        return 0
 
 
 def extract_prd_prf(args):
@@ -312,8 +312,7 @@ def main(args):
             if mes.sens == "G":
                 mes.reverse()
 
-            if abs_reference is not None:
-                mes.offset = abs_reference - mes.tops()[args.pr][0]
+            mes.offset = abs_reference - mes.tops()[args.pr][0]
 
             abscisses_data = filtre_bornes(mes, args)
             if args.bornes and index_mes == 0:
