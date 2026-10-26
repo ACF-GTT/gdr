@@ -242,22 +242,14 @@ def init_context(args):
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         # 3 graphes par sens + 2 graphes pour le texte PR+abs
         nb_graphes += 3 * len(aigle.sens_list)
-        nb_graphes += text_helper.len()
+        for sens in aigle.sens_list:
+            nb_graphes += text_helper.len(sens)
 
     measures = get_measures(int(args.multi))
 
     nb_mes = len(measures["D"]) + len(measures["G"])
     nb_graphes += nb_mes if MEAN_STEP == 0 else 2 * nb_mes
     _, axes = init_single_column_plt(nb_graphes)
-
-    return grapher, text_helper, measures, axes
-
-
-# pylint: disable=too-many-branches
-def main(args):
-    """main exe"""
-    grapher, text_helper, measures, axes = init_context(args)
-    plt_index = 0
 
     if grapher:
         fig = axes[0].figure
@@ -270,7 +262,14 @@ def main(args):
             ncol = len(surface_state_legend()),
         )
 
-    abs_reference, xlim_set = None, False
+    return grapher, text_helper, measures, axes
+
+
+# pylint: disable=too-many-branches
+def main(args):
+    """main exe"""
+    grapher, text_helper, measures, axes = init_context(args)
+    plt_index, abs_reference, xlim_set = 0, None, False
 
     # Boucle par sens : Sens Aigle puis Sens mesures Grip
     for sens, mes_list in measures.items():
@@ -341,7 +340,7 @@ def main(args):
                 plt_index += 1
 
         # Texte PR+abs
-        if text_helper.len(aigle_sens) and aigle.active:
+        if text_helper.len(aigle_sens) and aigle.active and aigle_sens in grapher.curv_prs:
             text_helper.compute_abs(grapher.curv_prs[aigle_sens], aigle_sens)
             for txt_type in text_helper.filtered[aigle_sens]:
                 text_helper.plot_text_line(txt_type, axes[plt_index], aigle_sens)
