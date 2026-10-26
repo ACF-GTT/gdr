@@ -255,7 +255,9 @@ def init_context(args):
         fig = axes[0].figure
         if aigle.route and aigle.dep:
             fig.suptitle(
-                f"Route : {aigle.route} - Département : {aigle.dep}")
+                f"Route : {aigle.route} - Département : {aigle.dep}",
+                x=0.01, ha="left"
+            )
         fig.legend(
             handles = surface_state_legend(),
             loc = "upper right",
@@ -405,4 +407,11 @@ if __name__ == "__main__":
     )
 
     summarize(main(parser.parse_args()))
-    plt.show()
+    root = YAML_CONF.yaml["figure"].get("root")
+    path = YAML_CONF.yaml["figure"].get("path")
+    if root is not None:
+        path = f"{root}{path}"
+    if path is not None:
+        plt.savefig(f"{path}/fig.svg")
+    else:
+        plt.show()

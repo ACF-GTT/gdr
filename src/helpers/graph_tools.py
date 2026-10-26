@@ -3,17 +3,29 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from helpers.consts import EVE_COLORS
 from helpers.road_mesure import START, END
+from helpers.tools_file import CheckConf
+
+FIG_PARAMS = CheckConf().yaml["figure"]
 
 def init_single_column_plt(nb_graphes) :
     """Initialise un graphe a une seule colonne"""
     fig, axes = plt.subplots(
         nrows=nb_graphes,
         ncols=1,
-        figsize=(15,6),
+        figsize=(
+            FIG_PARAMS.get("width", 15),
+            FIG_PARAMS.get("height", 6)
+        ),
         sharex=True,
         gridspec_kw={'hspace': 0.8}
     )
-    plt.rcParams.update({'font.size':5})
+    fig.subplots_adjust(
+        left=FIG_PARAMS.get("left", 0.125),
+        right=FIG_PARAMS.get("right", 0.9),
+        top=FIG_PARAMS.get("top", 0.88),
+        bottom=FIG_PARAMS.get("bottom", 0.11)
+    )
+    plt.rcParams.update({'font.size':FIG_PARAMS.get("font", 5)})
     return fig, axes
 
 

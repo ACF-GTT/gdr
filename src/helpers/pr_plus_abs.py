@@ -108,7 +108,7 @@ class PlotText:
             txt_data = row[TXT]
             abd = self.abds[sens][txt_type][i]
             abf = self.abfs[sens][txt_type][i]
-            ax.text(abd, 0.5, txt_data)
+            ax.text(abd, 0.5, txt_data.replace("\\n", "\n"))
             rectangle = mpatches.Rectangle(
                 (abd, 0),
                 abf - abd,

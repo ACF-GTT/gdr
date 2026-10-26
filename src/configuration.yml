@@ -4,6 +4,14 @@ background_alpha:
   good: 0.4
   excellent: 0.4
 
+figure:
+  #width: 10
+  #height: 14 
+  left: 0.108
+  right: 0.95
+  top: 0.95
+  bottom: 0.06
+  #font: 9
 logging:
   gdr: "info"
 
