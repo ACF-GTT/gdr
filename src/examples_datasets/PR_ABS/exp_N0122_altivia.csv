@@ -1,9 +1,0 @@
-route,sens,prd,abd,prf,abf,type,txt
-N0122,M,88,891,89,688,technique,ALTIVIA_1
-N0122,M,89,688,90,311,technique,BBSG
-N0122,M,90,311,91,347,technique,ALTIVIA_2
-N0122,M,91,347,92,001,technique,BBSG
-N0122,P,88,591,89,635,technique,BBSG
-N0122,P,89,635,90,576,technique,ALTIVIA_1
-N0122,P,90,576,91,260,technique,BBSG
-N0122,P,91,260,92,001,technique,ALTIVIA_2

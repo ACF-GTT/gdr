@@ -1,5 +1,4 @@
 """helper pour travail en PR+abscisse"""
-from enum import StrEnum
 import csv
 from matplotlib.axes import Axes
 import matplotlib.patches as mpatches
@@ -8,6 +7,8 @@ from helpers.tools_file import CheckConf
 from helpers.consts import LOGGER
 
 PR_ABS_DB = CheckConf().pr_abs_csv()
+
+FIELDS = CheckConf().yaml.get("pr_abs_rubriques", [])
 
 ROUTE = "route"
 SENS = "sens"
@@ -18,10 +19,6 @@ ABF = "abf"
 TXT = "txt"
 TXT_TYPE = "type"
 
-class Fields(StrEnum):
-    """les champs de la bdd en PR+ABS"""
-    TECH = "technique"
-    GEOM = "geometrie"
 
 class PlotText:
     """Add textual lines to SI"""
@@ -34,8 +31,8 @@ class PlotText:
             "P": {},
             "M": {}
         }
-        self.abds: dict[str, dict[str, list[float]]] = {}
-        self.abfs: dict[str, dict[str, list[float]]] = {}
+        self.abds: dict[str, dict[str, dict[str, float]]] = {}
+        self.abfs: dict[str, dict[str, dict[str, float]]] = {}
         csv_name = None
         if isinstance(PR_ABS_DB, str):
             csv_name = PR_ABS_DB
@@ -51,7 +48,7 @@ class PlotText:
                 for sens in self.filtered:
                     self.filtered[sens] = {
                         txt_type: items
-                        for txt_type in Fields
+                        for txt_type in FIELDS
                         if (items := [
                             el for el in csv_data
                             if el.get(TXT_TYPE) == txt_type
@@ -79,36 +76,37 @@ class PlotText:
         """compute les abscisses curvilignes des datas PR+ABS"""
         datas = self.filtered[sens]
         self.abds[sens] = {
-            txt_type: [
-                curv_prs[str(row[PRD])] + int(row[ABD])
-                for row in datas[txt_type]
-            ]
+            txt_type: {
+                f"{row[TXT]}_{i}": curv_prs[str(row[PRD])] + int(row[ABD])
+                for i, row in enumerate(datas[txt_type])
+                if str(row[PRD]) in curv_prs
+            }
             for txt_type in datas
         }
         self.abfs[sens] = {
-            txt_type: [
-                curv_prs[str(row[PRF])] + int(row[ABF])
-                for row in datas[txt_type]
-            ]
+            txt_type: {
+                f"{row[TXT]}_{i}": curv_prs[str(row[PRF])] + int(row[ABF])
+                for i, row in enumerate(datas[txt_type])
+                if str(row[PRF]) in curv_prs
+            }
             for txt_type in datas
         }
 
     def plot_text_line(
         self,
-        txt_type: Fields,
+        txt_type: str,
         ax: Axes,
         sens: str
     ) -> None:
         """plot a line of textual datas"""
-        datas = self.filtered[sens]
         ax.yaxis.set_tick_params(labelcolor='none')
         ax.grid(visible=True, axis="x", linestyle="--")
         ax.grid(visible=True, axis="y")
-        for i, row in enumerate(datas[txt_type]):
-            txt_data = row[TXT]
-            abd = self.abds[sens][txt_type][i]
-            abf = self.abfs[sens][txt_type][i]
-            ax.text(abd, 0.5, txt_data.replace("\\n", "\n"))
+        for txt_data, abd in self.abds[sens][txt_type].items():
+            if txt_data not in self.abfs[sens][txt_type]:
+                continue
+            abf = self.abfs[sens][txt_type][txt_data]
+            ax.text(abd, 0.5, txt_data.replace("\\n", "\n").rsplit("_")[0])
             rectangle = mpatches.Rectangle(
                 (abd, 0),
                 abf - abd,
@@ -124,13 +122,15 @@ class PlotText:
     ):
         """adjust the window"""
         abds_min = min(
-            min(values)
+            min(values.values())
             for abds in self.abds.values()
             for values in abds.values()
+            if values
         )
         abfs_max = max(
-            max(values)
+            max(values.values())
             for abfs in self.abfs.values()
             for values in abfs.values()
+            if values
         )
         ax.set_xlim(abds_min, abfs_max)
