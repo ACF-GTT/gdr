@@ -44,7 +44,7 @@ from helpers.iq3d import SurfaceAnalyzer, Aigle
 from helpers.pr_plus_abs import PlotText
 
 Y_MAX = Aigle().cinetique_yscale
-print(Y_MAX)
+COLORS = list(DELTA_PCT_COLORS.values())
 NB_GRAPHS_PER_SENS = 3
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
 
@@ -136,15 +136,13 @@ class CinetiqueSurface:
             habille(sub_axes[1], Y_MAX, f"sens {sens}", STATES[IEP], grid=True)
             habille(sub_axes[2], Y_MAX, f"sens {sens}", STATES[IETP], grid=True)
 
-            colors = list(DELTA_PCT_COLORS.values())
-
             for ax in sub_axes:
                 setup_delta_axis(ax, y_scale=Y_MAX)
 
             for _, row in df.iterrows():
-                draw_delta(row, IES, colors, sub_axes[0])
-                draw_delta(row, IEP, colors, sub_axes[1])
-                draw_delta(row, IETP, colors, sub_axes[2])
+                draw_delta(row, IES, COLORS, sub_axes[0])
+                draw_delta(row, IEP, COLORS, sub_axes[1])
+                draw_delta(row, IETP, COLORS, sub_axes[2])
 
             print(f"\n=== Delta sens {sens} ===")
             print(
