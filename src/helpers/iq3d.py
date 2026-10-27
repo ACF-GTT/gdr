@@ -1,5 +1,6 @@
 """Helpers pour l'analyse des états de surface IQRN 3D"""
 from collections import defaultdict
+from dataclasses import dataclass
 from itertools import accumulate
 
 import pandas as pd
@@ -7,6 +8,7 @@ from pandas import DataFrame
 from pandas import Series
 from matplotlib.axes import Axes
 from helpers.graph_tools import draw_object, habille
+from helpers.tools_file import CheckConf
 
 from helpers.consts_etat_surface import (
     FILE,
@@ -26,6 +28,8 @@ from helpers.consts_commun_pr_curv import (
     Y_SCALE, Y_SCALE_W_PR,
     MESSAGE_NO_DF, ROUTE, DEP, SURF_EVAL
 )
+
+YAML_CONF = CheckConf()
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """
@@ -307,3 +311,15 @@ class GraphStates:
             graphe_state_section(IEP, row, axes[1])
             graphe_state_section(IETP, row, axes[2])
         return df
+
+
+@dataclass
+class Aigle :
+    """aigle3D dataclass"""
+    active = YAML_CONF.yaml.get("aigle_3d")
+    route = YAML_CONF.yaml.get("aigle_route", "N0088")
+    dep = YAML_CONF.yaml.get("aigle_dep", 43)
+    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
+    cinetique_yscale = YAML_CONF.yaml.get("aigle_cinetique_yscale", 100)
+    section = YAML_CONF.yaml.get("section")
+    df = None

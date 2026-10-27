@@ -62,7 +62,7 @@ def merge_old_new(
         suffixes=("_new", "_old"),
     )
 
-def setup_delta_axis(ax: Axes) -> None:
+def setup_delta_axis(ax: Axes, y_scale: float = 100) -> None:
     """Ajoute la ligne 0 et fixe l'échelle des deltas."""
     ax.axhline(0, color="black", linewidth=0.8)
-    ax.set_ylim(-100, 120)
+    ax.set_ylim(-y_scale, 1.2 * y_scale)

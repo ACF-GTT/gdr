@@ -18,7 +18,7 @@ def init_single_column_plt(nb_graphes) :
             FIG_PARAMS.get("height", 6)
         ),
         sharex=True,
-        gridspec_kw={'hspace': 0.8}
+        gridspec_kw={'hspace': FIG_PARAMS.get("hspace", 0.8)}
     )
     fig.subplots_adjust(
         left=FIG_PARAMS.get("left", 0.125),
@@ -28,6 +28,17 @@ def init_single_column_plt(nb_graphes) :
     )
     plt.rcParams.update({'font.size':FIG_PARAMS.get("font", 5)})
     return fig, axes
+
+def render(name):
+    """render to screen or save to disk"""
+    root = FIG_PARAMS.get("root")
+    path = FIG_PARAMS.get("path")
+    if root is not None:
+        path = f"{root}{path}"
+    if path is not None:
+        plt.savefig(f"{path}/{name}.svg")
+    else:
+        plt.show()
 
 
 def habille(
