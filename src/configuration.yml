@@ -43,6 +43,7 @@ aigle_sens:
   - P
   - M
 
+# ne sert que pour la cinetique de surface pour l'instant
 section:
   prd: 47
   abd:
