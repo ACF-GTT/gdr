@@ -48,6 +48,8 @@ from helpers.pr_plus_abs import PlotText
 COLORS = list(DELTA_PCT_COLORS.values())
 NB_GRAPHS_PER_SENS = 3
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
+PRD = Aigle().section.get("prd")
+PRF = Aigle().section.get("prf")
 
 def load_analyzer(sheet_name, route=None, dep=None, **kwargs):
     """Charge une année et applique les traitements de base."""
@@ -176,6 +178,7 @@ class CinetiqueSurface:
         )
         plt.tight_layout()
         file_name = re.sub(r"[ :]", "", title.replace("-", "_"))
+        file_name = f"{file_name}_PR_{PRD}_a_{PRF}"
         render(file_name)
 
 
@@ -184,8 +187,8 @@ if __name__ == "__main__":
         route=Aigle().route,
         dep=Aigle().dep,
         sens_list=Aigle().sens_list,
-        prd=Aigle().section.get("prd"),
+        prd=PRD,
         abd=Aigle().section.get("abd"),
-        prf=Aigle().section.get("prf"),
+        prf=PRF,
         abf=Aigle().section.get("abf"),
     )
