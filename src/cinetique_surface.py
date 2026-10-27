@@ -74,11 +74,12 @@ class CinetiqueSurface:
         for i, sheet in enumerate(excel_file.sheet_names):
             print(f"{i}: {sheet}")
 
-        old_idx = int(input("Feuille année ancienne : "))
-        new_idx = int(input("Feuille année récente : "))
-
-        self.old_sheet = excel_file.sheet_names[old_idx]
-        self.new_sheet = excel_file.sheet_names[new_idx]
+        self.old_sheet = excel_file.sheet_names[
+            int(input("Feuille année ancienne : "))
+        ]
+        self.new_sheet = excel_file.sheet_names[
+            int(input("Feuille année récente : "))
+        ]
 
         self.old = load_analyzer(self.old_sheet)
         self.new = load_analyzer(self.new_sheet)
@@ -151,7 +152,6 @@ class CinetiqueSurface:
                 .head(200)
             )
             if text_helper.len(sens):
-                print(prs)
                 text_helper.compute_abs(prs, sens)
                 for txt_type in text_helper.filtered[sens]:
                     text_helper.plot_text_line(txt_type, axes[index], sens)
@@ -181,7 +181,6 @@ class CinetiqueSurface:
 
 
 if __name__ == "__main__":
-    print(Aigle().section)
     CinetiqueSurface().main(
         route=Aigle().route,
         dep=Aigle().dep,
