@@ -183,8 +183,8 @@ if __name__ == "__main__":
         route=Aigle().route,
         dep=Aigle().dep,
         sens_list=Aigle().sens_list,
-        prd=Aigle().section["prd"],
-        abd=Aigle().section["abd"],
-        prf=Aigle().section["prf"],
-        abf=Aigle().section["abf"],
+        prd=Aigle().section.get("prd"),
+        abd=Aigle().section.get("abd"),
+        prf=Aigle().section.get("prf"),
+        abf=Aigle().section.get("abf"),
     )
