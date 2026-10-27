@@ -12,6 +12,9 @@ figure:
   top: 0.95
   bottom: 0.06
   #font: 9
+  # Espacement des ticks sur l'axe X (ex: 250m)
+  x_tick_step: 250
+
 logging:
   gdr: "info"
 
