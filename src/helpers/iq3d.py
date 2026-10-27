@@ -321,5 +321,5 @@ class Aigle :
     dep = YAML_CONF.yaml.get("aigle_dep", 43)
     sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
     cinetique_yscale = YAML_CONF.yaml.get("aigle_cinetique_yscale", 100)
-    section = YAML_CONF.yaml.get("section")
+    section: dict = YAML_CONF.yaml.get("section")
     df = None
