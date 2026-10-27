@@ -11,7 +11,8 @@ from matplotlib.axes import Axes
 from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
-    COLORS, get_color
+    COLORS, get_color,
+    LOGGER
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
@@ -110,7 +111,7 @@ def get_measures(nb_mes) -> dict[str, list[RoadMeasure]]:
 
     for name in file_names.values():
         mes_unit = which_measure(name)
-        print(f"{name} > unité de mesure : {mes_unit}")
+        LOGGER.info("%s > unité de mesure : %s", name, mes_unit)
         force_sens = None
         if "droite" in name.lower():
             force_sens = "D"
@@ -204,7 +205,7 @@ def get_abs_reference(
 ):
     """fixe l'abscisse de référence"""
     if pr is None:
-        print("Pas de pr de recalage fourni")
+        LOGGER.warning("Pas de pr de recalage fourni")
         return 0
     try:
         for mes_list in measures.values():
@@ -212,10 +213,10 @@ def get_abs_reference(
                 mes = mes_list[0]
                 break
         abs_reference = mes.tops()[pr][0]
-        print(f"Grip sens {mes.sens} - abs pr {pr} = {abs_reference}")
+        LOGGER.info("Grip sens %s - abs pr %s = %s", mes.sens, pr, abs_reference)
         return abs_reference
     except KeyError:
-        print(f"! pr {pr} inexistant : pas de recalage")
+        LOGGER.warning("! pr %s inexistant : pas de recalage", pr)
         return 0
 
 
@@ -357,14 +358,14 @@ def summarize(measures):
     index = 0
     for mes_list in measures.values():
         for measure in mes_list:
-            msg = f"""
-            SUMMARY mesure {index}
-            sens {measure.sens}
-            offset {measure.offset}
-            abscisse départ {measure.abs()[0]}
-            abscisse fin {measure.abs()[-1]}
-            """
-            print(msg)
+            LOGGER.info(
+                "SUMMARY mesure %s - sens %s - offset %s - abscisse départ %s - abscisse fin %s",
+                index,
+                measure.sens,
+                measure.offset,
+                measure.abs()[0],
+                measure.abs()[-1]
+            )
             index += 1
 
 
