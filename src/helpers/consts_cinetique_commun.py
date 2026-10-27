@@ -3,13 +3,16 @@
 import pandas as pd
 from matplotlib.axes import Axes
 
-from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD, Y_SCALE_W_PR
+from helpers.consts import Aigle
+from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD
 from helpers.graph_tools import draw_object
+
+Y_MAX = Aigle().cinetique_yscale
 
 def draw_prs(prs: dict[str, float], ax: Axes) -> None:
     """Affiche les PR."""
     for pr, curv in prs.items():
-        draw_object(pr, curv, Y_SCALE_W_PR, ax)
+        draw_object(pr, curv, Y_MAX, ax)
 
 def delta_pct_name(key: str, level: int) -> str:
     """Nom de la colonne contenant le delta en pourcentage."""

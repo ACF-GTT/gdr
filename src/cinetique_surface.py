@@ -3,17 +3,19 @@ Cinétique des états de surface AIGLE3D.
 Compare deux années et affiche les écarts en % par niveaux.
 """
 import re
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from helpers.consts import Aigle
 from helpers.consts_cinetique_commun import (
+    Y_MAX,
     delta_pct_name,
     draw_delta,
     draw_prs,
     merge_old_new,
     setup_delta_axis,
 )
-
 from helpers.consts_cinetique_surface import (
     DELTA_PCT_COLORS,
     cinetique_legend,
@@ -40,10 +42,9 @@ from helpers.consts_commun_pr_curv import (
     CURV_END,
 )
 from helpers.graph_tools import habille, init_single_column_plt, render
-from helpers.iq3d import SurfaceAnalyzer, Aigle
+from helpers.iq3d import SurfaceAnalyzer
 from helpers.pr_plus_abs import PlotText
 
-Y_MAX = Aigle().cinetique_yscale
 COLORS = list(DELTA_PCT_COLORS.values())
 NB_GRAPHS_PER_SENS = 3
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
