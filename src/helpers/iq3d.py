@@ -2,6 +2,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import accumulate
+from typing import ClassVar, Any
 
 import pandas as pd
 from pandas import DataFrame
@@ -321,5 +322,5 @@ class Aigle :
     dep = YAML_CONF.yaml.get("aigle_dep", 43)
     sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
     cinetique_yscale = YAML_CONF.yaml.get("aigle_cinetique_yscale", 100)
-    section: dict = YAML_CONF.yaml.get("section", {})
+    section: ClassVar[dict[str, Any]] = YAML_CONF.yaml.get("section", {})
     df = None
