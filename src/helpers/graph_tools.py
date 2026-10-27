@@ -1,6 +1,7 @@
 """graph_tools"""
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.ticker import MultipleLocator
 from helpers.consts import EVE_COLORS
 from helpers.road_mesure import START, END
 from helpers.tools_file import CheckConf
@@ -39,6 +40,12 @@ def habille(
     """Habillage d'un axe"""
     ax.tick_params(labelsize=6)
     ax.set_ylim(0, scale)
+
+    # Réglage de l'espacement des ticks x depuis le YAML
+    x_tick_step = FIG_PARAMS.get("x_tick_step")
+    if x_tick_step:
+        ax.xaxis.set_major_locator(MultipleLocator(x_tick_step))
+
     if title:
         ax.set_title(title)
     if label:
