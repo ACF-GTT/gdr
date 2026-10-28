@@ -48,6 +48,10 @@ aigle_sens:
 pr_abs_csv:
   N0122: "PR_ABS/exp_N0122_Vauclair.csv"
 
+pr_abs_rubriques:
+  - technique
+  #- geometrie
+
 # affichage des légendes
 # si on précise rien, les légendes sont affichées
 # si on met true ou 1, c'est pareil
