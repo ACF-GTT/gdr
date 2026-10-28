@@ -12,6 +12,7 @@ from geopandas import GeoDataFrame
 from matplotlib.axes import Axes
 from pandas import DataFrame, Series
 
+from helpers.consts import LOGGER
 from helpers.consts_etat_descripteur import (
     FILE_DESCRIPTEURS, FILE_SURFACE, SHEET_SURFACE,
     DESCRIPTEURS, DescTypes,
@@ -115,7 +116,9 @@ class DescripteurAnalyzer:
 
     def _gravite_series(self, desc_key: DescTypes) -> pd.Series:
         """Renvoie une série 'gravite' normalisée (bool -> 'Oui', sinon colonne)."""
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return pd.Series(dtype="object")
         spec = DESCRIPTEURS[desc_key]
         if spec.gravite_type == "bool":
             return pd.Series("Oui", index=self.df.index)
@@ -123,7 +126,9 @@ class DescripteurAnalyzer:
 
     def levels_pct_by_troncon(self, desc_key: DescTypes) -> DataFrame:
         """Retourne: cle_unique_plod + pct_desc_<key>_level_i."""
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return DataFrame()
         spec = DESCRIPTEURS[desc_key]
 
         if SHAPE_AREA not in self.df.columns:

@@ -9,6 +9,7 @@ from matplotlib.axes import Axes
 
 from helpers.graph_tools import draw_object, habille
 
+from helpers.consts import LOGGER
 from helpers.consts_etat_surface import (
     FILE,
     STATES,IES,IEP,IETP,
@@ -48,7 +49,9 @@ class SurfaceAnalyzer:
 
     def load_sheet(self):
         """Charge une feuille"""
-        assert self.file_path is not None
+        if self.file_path is None:
+            LOGGER.error("Le chemin du fichier Excel (file_path) n'est pas renseigné.")
+            return
         excel_file = pd.ExcelFile(self.file_path)
         print("Feuilles disponibles dans le fichier :")
         for i, sheet in enumerate(excel_file.sheet_names):
@@ -62,13 +65,15 @@ class SurfaceAnalyzer:
 
         sheet_name = excel_file.sheet_names[sheet_index]
         self.df = pd.read_excel(self.file_path, sheet_name=sheet_name)
-        print(f"Feuille '{sheet_name}' chargée avec succès !")
+        LOGGER.info("Feuille '%s' chargée avec succès !", sheet_name)
         self.sheet_name = sheet_name
 
 
     def compute_pr(self):
         """Construit les colonnes PRD et PRF à partir de plod/plof """
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return
 
         prd = self.df[PLOD].str.extract(PR_REGEX)
         prf = self.df[PLOF].str.extract(PR_REGEX)
@@ -89,8 +94,9 @@ class SurfaceAnalyzer:
 
     def compute_levels(self):
         """Calcul des surfaces non cumulées pour chaque état de niveau"""
-        assert self.df is not None, MESSAGE_NO_DF
-
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return
         for state, cols in D_SUP.items():
             for i in range(NB_LEVELS):
                 try:
@@ -100,10 +106,11 @@ class SurfaceAnalyzer:
                 self.df[level_name(state, i)] = levels
 
 
-
     def compute_percent(self):
         """Calcul des pourcentages par rapport à S_evaluee"""
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return
 
         for state in STATES:
             for level in range(NB_LEVELS):
@@ -113,7 +120,9 @@ class SurfaceAnalyzer:
 
     def set(self,route: str | None, dep: str | None) :
         """fixe route & département"""
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return
         if route :
             self.df = self.df[self.df[ROUTE] == route]
         if dep:
@@ -125,7 +134,7 @@ class SurfaceAnalyzer:
                 # sinon on compare avec texte
                 self.df = self.df[self.df[DEP].astype(str).str.strip() == str(dep).strip()]
 
-        print("Après filtre route/dep → nb lignes :", len(self.df))
+        LOGGER.info("Après filtre route/dep -> nb lignes : %d", len(self.df))
 
 
     def filter(
@@ -137,7 +146,9 @@ class SurfaceAnalyzer:
 
     ) -> None :
         """filtre sur pr/abs"""
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return
         if prd is not None :
             self.df = self.df[self.df[PRD_NUM] >= prd]
         if abd is not None :
@@ -154,7 +165,9 @@ class SurfaceAnalyzer:
     ) -> tuple [DataFrame, dict[str, float]] :
         """retourne le dataframe avec les abscisses curvilignes 
         et un dictionnaire des pr"""
-        assert self.df is not None, MESSAGE_NO_DF
+        if self.df is None:
+            LOGGER.error(MESSAGE_NO_DF)
+            return DataFrame(), {}
         # On fixe le sens
         df = self.df[self.df[SENS] == sens]
         # On trie les données dans le sens pr/abs croissants
@@ -175,11 +188,11 @@ class SurfaceAnalyzer:
         if self.force_abs is not None and user_pr_abs is not None:
             df[CURV_START] += self.force_abs - user_pr_abs
             df[CURV_END] += self.force_abs - user_pr_abs
-            print(">"*10, f"Aigle forcing abs {self.force_abs}")
+            LOGGER.info("Aigle forcing abs %s", self.force_abs)
         if self.computed > 1 and delta != 0:
             df[CURV_START] += delta
             df[CURV_END] += delta
-            print(">"*10, "Aigle recalage inter sens")
+            LOGGER.info("Aigle recalage inter sens")
         return df, {
             el[PRD]: el[CURV_START]
             for _, el in df.iterrows()
@@ -267,9 +280,9 @@ class GraphStates:
         prefix = f"A3D sens {sens} pr {self.user_pr}"
         try:
             self.abs_reference = self.curv_prs[sens][self.user_pr]
-            print(f"{prefix} abs = {self.abs_reference}")
+            LOGGER.info("%s abs = %s", prefix, self.abs_reference)
         except KeyError:
-            print(f"{prefix} inexistant : pas de recalage !")
+            LOGGER.warning("%s inexistant : pas de recalage !", prefix)
 
     def graphe_sens(
         self,
@@ -279,8 +292,10 @@ class GraphStates:
         **kwargs,
     ) -> DataFrame:
         """graphes de tous les états pour un sens donné"""
-        assert self.route is not None
-        assert self.dep is not None
+        if self.route is None or self.dep is None:
+            LOGGER.error("La route et le département doivent être " \
+            "renseignés avant de générer les graphiques.")
+            return DataFrame()
         self.analyzer.filter(**kwargs)
         self.analyzer.user_pr = self.user_pr
         if force_abs is not None and self.abs_reference is None:
