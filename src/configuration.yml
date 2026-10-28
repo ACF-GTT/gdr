@@ -15,6 +15,8 @@ figure:
   # Espacement des ticks sur l'axe X (ex: 250m)
   x_tick_step: 250
   #hspace: 0.2
+  root:
+  path:
 
 logging:
   gdr: "info"
@@ -59,8 +61,7 @@ section:
 # pr_abs_csv: "bdd/pr_abs_bdd.csv"
 # mais le plus simple est d'avoir un fichier par route
 pr_abs_csv:
-  N0122_vauclair: "PR_ABS/exp_N0122_vauclair.csv"
-  N0122_altivia: "PR_ABS/exp_N0122_altivia.csv"
+  N0122: "PR_ABS/exp_N0122.csv"
   N0088: "PR_ABS/exp_N0088.csv"
 
 pr_abs_rubriques:
