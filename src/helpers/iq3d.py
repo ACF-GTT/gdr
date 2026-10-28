@@ -6,6 +6,7 @@ import pandas as pd
 from pandas import DataFrame
 from pandas import Series
 from matplotlib.axes import Axes
+
 from helpers.graph_tools import draw_object, habille
 
 from helpers.consts_etat_surface import (
@@ -26,6 +27,7 @@ from helpers.consts_commun_pr_curv import (
     Y_SCALE, Y_SCALE_W_PR,
     MESSAGE_NO_DF, ROUTE, DEP, SURF_EVAL
 )
+
 
 class SurfaceAnalyzer:
     """Classe pour analyser les états """

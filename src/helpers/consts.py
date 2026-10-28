@@ -1,8 +1,12 @@
 """constants."""
 from collections import defaultdict
+from dataclasses import dataclass
 import logging
+from typing import ClassVar, Any
 
 from helpers.tools_file import CheckConf
+
+YAML_CONF = CheckConf()
 
 FORMAT = "%(asctime)-15s %(levelname)-8s %(module)-15s %(funcName)s :%(lineno)-8s %(message)s"
 logging.basicConfig(format=FORMAT)
@@ -154,3 +158,15 @@ def get_color(val: float, unit: str = "CFT") -> str:
         if lower < val <= upper:
             return COLORS[unit][level]
     return UNKNOWN_COLOR
+
+
+@dataclass
+class Aigle :
+    """aigle3D dataclass"""
+    active = YAML_CONF.yaml.get("aigle_3d")
+    route = YAML_CONF.yaml.get("aigle_route", "N0088")
+    dep = YAML_CONF.yaml.get("aigle_dep", 43)
+    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
+    cinetique_yscale = YAML_CONF.yaml.get("aigle_cinetique_yscale", 100)
+    section: ClassVar[dict[str, Any]] = YAML_CONF.yaml.get("section", {})
+    df = None

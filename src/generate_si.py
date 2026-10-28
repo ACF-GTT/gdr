@@ -2,17 +2,16 @@
 pour suivi de chantiers routiers d'innovation
 """
 import argparse
-from dataclasses import dataclass
 
 import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
 from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
     COLORS, get_color,
-    LOGGER
+    LOGGER,
+    Aigle
 )
 from helpers.shared import pick_files, which_measure
 from helpers.apo import get_apo_datas
@@ -21,7 +20,7 @@ from helpers.pr_plus_abs import PlotText
 from helpers.generic_absdatatop_csv import get_generic_absdatatop_csv
 from helpers.road_mesure import RoadMeasure
 from helpers.tools_file import CheckConf
-from helpers.graph_tools import draw_objects, init_single_column_plt, habille
+from helpers.graph_tools import draw_objects, init_single_column_plt, habille, render
 from helpers.iq3d import GraphStates
 from helpers.consts_etat_surface import surface_state_legend
 
@@ -42,16 +41,6 @@ SENS_GRIP_TO_AIGLE = {
     "D": "P",  # Droite → P
     "G": "M",  # Gauche → M
 }
-
-@dataclass
-class Aigle :
-    """aigle3D dataclass"""
-    active = YAML_CONF.yaml.get("aigle_3d")
-    route = YAML_CONF.yaml.get("aigle_route")
-    dep = YAML_CONF.yaml.get("aigle_dep")
-    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
-    recalage = YAML_CONF.yaml.get("aigle_recalage", {})
-    df = None
 
 aigle = Aigle()
 
@@ -408,11 +397,4 @@ if __name__ == "__main__":
     )
 
     summarize(main(parser.parse_args()))
-    root = YAML_CONF.yaml["figure"].get("root")
-    path = YAML_CONF.yaml["figure"].get("path")
-    if root is not None:
-        path = f"{root}{path}"
-    if path is not None:
-        plt.savefig(f"{path}/fig.svg")
-    else:
-        plt.show()
+    render("fig")

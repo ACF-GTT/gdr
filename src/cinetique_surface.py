@@ -2,18 +2,20 @@
 Cinétique des états de surface AIGLE3D.
 Compare deux années et affiche les écarts en % par niveaux.
 """
+import re
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from helpers.consts import Aigle
 from helpers.consts_cinetique_commun import (
+    Y_MAX,
     delta_pct_name,
     draw_delta,
     draw_prs,
     merge_old_new,
     setup_delta_axis,
 )
-
 from helpers.consts_cinetique_surface import (
     DELTA_PCT_COLORS,
     cinetique_legend,
@@ -39,13 +41,15 @@ from helpers.consts_commun_pr_curv import (
     CURV_START,
     CURV_END,
 )
-from helpers.graph_tools import habille, init_single_column_plt
+from helpers.graph_tools import habille, init_single_column_plt, render
 from helpers.iq3d import SurfaceAnalyzer
+from helpers.pr_plus_abs import PlotText
 
-
-Y_MAX = 100
+COLORS = list(DELTA_PCT_COLORS.values())
 NB_GRAPHS_PER_SENS = 3
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
+PRD = Aigle().section.get("prd")
+PRF = Aigle().section.get("prf")
 
 def load_analyzer(sheet_name, route=None, dep=None, **kwargs):
     """Charge une année et applique les traitements de base."""
@@ -73,11 +77,12 @@ class CinetiqueSurface:
         for i, sheet in enumerate(excel_file.sheet_names):
             print(f"{i}: {sheet}")
 
-        old_idx = int(input("Feuille année ancienne : "))
-        new_idx = int(input("Feuille année récente : "))
-
-        self.old_sheet = excel_file.sheet_names[old_idx]
-        self.new_sheet = excel_file.sheet_names[new_idx]
+        self.old_sheet = excel_file.sheet_names[
+            int(input("Feuille année ancienne : "))
+        ]
+        self.new_sheet = excel_file.sheet_names[
+            int(input("Feuille année récente : "))
+        ]
 
         self.old = load_analyzer(self.old_sheet)
         self.new = load_analyzer(self.new_sheet)
@@ -108,11 +113,15 @@ class CinetiqueSurface:
         """Main."""
         for sens in sens_list:
             assert sens in SENS_LIST
+        text_helper = PlotText(route=route)
+        nb_graphes = NB_GRAPHS_PER_SENS * len(sens_list)
+        for sens in sens_list:
+            nb_graphes += text_helper.len(sens)
 
         self.old = load_analyzer(self.old_sheet, route, dep, **kwargs)
         self.new = load_analyzer(self.new_sheet, route, dep, **kwargs)
 
-        fig, axes = init_single_column_plt(NB_GRAPHS_PER_SENS * len(sens_list))
+        fig, axes = init_single_column_plt(nb_graphes)
 
         index = 0
         last_df = None
@@ -130,41 +139,56 @@ class CinetiqueSurface:
             habille(sub_axes[1], Y_MAX, f"sens {sens}", STATES[IEP], grid=True)
             habille(sub_axes[2], Y_MAX, f"sens {sens}", STATES[IETP], grid=True)
 
-            colors = list(DELTA_PCT_COLORS.values())
-
             for ax in sub_axes:
-                setup_delta_axis(ax)
+                setup_delta_axis(ax, y_scale=Y_MAX)
 
             for _, row in df.iterrows():
-                draw_delta(row, IES, colors, sub_axes[0])
-                draw_delta(row, IEP, colors, sub_axes[1])
-                draw_delta(row, IETP, colors, sub_axes[2])
+                draw_delta(row, IES, COLORS, sub_axes[0])
+                draw_delta(row, IEP, COLORS, sub_axes[1])
+                draw_delta(row, IETP, COLORS, sub_axes[2])
 
             print(f"\n=== Delta sens {sens} ===")
             print(
                 df[[PRD_NUM, ABD]+[delta_pct_name(IES,lvl) for lvl in range(NB_LEVELS)]]
                 .head(200)
             )
+            if text_helper.len(sens):
+                text_helper.compute_abs(prs, sens)
+                for txt_type in text_helper.filtered[sens]:
+                    text_helper.plot_text_line(txt_type, axes[index], sens)
+                    index += 1
 
         if last_df is not None and not last_df.empty:
-            axes[-1].set_xlim(last_df[CURV_START].min(), last_df[CURV_END].max())
+            if text_helper.len():
+                text_helper.adjust(axes[-1])
+            else:
+                axes[-1].set_xlim(
+                    last_df[CURV_START].min(),
+                    last_df[CURV_END].max()
+                )
 
         fig.legend(handles=cinetique_legend(), loc="upper right", ncol=9)
+        title = "Cinétique surface :"
+        title = f"{title} {self.new_sheet.split(' ')[0]} - {self.old_sheet.split(' ')[0]}"
+        title = f"{title}- {route} - dpt {dep}"
 
         plt.suptitle(
-            f"Cinétique surface : {self.new_sheet} - {self.old_sheet} - {route} - dpt {dep}"
+            title,
+            x=0.01, ha="left"
         )
         plt.tight_layout()
-        plt.show()
+        file_name = re.sub(r"[ :]", "", title.replace("-", "_"))
+        file_name = f"{file_name}_PR_{PRD}_a_{PRF}"
+        render(file_name)
 
 
 if __name__ == "__main__":
     CinetiqueSurface().main(
-        route="N0122",
-        dep="15",
-        sens_list=["P"],
-        prd=78,
-        abd=None,
-        prf=83,
-        abf=None,
+        route=Aigle().route,
+        dep=Aigle().dep,
+        sens_list=Aigle().sens_list,
+        prd=PRD,
+        abd=Aigle().section.get("abd"),
+        prf=PRF,
+        abf=Aigle().section.get("abf"),
     )
