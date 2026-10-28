@@ -28,7 +28,7 @@ def get_apo_datas(
                     step = float(row[1]) - float(row[0])
                 y_datas.append(float(row[unit_index]))
     if step is not None:
-        with open(f"{folder}/{eve_name}", encoding="utf-8") as evefile:
+        with open(f"{folder}/{eve_name}", encoding="cp1252") as evefile:
             for i,row in enumerate(
                 csv.reader(evefile, delimiter='\t')
             ):
