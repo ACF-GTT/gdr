@@ -7,6 +7,8 @@ from helpers.road_mesure import (
     SITitle,
     RoadMeasure
 )
+from helpers.tools_file import CheckConf
+from helpers.ast_utils import eval_expr
 
 def get_grip_datas(
     file_name: str,
@@ -18,6 +20,8 @@ def get_grip_datas(
     y_datas = []
     tops = {}
     step = None
+    grip_conf = CheckConf().get("grip") or {}
+    formule = grip_conf.get("formule", "0.7801 * x + 0.1789")
     with open(file_name, encoding="utf-8") as csvfile:
         csv_data = csv.reader(csvfile, delimiter=',')
         index_start = None
@@ -40,7 +44,7 @@ def get_grip_datas(
             if index_start and i > index_start + 1:
                 x_val = float(row[0])
                 cft_val = float(row[1])
-                cft_val = 0.7801 * cft_val + 0.1789
+                cft_val = eval_expr(formule, {"x": cft_val})
                 y_val = cft_val *100
                 if PR in row[14].lower():
                     pr_nb = row[14].split("@")[0].lower()

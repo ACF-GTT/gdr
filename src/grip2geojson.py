@@ -12,6 +12,8 @@ from typing import Any
 from helpers.consts import BALISE_HEADER, BALISE_RESULTS, get_color
 from helpers.road_mesure import DATE_REGEXP
 from helpers.shared import pick_file
+from helpers.tools_file import CheckConf
+from helpers.ast_utils import eval_expr
 
 def create_point(x_val, y_val, **kwargs):
     """coordinates should be an array 
@@ -49,6 +51,8 @@ def csv2geojson_collection(name: str) -> dict[str, Any]:
         "features": list
     }
     result["features"] = []
+    grip_conf = CheckConf().get("grip") or {}
+    formule = grip_conf.get("formule", "0.7801 * x + 0.1789")
     with open(name, encoding="utf-8") as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',')
         index_start = None
@@ -68,7 +72,8 @@ def csv2geojson_collection(name: str) -> dict[str, Any]:
                         result["date"] = pattern_found[0]
             if index_start and i > index_start + 1:
                 x = float(row[0])
-                y = float(row[1]) *100
+                valeur_brute = float(row[1])
+                y = eval_expr(formule, {"x": valeur_brute}) *100
                 lat = float(row[7])
                 lon = float(row[8])
                 alt = float(row[9])

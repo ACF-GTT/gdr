@@ -29,6 +29,10 @@ mean_step:
 # si on précise sub1/sub2, la valeur est datas/sub1/sub2 
 datas:
 
+#Corrélation Grip
+grip:
+  formule: "0.7801 * x + 0.1789"
+
 # Emplacement du fichier xls des états aigle dans datas
 # pour utiliser aigle, mettre 1 comme valeur pour aigle_3d
 # puis définir aigle_route et aigle_dep
