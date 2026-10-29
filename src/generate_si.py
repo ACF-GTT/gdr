@@ -3,6 +3,7 @@ pour suivi de chantiers routiers d'innovation
 """
 import argparse
 
+import inquirer
 import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
 
@@ -13,7 +14,7 @@ from helpers.consts import (
     LOGGER,
     Aigle
 )
-from helpers.shared import pick_files, which_measure
+from helpers.shared import which_measure, CheckForFiles
 from helpers.apo import get_apo_datas
 from helpers.grip import get_grip_datas
 from helpers.pr_plus_abs import PlotText
@@ -82,17 +83,28 @@ def filtre_bornes(
 
 def get_measures(nb_mes) -> dict[str, list[RoadMeasure]]:
     """construit la liste des mesures."""
-    questions = {}
-    for j in range(nb_mes):
-        questions[f"measure_{j}"] = {
-            "folder_path" : YAML_CONF.get_datas_folder(),
-            "ext": ["csv", "RE0"],
-            "message": f"fichier de mesure {j}"
-        }
-
-    file_names = pick_files(
-        **questions
-    )
+    file_names = {}
+    j = 0
+    folder_path = YAML_CONF.get_datas_folder()
+    data_files = CheckForFiles()
+    for ext in ["csv", "RE0"]:
+        data_files.filter_extension(
+            folder_path=folder_path,
+            ext=ext
+        )
+    remaining = data_files.get_names()
+    while j < nb_mes:
+        answers = inquirer.prompt([
+            inquirer.List(
+                "file",
+                message="choix du fichier ?",
+                choices=remaining,
+            ),
+        ])
+        file_name = answers["file"]
+        file_names[f"measure_{j}"] = file_name
+        remaining.remove(file_name)
+        j += 1
     measures: dict[str, list[RoadMeasure]] = {
         "D": [],
         "G": []
@@ -348,7 +360,7 @@ def summarize(measures):
     for mes_list in measures.values():
         for measure in mes_list:
             LOGGER.info(
-                "SUMMARY mesure %s - sens %s - offset %s - abscisse départ %s - abscisse fin %s",
+                "SUMMARY mes %i - sens %s - offset %.1f - abscisse départ %.1f - abscisse fin %.1f",
                 index,
                 measure.sens,
                 measure.offset,
