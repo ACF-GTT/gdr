@@ -61,6 +61,10 @@ class CheckConf():
             return bool(show)
         return True
 
+    def export_legend_page(self) -> bool:
+        """Indique si une page de légende doit être créée."""
+        return bool(self.yaml.get("legend_page", 0))
+
     def aigle3d_xls(self) -> str:
         """Retourne le path vers le fichier excel Aigle3D contenant les états"""
         aigle_xls = self.yaml.get("aigle_xls")

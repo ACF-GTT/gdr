@@ -6,6 +6,7 @@ import argparse
 import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
 
+from legend_page import create_legend_page
 from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
@@ -248,11 +249,12 @@ def init_context(args):
                 f"Route : {aigle.route} - Département : {aigle.dep}",
                 x=0.01, ha="left"
             )
-        fig.legend(
-            handles = surface_state_legend(),
-            loc = "upper right",
-            ncol = len(surface_state_legend()),
-        )
+        if YAML_CONF.view_legend():
+            fig.legend(
+                handles = surface_state_legend(),
+                loc = "upper right",
+                ncol = len(surface_state_legend()),
+            )
 
     return grapher, text_helper, measures, axes
 
@@ -398,3 +400,4 @@ if __name__ == "__main__":
 
     summarize(main(parser.parse_args()))
     render("fig")
+    create_legend_page()
