@@ -9,11 +9,9 @@ from helpers.consts_cinetique_commun import (
     draw_prs,
     merge_old_new,
     setup_delta_axis,
+    delta_pct_name,
 )
-from helpers.consts_cinetique_descripteurs import (
-    cinetique_legend,
-)
-from helpers.consts_cinetique_commun import delta_pct_name
+from helpers.consts_cinetique_descripteurs import cinetique_legend
 from helpers.consts_etat_descripteur import (
     DATAS,
     DESCRIPTEURS,
@@ -37,6 +35,7 @@ from helpers.graph_tools import habille, init_single_column_plt
 from helpers.iq3d_descripteurs import DescripteurAnalyzer, get_configured_descriptors
 from helpers.tools_file import CheckConf
 from helpers.shared import pick_files
+from helpers.pr_plus_abs import PlotText
 
 
 Y_MAX = 100
@@ -51,8 +50,10 @@ def weight_descriptors() -> list[DescTypes]:
         if DESCRIPTEURS[desc].is_weight
     ]
 
+
 class CinetiqueDescripteurs:
     """Cinétique des descripteurs AIGLE3D : delta % entre deux GPKG."""
+
     def __init__(self):
         files = pick_files(
             old={"folder_path": DATAS, "ext": ["gpkg"], "message": "Choisir ancien"},
@@ -64,7 +65,6 @@ class CinetiqueDescripteurs:
 
         self.old = DescripteurAnalyzer(file_path=self.old_gpkg)
         self.new = DescripteurAnalyzer(file_path=self.new_gpkg)
-
 
     def compare(self, desc: DescTypes, *, route: str, dep: str, sens: str, **kwargs):
         """Compare ancien/nouveau pour un descripteur et un sens."""
@@ -91,21 +91,26 @@ class CinetiqueDescripteurs:
             assert sens in SENS_LIST
 
         descs = weight_descriptors()
+        text_helper = PlotText(route=route)
 
-        fig, axes = init_single_column_plt(len(descs) * len(sens_list))
+        fig, axes = init_single_column_plt(
+            len(descs) * len(sens_list)
+            + sum(text_helper.len(sens) for sens in sens_list)
+        )
         fig.set_size_inches(16.5, 11.7)
 
         row_idx = 0
         last_df = None
 
-        for desc in descs:
-            n_levels = DESCRIPTEURS[desc].nb_levels
-            colors = colors_for_levels(n_levels, desc)
-
-            for sens in sens_list:
+        for sens in sens_list:
+            for desc in descs:
+                n_levels = DESCRIPTEURS[desc].nb_levels
+                colors = colors_for_levels(n_levels, desc)
                 ax = axes[row_idx]
 
-                df, prs = self.compare(desc, route=route, dep=dep, sens=sens, **kwargs)
+                df, prs = self.compare(
+                    desc, route=route, dep=dep, sens=sens, **kwargs
+                )
                 last_df = df
 
                 draw_prs(prs, ax)
@@ -115,7 +120,7 @@ class CinetiqueDescripteurs:
                     scale=Y_MAX,
                     title=f"{desc} – sens {sens}",
                     label=f"Delta % {desc}",
-                    grid=True
+                    grid=True,
                 )
 
                 setup_delta_axis(ax)
@@ -135,14 +140,26 @@ class CinetiqueDescripteurs:
 
                 print(f"\n=== Delta {desc} sens {sens} ===")
                 print(
-                    df[[PRD_NUM, ABD] + [delta_pct_name(desc, lvl) for lvl in range(n_levels)]]
-                    .head(200)
+                    df[
+                        [PRD_NUM, ABD]
+                        + [delta_pct_name(desc, lvl) for lvl in range(n_levels)]
+                    ].head(200)
                 )
 
                 row_idx += 1
 
+            if text_helper.len(sens):
+                text_helper.compute_abs(prs, sens)
+
+                for txt_type in text_helper.filtered[sens]:
+                    text_helper.plot_text_line(txt_type, axes[row_idx], sens)
+                    row_idx += 1
+
         if last_df is not None and not last_df.empty:
-            axes[-1].set_xlim(last_df[CURV_START].min(), last_df[CURV_END].max())
+            axes[-1].set_xlim(
+                last_df[CURV_START].min(),
+                last_df[CURV_END].max()
+            )
 
         plt.suptitle(
             f"Cinétique descripteurs:{self.new_gpkg.name}-{self.old_gpkg.name}-{route}-dpt{dep}"
