@@ -105,7 +105,7 @@ def get_measures() -> tuple[
     dict[str, dict[str, RoadMeasure]]
 ]:
     """construit la liste des mesures."""
-    mes_names = {
+    mes_names: dict[str, dict] = {
         "present": {},
         "past": {}
     }
