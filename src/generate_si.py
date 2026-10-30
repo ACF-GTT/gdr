@@ -260,11 +260,12 @@ def init_context(args):
                 f"Route : {aigle.route} - Département : {aigle.dep}",
                 x=0.01, ha="left"
             )
-        fig.legend(
-            handles = surface_state_legend(),
-            loc = "upper right",
-            ncol = len(surface_state_legend()),
-        )
+        if YAML_CONF.view_legend():
+            fig.legend(
+                handles = surface_state_legend(),
+                loc = "upper right",
+                ncol = len(surface_state_legend()),
+            )
 
     return grapher, text_helper, measures, axes
 

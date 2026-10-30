@@ -108,7 +108,7 @@ def main(
             row_idx += 1
 
             # 2d) Légende (une seule fois, sur le premier graphe)
-            if sens == sens_list[0]:
+            if sens == sens_list[0] and conf.view_legend():
                 if DESCRIPTEURS[desc_key].is_score:
                     ax.legend(
                         handles=cft_legend_patches(),

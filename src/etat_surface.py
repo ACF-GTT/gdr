@@ -11,6 +11,7 @@ from helpers.consts_etat_surface import (
     surface_state_legend
 )
 
+from helpers.tools_file import CheckConf
 from helpers.iq3d import GraphStates
 from helpers.graph_tools import init_single_column_plt
 
@@ -51,11 +52,12 @@ def main(
         )
 
     # LÉGENDE DES NIVEAUX
-    patches = surface_state_legend()
-    fig.legend(
-        handles=patches,
-        loc="upper right",
-        ncol=5,)
+    if CheckConf().view_legend():
+        patches = surface_state_legend()
+        fig.legend(
+            handles=patches,
+            loc="upper right",
+            ncol=5,)
 
     plt.tight_layout()
     assert grapher.analyzer.sheet_name is not None
