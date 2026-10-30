@@ -106,7 +106,7 @@ class PlotText:
             if txt_data not in self.abfs[sens][txt_type]:
                 continue
             abf = self.abfs[sens][txt_type][txt_data]
-            ax.text(abd, 0.5, txt_data.replace("\\n", "\n").rsplit("_")[0])
+            ax.text(abd, 0.5, txt_data.replace("\\n", "\n").rsplit("_", 1)[0])
             rectangle = mpatches.Rectangle(
                 (abd, 0),
                 abf - abd,
