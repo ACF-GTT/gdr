@@ -101,8 +101,8 @@ def get_measure(name: str) -> RoadMeasure | None:
 
 
 def get_measures() -> tuple[
-    dict[str, list[RoadMeasure]],
-    dict[str, list[RoadMeasure]]
+    dict[str, dict[str, RoadMeasure]],
+    dict[str, dict[str, RoadMeasure]]
 ]:
     """construit la liste des mesures."""
     mes_names = {
