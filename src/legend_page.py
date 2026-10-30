@@ -1,6 +1,8 @@
 
 """Génération d'une page de légende PDF/SVG pour les rapports."""
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -32,14 +34,13 @@ def create_legend_page():
 
     conf = CheckConf()
 
-    # Vérifie si l'export est activé
-    if not conf.export_legend_page():
-        return
-
     # Choix des légendes depuis le YAML
-    grip = bool(conf.yaml.get("legend_page_grip", 0))
-    aigle = bool(conf.yaml.get("legend_page_etat_surface", 0))
-    descripteurs = bool(conf.yaml.get("legend_page_etat_descripteurs", 0))
+    legend_conf = conf.yaml.get("legend_page", {})
+
+    grip = bool(legend_conf.get("grip", 0))
+    rugo = bool(legend_conf.get("rugo", 0))
+    aigle = bool(legend_conf.get("etat_surface", 0))
+    descripteurs = bool(legend_conf.get("etat_descripteurs", 0))
 
     groups = []
 
@@ -50,14 +51,27 @@ def create_legend_page():
             get_cft_legend()
         ))
 
-    # 2. Légende des états de surface Aigle3D
+    # 2. Légende RUGO - PMP
+    if rugo:
+        groups.append((
+            "RUGO - PMP",
+            [
+                mpatches.Patch(
+                    color=COLORS["PMP"][level],
+                    label=label
+                )
+                for level, label in LEGENDS["PMP"].items()
+            ]
+        ))
+
+    # 3. Légende des états de surface Aigle3D
     if aigle:
         groups.append((
             "États de surface Aigle3D",
             surface_state_legend()
         ))
 
-    # 3. Légendes des descripteurs sélectionnés dans le YAML
+    # 4. Légendes des descripteurs sélectionnés dans le YAML
     if descripteurs:
         for desc in get_configured_descriptors(conf):
 
@@ -114,12 +128,15 @@ def create_legend_page():
     )
 
     # Export PDF et SVG
-    fig.savefig("legende_generale.pdf", bbox_inches="tight")
-    fig.savefig("legende_generale.svg", bbox_inches="tight")
+    output_dir = Path("legendes")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    fig.savefig(output_dir / "legende_generale.pdf", bbox_inches="tight")
+    fig.savefig(output_dir / "legende_generale.svg", bbox_inches="tight")
 
     plt.close(fig)
 
-    print("Page de légende générée : legende_generale.pdf / .svg")
+    print(f"Pages de légende générées dans : {output_dir.resolve()}")
 
 
 if __name__ == "__main__":

@@ -74,13 +74,12 @@ pr_abs_rubriques:
 # si on met false ou 0, les légendes ne sont pas affichées
 legend: 1
 
-# Générer une page de légende PDF/SVG
-legend_page: 1
-
-# Choix des légendes à exporter
-legend_page_grip: 0
-legend_page_etat_surface: 1
-legend_page_etat_descripteurs: 0
+# Choix des légendes à exporter avec legend_page.py
+legend_page:
+  grip: 1
+  rugo: 1
+  etat_surface: 1
+  etat_descripteurs: 1
 
 descripteurs:
   DELAMINATION: 0
