@@ -32,7 +32,7 @@ def init_single_column_plt(nb_graphes) :
 def render(name):
     """render to screen or save to disk"""
     root = FIG_PARAMS.get("root")
-    path = FIG_PARAMS.get("path")
+    path = FIG_PARAMS.get("path", "")
     if root is not None:
         path = f"{root}{path}"
     if path is not None:

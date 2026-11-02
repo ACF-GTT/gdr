@@ -64,6 +64,8 @@ pr_abs_csv:
   N0122: "PR_ABS/exp_N0122.csv"
   N0088: "PR_ABS/exp_N0088.csv"
 
+nb_infos_pr_abs: 2
+
 pr_abs_rubriques:
   - technique
   #- geometrie

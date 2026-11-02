@@ -81,9 +81,34 @@ def filtre_bornes(
     return mes.abs_zoomed(), mes.datas_zoomed
 
 
-def get_measures(nb_mes) -> dict[str, list[RoadMeasure]]:
+def get_measure(name: str) -> RoadMeasure | None:
+    """return a single RoadMeasure object"""
+    mes_unit = which_measure(name)
+    LOGGER.info("%s > unité de mesure : %s", name.rsplit("\\", 1)[-1], mes_unit)
+    force_sens = None
+    if "droite" in name.lower():
+        force_sens = "D"
+    if "gauche" in name.lower():
+        force_sens = "G"
+    datas : RoadMeasure | None = None
+    if mes_unit == "CFL":
+        datas = get_grip_datas(name, force_sens=force_sens)
+    if mes_unit == "PMP":
+        datas = get_apo_datas(name, unit=mes_unit, force_sens=force_sens)
+    if mes_unit == "CFT":
+        datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=force_sens)
+    return datas
+
+
+def get_measures() -> tuple[
+    dict[str, dict[str, RoadMeasure]],
+    dict[str, dict[str, RoadMeasure]]
+]:
     """construit la liste des mesures."""
-    file_names = {}
+    mes_names: dict[str, dict] = {
+        "present": {},
+        "past": {}
+    }
     j = 0
     folder_path = YAML_CONF.get_datas_folder()
     data_files = CheckForFiles()
@@ -93,41 +118,60 @@ def get_measures(nb_mes) -> dict[str, list[RoadMeasure]]:
             ext=ext
         )
     remaining = data_files.get_names()
-    while j < nb_mes:
-        answers = inquirer.prompt([
+    while remaining:
+        if not inquirer.confirm(
+            "Ajouter une mesure ?",
+            default=False,
+        ):
+            break
+        data = {}
+        present = inquirer.prompt([
             inquirer.List(
                 "file",
-                message="choix du fichier ?",
+                message=f"choix mesure {j} ?",
                 choices=remaining,
             ),
         ])
-        file_name = answers["file"]
-        file_names[f"measure_{j}"] = file_name
-        remaining.remove(file_name)
-        j += 1
-    measures: dict[str, list[RoadMeasure]] = {
-        "D": [],
-        "G": []
-    }
+        present_file = present["file"]
+        data["present"] = present_file
+        remaining.remove(present_file)
 
-    for name in file_names.values():
-        mes_unit = which_measure(name)
-        LOGGER.info("%s > unité de mesure : %s", name, mes_unit)
-        force_sens = None
-        if "droite" in name.lower():
-            force_sens = "D"
-        if "gauche" in name.lower():
-            force_sens = "G"
-        datas : RoadMeasure | None = None
-        if mes_unit == "CFL":
-            datas = get_grip_datas(name, force_sens=force_sens)
-        if mes_unit == "PMP":
-            datas = get_apo_datas(name, unit=mes_unit, force_sens=force_sens)
-        if mes_unit == "CFT":
-            datas = get_generic_absdatatop_csv(name, unit=mes_unit, force_sens=force_sens)
-        if datas is not None and datas.sens in measures:
-            measures[datas.sens].append(datas)
-    return measures
+        if inquirer.confirm(
+            "Comparer avec une année antérieure ?",
+            default=False,
+        ):
+            past = inquirer.prompt([
+                inquirer.List(
+                "file",
+                message="choix mesure année antérieure ?",
+                choices=remaining,
+                ),
+            ])
+            past_file = past["file"]
+            data["past"] = past_file
+            remaining.remove(past_file)
+        mes_names["present"][f"mes_{j}"] = data["present"]
+        mes_names["past"][f"mes_{j}"] = data.get("past")
+        j += 1
+    present_mes: dict[str, dict[str, RoadMeasure]] = {
+        "D": {},
+        "G": {}
+    }
+    past_mes: dict[str, dict[str, RoadMeasure]] = {
+        "D": {},
+        "G": {}
+    }
+    for key, name in mes_names["present"].items():
+        datas = get_measure(name)
+        if datas is not None and datas.sens in present_mes:
+            present_mes[datas.sens][key] = datas
+    for key, name in mes_names["past"].items():
+        if not name:
+            continue
+        datas = get_measure(name)
+        if datas is not None and datas.sens in past_mes:
+            past_mes[datas.sens][key] = datas
+    return present_mes, past_mes
 
 
 def format_legend(add_percent, unit, data):
@@ -244,12 +288,14 @@ def init_context(args):
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         # 3 graphes par sens + 2 graphes pour le texte PR+abs
         nb_graphes += 3 * len(aigle.sens_list)
-        for sens in aigle.sens_list:
-            nb_graphes += text_helper.len(sens)
 
-    measures = get_measures(int(args.multi))
+    nb_graphes += text_helper.nb_infos
 
-    nb_mes = len(measures["D"]) + len(measures["G"])
+    present_mes, past_mes = get_measures()
+
+    nb_mes = 0
+    for sens in ["D", "G"]:
+        nb_mes += len(present_mes[sens].values())
     nb_graphes += nb_mes if MEAN_STEP == 0 else 2 * nb_mes
     _, axes = init_single_column_plt(nb_graphes)
 
@@ -267,18 +313,28 @@ def init_context(args):
                 ncol = len(surface_state_legend()),
             )
 
-    return grapher, text_helper, measures, axes
+    return grapher, text_helper, present_mes, past_mes, axes
+
+
+def environ(mes, abs_reference, args):
+    """adapte une RoadMeasure à l'environnement
+    bornes, abscisse de référence
+    """
+    # Reverse si sens moins
+    if mes.sens == "G":
+        mes.reverse()
+    mes.offset = abs_reference - mes.tops().get(args.pr, [0])[0]
+    datas = filtre_bornes(mes, args)
+    return datas
 
 
 # pylint: disable=too-many-branches
 def main(args):
     """main exe"""
-    grapher, text_helper, measures, axes = init_context(args)
+    grapher, text_helper, present_mes, past_mes, axes = init_context(args)
     plt_index, abs_reference, xlim_set = 0, None, False
 
-    # Boucle par sens : Sens Aigle puis Sens mesures Grip
-    for sens, mes_list in measures.items():
-
+    for sens, mes_dict in present_mes.items():
         # 1) Mesures Aigle
         aigle_sens = SENS_GRIP_TO_AIGLE[sens]
         if grapher and aigle_sens in aigle.sens_list:
@@ -296,26 +352,20 @@ def main(args):
         # 2) abscisse de référence
         if abs_reference is None:
             abs_reference = get_abs_reference(
-                measures,
+                {sens: present_mes[sens].values() for sens in ["D", "G"]},
                 pr=args.pr
             )
         # 3) Autres mesures
-        for mes in mes_list:
+        for key, mes in mes_dict.items():
             y_max = 100 if mes.unit in ("CFT", "CFL") else 1
             ax: Axes = axes[plt_index]
             habille(ax, y_max, title=mes.title, grid=True)
-
-            # Reverse des sens moins
-            if mes.sens == "G":
-                mes.reverse()
-            mes.offset = abs_reference - mes.tops().get(args.pr, [0])[0]
-
-            abscisses_data = filtre_bornes(mes, args)
+            datas = environ(mes, abs_reference, args)
             if args.bornes and not xlim_set:
-                ax.set_xlim(min(abscisses_data[0]), max(abscisses_data[0]))
+                ax.set_xlim(min(datas[0]), max(datas[0]))
                 xlim_set = True
 
-            if len(abscisses_data[1]) == 0 or mes.unit is None:
+            if len(datas[1]) == 0 or mes.unit is None:
                 plt_index += 1
                 continue
 
@@ -323,18 +373,25 @@ def main(args):
 
             if YAML_CONF.view_legend():
                 ax.legend(
-                    handles=format_legend(args.add_percent, mes.unit, abscisses_data[1]),
+                    handles=format_legend(args.add_percent, mes.unit, datas[1]),
                     loc="upper right"
                 )
 
             draw_objects(mes.tops(), y_max, ax=ax)
             ax.bar(
-                abscisses_data[0],
-                abscisses_data[1],
+                datas[0],
+                datas[1],
                 width=mes.step,
-                color=color_map(abscisses_data[1], unit=mes.unit),
-                edgecolor=color_map(abscisses_data[1], unit=mes.unit)
+                color=color_map(datas[1], unit=mes.unit),
+                edgecolor=color_map(datas[1], unit=mes.unit)
             )
+            if key in past_mes[sens]:
+                datas = environ(
+                    past_mes[sens][key],
+                    abs_reference,
+                    args
+                )
+                ax.plot(datas[0], datas[1])
             plt_index += 1
 
             if MEAN_STEP:
@@ -345,14 +402,26 @@ def main(args):
                 plt_index += 1
 
         # Texte PR+abs
-        if text_helper.len(aigle_sens) and aigle.active and aigle_sens in grapher.curv_prs:
-            text_helper.compute_abs(grapher.curv_prs[aigle_sens], aigle_sens)
+        if text_helper.nb_infos:
+            text_helper.compute_abs(
+                grapher.curv_prs[aigle_sens],
+                aigle_sens
+            )
             for txt_type in text_helper.filtered[aigle_sens]:
-                text_helper.plot_text_line(txt_type, axes[plt_index], aigle_sens)
-                plt_index += 1
-    if text_helper.len():
+                plt_index += text_helper.plot_text_line(
+                    txt_type,
+                    axes[plt_index],
+                    aigle_sens
+                )
+    if text_helper.nb_infos:
         text_helper.adjust(axes[-1])
-    return measures
+    return {
+        sens: [
+            *present_mes[sens].values(),
+            *past_mes[sens].values()
+        ]
+        for sens in ["D", "G"]
+    }
 
 
 def summarize(measures):
@@ -373,12 +442,6 @@ def summarize(measures):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='linear diagrams')
-    parser.add_argument(
-        "--multi",
-        action="store",
-        help="nombre de csv à traiter",
-        default=1
-    )
     parser.add_argument(
         "--pr",
         action="store",
