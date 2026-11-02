@@ -61,6 +61,7 @@ class CheckConf():
             return bool(show)
         return True
 
+
     def aigle3d_xls(self) -> str:
         """Retourne le path vers le fichier excel Aigle3D contenant les états"""
         aigle_xls = self.yaml.get("aigle_xls")
