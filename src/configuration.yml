@@ -74,6 +74,13 @@ pr_abs_rubriques:
 # si on met false ou 0, les légendes ne sont pas affichées
 legend: 1
 
+# Choix des légendes à exporter avec legend_page.py
+legend_page:
+  grip: 1
+  rugo: 1
+  etat_surface: 1
+  etat_descripteurs: 1
+
 descripteurs:
   DELAMINATION: 0
   DENSITE_FISSURATION: 1
