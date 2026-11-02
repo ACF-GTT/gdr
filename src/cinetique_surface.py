@@ -115,8 +115,7 @@ class CinetiqueSurface:
             assert sens in SENS_LIST
         text_helper = PlotText(route=route)
         nb_graphes = NB_GRAPHS_PER_SENS * len(sens_list)
-        for sens in sens_list:
-            nb_graphes += text_helper.len(sens)
+        nb_graphes += text_helper.nb_infos
 
         self.old = load_analyzer(self.old_sheet, route, dep, **kwargs)
         self.new = load_analyzer(self.new_sheet, route, dep, **kwargs)
@@ -152,14 +151,16 @@ class CinetiqueSurface:
                 df[[PRD_NUM, ABD]+[delta_pct_name(IES,lvl) for lvl in range(NB_LEVELS)]]
                 .head(200)
             )
-            if text_helper.len(sens):
+            if text_helper.nb_infos:
                 text_helper.compute_abs(prs, sens)
                 for txt_type in text_helper.filtered[sens]:
-                    text_helper.plot_text_line(txt_type, axes[index], sens)
-                    index += 1
-
+                    index += text_helper.plot_text_line(
+                        txt_type,
+                        axes[index],
+                        sens
+                    )
         if last_df is not None and not last_df.empty:
-            if text_helper.len():
+            if text_helper.nb_infos:
                 text_helper.adjust(axes[-1])
             else:
                 axes[-1].set_xlim(

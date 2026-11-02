@@ -27,6 +27,7 @@ class PlotText:
         route: str | None = None
     ) -> None:
         """init"""
+        self.nb_infos: int = 0
         self.filtered: dict[str, dict]= {
             "P": {},
             "M": {}
@@ -61,6 +62,10 @@ class PlotText:
         except FileNotFoundError:
             message = f"CSV introuvable : {csv_name}"
             LOGGER.warning(message)
+        finally:
+            nb_infos = CheckConf().yaml.get("nb_infos_pr_abs")
+            self.nb_infos = nb_infos if nb_infos else self.len()
+
 
     def len(self, sens: str | None = None) -> int:
         """nombre de champs réellement dispo"""
@@ -97,7 +102,7 @@ class PlotText:
         txt_type: str,
         ax: Axes,
         sens: str
-    ) -> None:
+    ) -> int:
         """plot a line of textual datas"""
         ax.yaxis.set_tick_params(labelcolor='none')
         ax.grid(visible=True, axis="x", linestyle="--")
@@ -115,6 +120,7 @@ class PlotText:
                 edgecolor='blue'
             )
             ax.add_artist(rectangle)
+        return 1 if len(self.abds[sens][txt_type]) else 0
 
     def adjust(
         self,

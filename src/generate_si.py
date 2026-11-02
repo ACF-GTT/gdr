@@ -288,8 +288,9 @@ def init_context(args):
         grapher.set_route_dep(route=aigle.route, dep=aigle.dep)
         # 3 graphes par sens + 2 graphes pour le texte PR+abs
         nb_graphes += 3 * len(aigle.sens_list)
-        for sens in aigle.sens_list:
-            nb_graphes += text_helper.len(sens)
+
+    nb_graphes += text_helper.nb_infos
+
     present_mes, past_mes = get_measures()
 
     nb_mes = 0
@@ -401,12 +402,18 @@ def main(args):
                 plt_index += 1
 
         # Texte PR+abs
-        if text_helper.len(aigle_sens) and aigle.active and aigle_sens in grapher.curv_prs:
-            text_helper.compute_abs(grapher.curv_prs[aigle_sens], aigle_sens)
+        if text_helper.nb_infos:
+            text_helper.compute_abs(
+                grapher.curv_prs[aigle_sens],
+                aigle_sens
+            )
             for txt_type in text_helper.filtered[aigle_sens]:
-                text_helper.plot_text_line(txt_type, axes[plt_index], aigle_sens)
-                plt_index += 1
-    if text_helper.len():
+                plt_index += text_helper.plot_text_line(
+                    txt_type,
+                    axes[plt_index],
+                    aigle_sens
+                )
+    if text_helper.nb_infos:
         text_helper.adjust(axes[-1])
     return {
         sens: [
