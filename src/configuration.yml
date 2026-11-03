@@ -44,16 +44,16 @@ aigle_sheet : "ie_troncon_surface_25 — DIRMC"
 aigle_gpkg: "Aigle3D/AURA_DIRMC_2025.gpkg"
 aigle_route : N0122
 aigle_dep : 15
-aigle_cinetique_yscale: 50
+aigle_cinetique_yscale: 30
 aigle_sens:
   - P
   - M
 
 # ne sert que pour la cinetique de surface pour l'instant
 section:
-  prd: 47
+  prd: 89
   abd:
-  prf: 52
+  prf: 92
   abf:
 
 # emplacement d'un fichier contenant des données en PR+abcisse dans datas
@@ -92,6 +92,6 @@ descripteurs:
   ESTEX: 0
   RAVELING: 1
   ORNIERAGE_GRAND_RAYON: 0
-  ORNIERAGE_PETIT_RAYON: 1
+  ORNIERAGE_PETIT_RAYON: 0
   CFT_MOYEN: 1
   CLASSE_IQP: 1

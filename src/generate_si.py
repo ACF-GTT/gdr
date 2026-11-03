@@ -7,7 +7,6 @@ import inquirer
 import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
 
-from legend_page import create_legend_page
 from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
@@ -475,4 +474,3 @@ if __name__ == "__main__":
 
     summarize(main(parser.parse_args()))
     render("fig")
-    create_legend_page()

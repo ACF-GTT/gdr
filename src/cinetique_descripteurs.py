@@ -5,12 +5,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from helpers.consts_cinetique_commun import (
+    Y_MAX,
     draw_delta,
     draw_prs,
     merge_old_new,
     setup_delta_axis,
     delta_pct_name,
 )
+from helpers.consts import Aigle
 from helpers.consts_cinetique_descripteurs import cinetique_legend
 from helpers.consts_etat_descripteur import (
     DATAS,
@@ -31,14 +33,13 @@ from helpers.consts_commun_pr_curv import (
     CURV_START,
     CURV_END,
 )
-from helpers.graph_tools import habille, init_single_column_plt
+from helpers.graph_tools import habille, init_single_column_plt, render
 from helpers.iq3d_descripteurs import DescripteurAnalyzer, get_configured_descriptors
 from helpers.tools_file import CheckConf
 from helpers.shared import pick_files
 from helpers.pr_plus_abs import PlotText
 
 
-Y_MAX = 100
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
 
 
@@ -94,8 +95,7 @@ class CinetiqueDescripteurs:
         text_helper = PlotText(route=route)
 
         fig, axes = init_single_column_plt(
-            len(descs) * len(sens_list)
-            + sum(text_helper.len(sens) for sens in sens_list)
+            len(descs) * len(sens_list) + text_helper.nb_infos
         )
         fig.set_size_inches(16.5, 11.7)
 
@@ -123,7 +123,7 @@ class CinetiqueDescripteurs:
                     grid=True,
                 )
 
-                setup_delta_axis(ax)
+                setup_delta_axis(ax, y_scale=Y_MAX)
 
                 for _, row in df.iterrows():
                     draw_delta(row, desc, colors, ax)
@@ -148,12 +148,13 @@ class CinetiqueDescripteurs:
 
                 row_idx += 1
 
-            if text_helper.len(sens):
+            if text_helper.nb_infos:
                 text_helper.compute_abs(prs, sens)
 
                 for txt_type in text_helper.filtered[sens]:
-                    text_helper.plot_text_line(txt_type, axes[row_idx], sens)
-                    row_idx += 1
+                    row_idx += text_helper.plot_text_line(
+                        txt_type, axes[row_idx], sens
+                    )
 
         if last_df is not None and not last_df.empty:
             axes[-1].set_xlim(
@@ -165,16 +166,18 @@ class CinetiqueDescripteurs:
             f"Cinétique descripteurs:{self.new_gpkg.name}-{self.old_gpkg.name}-{route}-dpt{dep}"
         )
         plt.tight_layout()
-        plt.show()
+        render("cinetique_descripteurs")
 
 
 if __name__ == "__main__":
+    aigle = Aigle()
+
     CinetiqueDescripteurs().main(
-        route="N0122",
-        dep="15",
-        sens_list=["P"],
-        prd=85,
-        abd=None,
-        prf=89,
-        abf=None,
+        route=aigle.route,
+        dep=aigle.dep,
+        sens_list=aigle.sens_list,
+        prd=aigle.section.get("prd"),
+        abd=aigle.section.get("abd"),
+        prf=aigle.section.get("prf"),
+        abf=aigle.section.get("abf"),
     )
