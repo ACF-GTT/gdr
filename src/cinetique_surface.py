@@ -44,6 +44,7 @@ from helpers.consts_commun_pr_curv import (
 from helpers.graph_tools import habille, init_single_column_plt, render
 from helpers.iq3d import SurfaceAnalyzer
 from helpers.pr_plus_abs import PlotText
+from helpers.tools_file import CheckConf
 
 COLORS = list(DELTA_PCT_COLORS.values())
 NB_GRAPHS_PER_SENS = 3
@@ -160,15 +161,19 @@ class CinetiqueSurface:
                         sens
                     )
         if last_df is not None and not last_df.empty:
-            if text_helper.nb_infos:
+            if CheckConf().yaml.get("force_range") == "pr_abs":
                 text_helper.adjust(axes[-1])
             else:
                 axes[-1].set_xlim(
                     last_df[CURV_START].min(),
                     last_df[CURV_END].max()
                 )
-
-        fig.legend(handles=cinetique_legend(), loc="upper right", ncol=9)
+        if CheckConf().view_legend():
+            fig.legend(
+                handles=cinetique_legend(),
+                loc="upper right",
+                ncol=9
+            )
         title = "Cinétique surface :"
         title = f"{title} {self.new_sheet.split(' ')[0]} - {self.old_sheet.split(' ')[0]}"
         title = f"{title}- {route} - dpt {dep}"

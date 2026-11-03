@@ -97,7 +97,6 @@ class CinetiqueDescripteurs:
         fig, axes = init_single_column_plt(
             len(descs) * len(sens_list) + text_helper.nb_infos
         )
-        fig.set_size_inches(16.5, 11.7)
 
         row_idx = 0
         last_df = None
@@ -118,8 +117,8 @@ class CinetiqueDescripteurs:
                 habille(
                     ax=ax,
                     scale=Y_MAX,
-                    title=f"{desc} – sens {sens}",
-                    label=f"Delta % {desc}",
+                    title=f"{desc} - sens {sens}",
+                    label="Delta %",
                     grid=True,
                 )
 
@@ -128,7 +127,7 @@ class CinetiqueDescripteurs:
                 for _, row in df.iterrows():
                     draw_delta(row, desc, colors, ax)
 
-                if sens == sens_list[0]:
+                if CheckConf().view_legend() and sens == sens_list[0]:
                     ax.legend(
                         handles=cinetique_legend(desc),
                         loc="lower right",
@@ -155,15 +154,21 @@ class CinetiqueDescripteurs:
                     row_idx += text_helper.plot_text_line(
                         txt_type, axes[row_idx], sens
                     )
-
         if last_df is not None and not last_df.empty:
-            axes[-1].set_xlim(
-                last_df[CURV_START].min(),
-                last_df[CURV_END].max()
-            )
+            if CheckConf().yaml.get("force_range") == "pr_abs":
+                text_helper.adjust(axes[-1])
+            else:
+                axes[-1].set_xlim(
+                    last_df[CURV_START].min(),
+                    last_df[CURV_END].max()
+                )
 
+        title = "Cinétique descripteurs :"
+        title = f"{title} {self.new_gpkg.name} - {self.old_gpkg.name}"
+        title = f"{title}- {route} - dpt {dep}"
         plt.suptitle(
-            f"Cinétique descripteurs:{self.new_gpkg.name}-{self.old_gpkg.name}-{route}-dpt{dep}"
+            title,
+            x=0.01, ha="left"
         )
         plt.tight_layout()
         render("cinetique_descripteurs")

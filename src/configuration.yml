@@ -49,12 +49,14 @@ aigle_sens:
   - P
   - M
 
-# ne sert que pour la cinetique de surface pour l'instant
+# section et force_range sont spécifiques aux fichiers python de cinetique
 section:
   prd: 89
   abd:
   prf: 92
   abf:
+
+force_range: pr_abs
 
 # emplacement d'un fichier contenant des données en PR+abcisse dans datas
 # si on a toute la base dans un seul fichier csv, on pourrait écrire simplement
