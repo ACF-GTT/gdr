@@ -252,15 +252,19 @@ def get_abs_reference(
     if pr is None:
         LOGGER.warning("Pas de pr de recalage fourni")
         return 0
+    for mes_list in measures.values():
+        mes = next(iter(mes_list), None)
+        if mes is not None:
+            break
+    else:
+        LOGGER.warning("Aucune mesure disponible : pas de recalage")
+        return 0
+
     try:
-        for mes_list in measures.values():
-            if len(mes_list) > 0:
-                mes = mes_list[0]
-                break
         abs_reference = mes.tops()[pr][0]
         LOGGER.info("Grip sens %s - abs pr %s = %s", mes.sens, pr, abs_reference)
         return abs_reference
-    except KeyError:
+    except (KeyError, IndexError):
         LOGGER.warning("! pr %s inexistant : pas de recalage", pr)
         return 0
 
