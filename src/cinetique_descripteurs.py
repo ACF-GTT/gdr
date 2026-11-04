@@ -107,7 +107,7 @@ class CinetiqueDescripteurs(CinetiqueBase):
         descs = weight_descriptors()
         text_helper = PlotText(route=self.route)
 
-        fig, axes = init_single_column_plt(
+        _, axes = init_single_column_plt(
             len(descs) * len(sens_list) + text_helper.nb_infos
         )
 
@@ -165,11 +165,7 @@ class CinetiqueDescripteurs(CinetiqueBase):
                     row_idx += text_helper.plot_text_line(
                         txt_type, axes[row_idx], sens
                     )
-        if last_df is not None and not last_df.empty:
-            if CheckConf().yaml.get("force_range") == "pr_abs":
-                text_helper.adjust(axes[-1])
-            else:
-                self.adjust(axes[-1], last_df)
+        self.adjust_range(axes[-1], last_df, text_helper)
 
         title = (
             f"Cinétique descripteurs : "

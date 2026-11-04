@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 
+from helpers.tools_file import CheckConf
 from helpers.consts import Aigle
 from helpers.consts_commun_pr_curv import CURV_START, CURV_END
 from helpers.graph_tools import render
@@ -23,6 +24,14 @@ class CinetiqueBase:
                 df[CURV_START].min(),
                 df[CURV_END].max(),
             )
+
+    def adjust_range(self, ax, df, text_helper):
+        """Ajuste l'axe X selon la configuration force_range."""
+        if df is not None and not df.empty:
+            if CheckConf().yaml.get("force_range") == "pr_abs":
+                text_helper.adjust(ax)
+            else:
+                self.adjust(ax, df)
 
     def render(self, title: str, file_name: str):
         """Finalise et exporte le graphique."""
