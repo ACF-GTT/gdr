@@ -169,4 +169,3 @@ class Aigle :
     sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
     cinetique_yscale = YAML_CONF.yaml.get("aigle_cinetique_yscale", 100)
     section: ClassVar[dict[str, Any]] = YAML_CONF.yaml.get("section", {})
-    df = None

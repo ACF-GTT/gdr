@@ -4,7 +4,6 @@ Compare deux années et affiche les écarts en % par niveaux.
 """
 import re
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
 from helpers.consts import Aigle
@@ -20,6 +19,7 @@ from helpers.consts_cinetique_surface import (
     DELTA_PCT_COLORS,
     cinetique_legend,
 )
+from helpers.cinetique_base import CinetiqueBase
 from helpers.consts_etat_surface import (
     FILE,
     STATES,
@@ -38,10 +38,8 @@ from helpers.consts_commun_pr_curv import (
     ABF,
     PLOD,
     PLOF,
-    CURV_START,
-    CURV_END,
 )
-from helpers.graph_tools import habille, init_single_column_plt, render
+from helpers.graph_tools import habille, init_single_column_plt
 from helpers.iq3d import SurfaceAnalyzer
 from helpers.pr_plus_abs import PlotText
 from helpers.tools_file import CheckConf
@@ -52,7 +50,7 @@ KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
 PRD = Aigle().section.get("prd")
 PRF = Aigle().section.get("prf")
 
-def load_analyzer(sheet_name, route=None, dep=None, **kwargs):
+def load_analyzer(sheet_name, route=None, dep=None):
     """Charge une année et applique les traitements de base."""
     df = pd.read_excel(FILE, sheet_name=sheet_name)
 
@@ -63,15 +61,23 @@ def load_analyzer(sheet_name, route=None, dep=None, **kwargs):
     analyzer.compute_percent()
 
     if route is not None and dep is not None:
+        aigle = Aigle()
+
         analyzer.set(route, dep)
-        analyzer.filter(**kwargs)
+        analyzer.filter(
+            prd=aigle.section.get("prd"),
+            abd=aigle.section.get("abd"),
+            prf=aigle.section.get("prf"),
+            abf=aigle.section.get("abf"),
+        )
 
     return analyzer
 
 
-class CinetiqueSurface:
+class CinetiqueSurface(CinetiqueBase):
     """Cinétique des états de surface AIGLE3D : delta % entre deux années."""
     def __init__(self):
+        super().__init__()
         excel_file = pd.ExcelFile(FILE)
 
         print("Feuilles disponibles dans le fichier :")
@@ -110,21 +116,25 @@ class CinetiqueSurface:
 
         return df, prs
 
-    def main(self, route, dep, sens_list, **kwargs):
+    def main(self):
         """Main."""
+        route = self.route
+        dep = self.dep
+        sens_list = self.sens_list
+
         for sens in sens_list:
             assert sens in SENS_LIST
         text_helper = PlotText(route=route)
         nb_graphes = NB_GRAPHS_PER_SENS * len(sens_list)
         nb_graphes += text_helper.nb_infos
 
-        self.old = load_analyzer(self.old_sheet, route, dep, **kwargs)
-        self.new = load_analyzer(self.new_sheet, route, dep, **kwargs)
+        self.old = load_analyzer(self.old_sheet, route, dep)
+        self.new = load_analyzer(self.new_sheet, route, dep)
 
         fig, axes = init_single_column_plt(nb_graphes)
 
         index = 0
-        last_df = None
+        last_df = None  # Dernier DataFrame calculé, utilisé pour ajuster l'axe X
 
         for sens in sens_list:
             sub_axes = axes[index:index + NB_GRAPHS_PER_SENS]
@@ -164,37 +174,23 @@ class CinetiqueSurface:
             if CheckConf().yaml.get("force_range") == "pr_abs":
                 text_helper.adjust(axes[-1])
             else:
-                axes[-1].set_xlim(
-                    last_df[CURV_START].min(),
-                    last_df[CURV_END].max()
-                )
+                self.adjust(axes[-1], last_df)
+
         if CheckConf().view_legend():
             fig.legend(
                 handles=cinetique_legend(),
                 loc="upper right",
-                ncol=9
+                ncol=9,
             )
         title = "Cinétique surface :"
         title = f"{title} {self.new_sheet.split(' ')[0]} - {self.old_sheet.split(' ')[0]}"
         title = f"{title}- {route} - dpt {dep}"
 
-        plt.suptitle(
-            title,
-            x=0.01, ha="left"
-        )
-        plt.tight_layout()
         file_name = re.sub(r"[ :]", "", title.replace("-", "_"))
         file_name = f"{file_name}_PR_{PRD}_a_{PRF}"
-        render(file_name)
+
+        self.render(title, file_name)
 
 
 if __name__ == "__main__":
-    CinetiqueSurface().main(
-        route=Aigle().route,
-        dep=Aigle().dep,
-        sens_list=Aigle().sens_list,
-        prd=PRD,
-        abd=Aigle().section.get("abd"),
-        prf=PRF,
-        abf=Aigle().section.get("abf"),
-    )
+    CinetiqueSurface().main()

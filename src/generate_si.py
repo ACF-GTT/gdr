@@ -339,7 +339,7 @@ def main(args):
         aigle_sens = SENS_GRIP_TO_AIGLE[sens]
         if grapher and aigle_sens in aigle.sens_list:
             prd, prf = extract_prd_prf(args)
-            aigle.df = grapher.graphe_sens(
+            grapher.graphe_sens(
                 sens=aigle_sens,
                 axes=axes[plt_index:plt_index+3],
                 force_abs=abs_reference,
