@@ -3,11 +3,11 @@
 import pandas as pd
 from matplotlib.axes import Axes
 
-from helpers.consts import Aigle
 from helpers.consts_commun_pr_curv import CURV_START, CURV_END, PRD
 from helpers.graph_tools import draw_object
+from helpers.tools_file import CheckConf
 
-Y_MAX = Aigle().cinetique_yscale
+Y_MAX = CheckConf().yaml.get("aigle_cinetique_yscale", 100)
 
 def draw_prs(prs: dict[str, float], ax: Axes) -> None:
     """Affiche les PR."""

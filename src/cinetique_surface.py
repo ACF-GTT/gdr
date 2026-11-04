@@ -2,11 +2,8 @@
 Cinétique des états de surface AIGLE3D.
 Compare deux années et affiche les écarts en % par niveaux.
 """
-import re
-
 import pandas as pd
 
-from helpers.consts import Aigle
 from helpers.consts_cinetique_commun import (
     Y_MAX,
     delta_pct_name,
@@ -47,10 +44,12 @@ from helpers.tools_file import CheckConf
 COLORS = list(DELTA_PCT_COLORS.values())
 NB_GRAPHS_PER_SENS = 3
 KEYS = [SENS, PRD_NUM, ABD, PRF_NUM, ABF, PLOD, PLOF]
-PRD = Aigle().section.get("prd")
-PRF = Aigle().section.get("prf")
 
-def load_analyzer(sheet_name, route=None, dep=None):
+def load_analyzer(
+    sheet_name: str,
+    route: str | None = None,
+    dep: str | None = None
+):
     """Charge une année et applique les traitements de base."""
     df = pd.read_excel(FILE, sheet_name=sheet_name)
 
@@ -61,14 +60,14 @@ def load_analyzer(sheet_name, route=None, dep=None):
     analyzer.compute_percent()
 
     if route is not None and dep is not None:
-        aigle = Aigle()
+        section: dict = CheckConf().yaml.get("section", {})
 
         analyzer.set(route, dep)
         analyzer.filter(
-            prd=aigle.section.get("prd"),
-            abd=aigle.section.get("abd"),
-            prf=aigle.section.get("prf"),
-            abf=aigle.section.get("abf"),
+            prd=section.get("prd"),
+            abd=section.get("abd"),
+            prf=section.get("prf"),
+            abf=section.get("abf"),
         )
 
     return analyzer
@@ -118,30 +117,27 @@ class CinetiqueSurface(CinetiqueBase):
 
     def main(self):
         """Main."""
-        route = self.route
         dep = self.dep
-        sens_list = self.sens_list
 
-        for sens in sens_list:
+        for sens in self.sens_list:
             assert sens in SENS_LIST
-        text_helper = PlotText(route=route)
-        nb_graphes = NB_GRAPHS_PER_SENS * len(sens_list)
+        text_helper = PlotText(route=self.route)
+        nb_graphes = NB_GRAPHS_PER_SENS * len(self.sens_list)
         nb_graphes += text_helper.nb_infos
 
-        self.old = load_analyzer(self.old_sheet, route, dep)
-        self.new = load_analyzer(self.new_sheet, route, dep)
+        self.old = load_analyzer(self.old_sheet, self.route, dep)
+        self.new = load_analyzer(self.new_sheet, self.route, dep)
 
         fig, axes = init_single_column_plt(nb_graphes)
 
         index = 0
-        last_df = None  # Dernier DataFrame calculé, utilisé pour ajuster l'axe X
+        df = None
 
-        for sens in sens_list:
+        for sens in self.sens_list:
             sub_axes = axes[index:index + NB_GRAPHS_PER_SENS]
             index += NB_GRAPHS_PER_SENS
 
             df, prs = self.compare(sens)
-            last_df = df
 
             draw_prs(prs, sub_axes[0])
 
@@ -170,7 +166,7 @@ class CinetiqueSurface(CinetiqueBase):
                         axes[index],
                         sens
                     )
-        self.adjust_range(axes[-1], last_df, text_helper)
+        self.adjust_range(axes[-1], df, text_helper)
 
         if CheckConf().view_legend():
             fig.legend(
@@ -178,14 +174,12 @@ class CinetiqueSurface(CinetiqueBase):
                 loc="upper right",
                 ncol=9,
             )
-        title = "Cinétique surface :"
-        title = f"{title} {self.new_sheet.split(' ')[0]} - {self.old_sheet.split(' ')[0]}"
-        title = f"{title}- {route} - dpt {dep}"
 
-        file_name = re.sub(r"[ :]", "", title.replace("-", "_"))
-        file_name = f"{file_name}_PR_{PRD}_a_{PRF}"
-
-        self.render(title, file_name)
+        self.render(
+            "cinétique_surface",
+            self.old_sheet,
+            self.new_sheet
+        )
 
 
 if __name__ == "__main__":

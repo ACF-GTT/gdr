@@ -11,7 +11,6 @@ from helpers.consts_cinetique_commun import (
     delta_pct_name,
 )
 from helpers.consts_cinetique_descripteurs import cinetique_legend
-from helpers.consts import Aigle
 from helpers.cinetique_base import CinetiqueBase
 from helpers.consts_etat_descripteur import (
     DATAS,
@@ -68,12 +67,10 @@ class CinetiqueDescripteurs(CinetiqueBase):
 
     def compare(self, desc: DescTypes, *, sens: str):
         """Compare ancien/nouveau pour un descripteur et un sens."""
-        aigle = Aigle()
-
-        prd = aigle.section.get("prd")
-        abd = aigle.section.get("abd")
-        prf = aigle.section.get("prf")
-        abf = aigle.section.get("abf")
+        prd = self.section.get("prd")
+        abd = self.section.get("abd")
+        prf = self.section.get("prf")
+        abf = self.section.get("abf")
 
         self.old.load(desc)
         self.new.load(desc)
@@ -101,16 +98,14 @@ class CinetiqueDescripteurs(CinetiqueBase):
 
     def main(self):
         """Main."""
-        sens_list = self.sens_list
-
-        for sens in sens_list:
+        for sens in self.sens_list:
             assert sens in SENS_LIST
 
         descs = weight_descriptors()
         text_helper = PlotText(route=self.route)
 
         _, axes = init_single_column_plt(
-            len(descs) * len(sens_list) + text_helper.nb_infos
+            len(descs) * len(self.sens_list) + text_helper.nb_infos
         )
 
         row_idx = 0
@@ -123,7 +118,6 @@ class CinetiqueDescripteurs(CinetiqueBase):
                 ax = axes[row_idx]
 
                 df, prs = self.compare(desc, sens=sens)
-                last_df = df  # Dernier DataFrame calculé, utilisé pour ajuster l'axe X
 
                 draw_prs(prs, ax)
 
@@ -157,25 +151,21 @@ class CinetiqueDescripteurs(CinetiqueBase):
                         + [delta_pct_name(desc, lvl) for lvl in range(n_levels)]
                     ].head(200)
                 )
-
                 row_idx += 1
 
             if text_helper.nb_infos:
                 text_helper.compute_abs(prs, sens)
-
                 for txt_type in text_helper.filtered[sens]:
                     row_idx += text_helper.plot_text_line(
                         txt_type, axes[row_idx], sens
                     )
-        self.adjust_range(axes[-1], last_df, text_helper)
+        self.adjust_range(axes[-1], df, text_helper)
 
-        title = (
-            f"Cinétique descripteurs : "
-            f"{self.new_gpkg.name} - {self.old_gpkg.name}"
-            f" - {self.route} - dpt {self.dep}"
+        self.render(
+            "cinétique_descripteurs",
+            self.old_gpkg.name,
+            self.new_gpkg.name
         )
-
-        self.render(title, "cinetique_descripteurs")
 
 if __name__ == "__main__":
     CinetiqueDescripteurs().main()
