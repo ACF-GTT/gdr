@@ -10,8 +10,8 @@ from helpers.consts_cinetique_commun import (
     setup_delta_axis,
     delta_pct_name,
 )
-from helpers.consts import Aigle
 from helpers.consts_cinetique_descripteurs import cinetique_legend
+from helpers.consts import Aigle
 from helpers.cinetique_base import CinetiqueBase
 from helpers.consts_etat_descripteur import (
     DATAS,
@@ -54,6 +54,7 @@ class CinetiqueDescripteurs(CinetiqueBase):
 
     def __init__(self):
         super().__init__()
+
         files = pick_files(
             old={"folder_path": DATAS, "ext": ["gpkg"], "message": "Choisir ancien"},
             new={"folder_path": DATAS, "ext": ["gpkg"], "message": "Choisir récent"},
@@ -65,7 +66,7 @@ class CinetiqueDescripteurs(CinetiqueBase):
         self.old = DescripteurAnalyzer(file_path=self.old_gpkg)
         self.new = DescripteurAnalyzer(file_path=self.new_gpkg)
 
-    def compare(self, desc: DescTypes, sens: str):
+    def compare(self, desc: DescTypes, *, sens: str):
         """Compare ancien/nouveau pour un descripteur et un sens."""
         aigle = Aigle()
 
@@ -73,6 +74,7 @@ class CinetiqueDescripteurs(CinetiqueBase):
         abd = aigle.section.get("abd")
         prf = aigle.section.get("prf")
         abf = aigle.section.get("abf")
+
         self.old.load(desc)
         self.new.load(desc)
 
@@ -112,16 +114,16 @@ class CinetiqueDescripteurs(CinetiqueBase):
         )
 
         row_idx = 0
-        last_df = None
+        df = None
 
-        for sens in sens_list:
+        for sens in self.sens_list:
             for desc in descs:
                 n_levels = DESCRIPTEURS[desc].nb_levels
                 colors = colors_for_levels(n_levels, desc)
                 ax = axes[row_idx]
 
-                df, prs = self.compare(desc, sens)
-                last_df = df
+                df, prs = self.compare(desc, sens=sens)
+                last_df = df  # Dernier DataFrame calculé, utilisé pour ajuster l'axe X
 
                 draw_prs(prs, ax)
 
@@ -138,7 +140,7 @@ class CinetiqueDescripteurs(CinetiqueBase):
                 for _, row in df.iterrows():
                     draw_delta(row, desc, colors, ax)
 
-                if CheckConf().view_legend() and sens == sens_list[0]:
+                if CheckConf().view_legend() and sens == self.sens_list[0]:
                     ax.legend(
                         handles=cinetique_legend(desc),
                         loc="lower right",
