@@ -12,7 +12,6 @@ from helpers.consts_cinetique_commun import (
     setup_delta_axis,
     delta_pct_name,
 )
-from helpers.consts import Aigle
 from helpers.consts_cinetique_descripteurs import cinetique_legend
 from helpers.consts_etat_descripteur import (
     DATAS,
@@ -56,6 +55,10 @@ class CinetiqueDescripteurs:
     """Cinétique des descripteurs AIGLE3D : delta % entre deux GPKG."""
 
     def __init__(self):
+        """initialisation"""
+        self.route = CheckConf().yaml.get("aigle_route", "N0088")
+        self.dep = CheckConf().yaml.get("aigle_dep", 43)
+        self.sens_list = CheckConf().yaml.get("aigle_sens", ["P"])
         files = pick_files(
             old={"folder_path": DATAS, "ext": ["gpkg"], "message": "Choisir ancien"},
             new={"folder_path": DATAS, "ext": ["gpkg"], "message": "Choisir récent"},
@@ -67,13 +70,19 @@ class CinetiqueDescripteurs:
         self.old = DescripteurAnalyzer(file_path=self.old_gpkg)
         self.new = DescripteurAnalyzer(file_path=self.new_gpkg)
 
-    def compare(self, desc: DescTypes, *, route: str, dep: str, sens: str, **kwargs):
+    def compare(self, desc: DescTypes, *, sens: str):
         """Compare ancien/nouveau pour un descripteur et un sens."""
         self.old.load(desc)
         self.new.load(desc)
-
-        df_old, _ = self.old.troncons_df(desc, route, dep, sens, **kwargs)
-        df_new, prs = self.new.troncons_df(desc, route, dep, sens, **kwargs)
+        section = CheckConf().yaml.get("section", {})
+        prd = section.get("prd")
+        abd = section.get("abd")
+        prf = section.get("prf")
+        abf = section.get("abf")
+        df_old, _ = self.old.troncons_df(desc, self.route, self.dep, sens,
+            prd=prd, abd=abd, prf=prf, abf=abf)
+        df_new, prs = self.new.troncons_df(desc, self.route, self.dep, sens,
+            prd=prd, abd=abd, prf=prf, abf=abf)
 
         n_levels = DESCRIPTEURS[desc].nb_levels
         pct_cols = [pct_name(desc, lvl) for lvl in range(n_levels)]
@@ -86,31 +95,30 @@ class CinetiqueDescripteurs:
 
         return df, prs
 
-    def main(self, route: str, dep: str, sens_list: list[str], **kwargs):
+    def main(self):
         """Main."""
-        for sens in sens_list:
+        for sens in self.sens_list:
             assert sens in SENS_LIST
 
         descs = weight_descriptors()
-        text_helper = PlotText(route=route)
+        text_helper = PlotText(route=self.route)
 
-        fig, axes = init_single_column_plt(
-            len(descs) * len(sens_list) + text_helper.nb_infos
+        _, axes = init_single_column_plt(
+            len(descs) * len(self.sens_list) + text_helper.nb_infos
         )
 
         row_idx = 0
-        last_df = None
+        df = None
 
-        for sens in sens_list:
+        for sens in self.sens_list:
             for desc in descs:
                 n_levels = DESCRIPTEURS[desc].nb_levels
                 colors = colors_for_levels(n_levels, desc)
                 ax = axes[row_idx]
 
                 df, prs = self.compare(
-                    desc, route=route, dep=dep, sens=sens, **kwargs
+                    desc, sens=sens
                 )
-                last_df = df
 
                 draw_prs(prs, ax)
 
@@ -127,7 +135,7 @@ class CinetiqueDescripteurs:
                 for _, row in df.iterrows():
                     draw_delta(row, desc, colors, ax)
 
-                if CheckConf().view_legend() and sens == sens_list[0]:
+                if CheckConf().view_legend() and sens == self.sens_list[0]:
                     ax.legend(
                         handles=cinetique_legend(desc),
                         loc="lower right",
@@ -154,18 +162,18 @@ class CinetiqueDescripteurs:
                     row_idx += text_helper.plot_text_line(
                         txt_type, axes[row_idx], sens
                     )
-        if last_df is not None and not last_df.empty:
+        if df is not None and not df.empty:
             if CheckConf().yaml.get("force_range") == "pr_abs":
                 text_helper.adjust(axes[-1])
             else:
                 axes[-1].set_xlim(
-                    last_df[CURV_START].min(),
-                    last_df[CURV_END].max()
+                    df[CURV_START].min(),
+                    df[CURV_END].max()
                 )
 
         title = "Cinétique descripteurs :"
         title = f"{title} {self.new_gpkg.name} - {self.old_gpkg.name}"
-        title = f"{title}- {route} - dpt {dep}"
+        title = f"{title}- {self.route} - dpt {self.dep}"
         plt.suptitle(
             title,
             x=0.01, ha="left"
@@ -175,14 +183,4 @@ class CinetiqueDescripteurs:
 
 
 if __name__ == "__main__":
-    aigle = Aigle()
-
-    CinetiqueDescripteurs().main(
-        route=aigle.route,
-        dep=aigle.dep,
-        sens_list=aigle.sens_list,
-        prd=aigle.section.get("prd"),
-        abd=aigle.section.get("abd"),
-        prf=aigle.section.get("prf"),
-        abf=aigle.section.get("abf"),
-    )
+    CinetiqueDescripteurs().main()

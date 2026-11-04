@@ -32,13 +32,16 @@ def init_single_column_plt(nb_graphes) :
 def render(name):
     """render to screen or save to disk"""
     root = FIG_PARAMS.get("root")
-    path = FIG_PARAMS.get("path", "")
-    if root is not None:
-        path = f"{root}{path}"
-    if path is not None:
-        plt.savefig(f"{path}/{name}.svg")
-    else:
+    path = FIG_PARAMS.get("path")
+    if root is None and path is None:
         plt.show()
+        return
+    if path is None:
+        plt.savefig(f"{root}/{name}.svg")
+        return
+    if root is not None:
+        path = f"{root}/{path}"
+    plt.savefig(f"{path}/{name}.svg")
 
 
 def habille(
