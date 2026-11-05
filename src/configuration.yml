@@ -31,6 +31,7 @@ mean_step:
 # si on précise sub1/sub2, la valeur est datas/sub1/sub2 
 datas:
 absolute_root: 
+absolute_root_for_datas: 
 
 #Corrélation Grip
 grip:
