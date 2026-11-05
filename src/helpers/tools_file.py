@@ -51,6 +51,9 @@ class CheckConf():
         """retourne le path vers les datas"""
         sub_folder = self.yaml.get("datas")
         if sub_folder is not None:
+            root = self.yaml.get("absolute_root_for_datas")
+            if root is not None:
+                return f"{root}/{sub_folder}"
             return f"{self.src_path}/datas/{sub_folder}"
         return f"{self.src_path}/datas"
 
@@ -64,18 +67,24 @@ class CheckConf():
 
     def aigle3d_xls(self) -> str:
         """Retourne le path vers le fichier excel Aigle3D contenant les états"""
+        root = self.yaml.get("absolute_root_for_datas")
+        if root is None:
+            root = f"{self.src_path}/datas"
         aigle_xls = self.yaml.get("aigle_xls")
         if aigle_xls is not None:
-            return f"{self.src_path}/datas/{aigle_xls}"
-        return f"{self.src_path}/datas/Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
+            return f"{root}/{aigle_xls}"
+        return f"{root}/Aigle3D/Table_Indicateurs_Etat_surface_DIRMC.xlsx"
 
     def pr_abs_csv(self) -> dict[str, str] | str | None:
         """Retourne le path vers le csv contenant les données pr+abs"""
+        root = self.yaml.get("absolute_root_for_datas")
+        if root is None:
+            root = f"{self.src_path}/datas"
         pr_abs_csv = self.yaml.get("pr_abs_csv")
         if isinstance(pr_abs_csv, dict):
-            return {road: f"{self.src_path}/datas/{csv}" for road, csv in pr_abs_csv.items()}
+            return {road: f"{root}/{csv}" for road, csv in pr_abs_csv.items()}
         if isinstance(pr_abs_csv, str):
-            return f"{self.src_path}/datas/{pr_abs_csv}"
+            return f"{root}/{pr_abs_csv}"
         return None
 
     def get_descripteurs_raw(self) -> list[str] | None:
