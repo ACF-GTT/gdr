@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Literal, List
 import pandas as pd
 import matplotlib.patches as mpatches
-from helpers.tools_file import parent_dir, CheckConf
+from helpers.tools_file import CheckConf
 from helpers.consts_commun_pr_curv import LEVEL, PCT
 from helpers.consts import (
     COLORS as METRIC_COLORS,
@@ -14,10 +14,10 @@ from helpers.consts import (
     LEGENDS,
 )
 
-DATAS = f"{parent_dir(__file__, 2)}/datas/"
-
 # Nom du fichier source (GPKG)
 conf = CheckConf()
+
+DATAS = conf.get_datas_folder()
 
 FILE_DESCRIPTEURS = f"{DATAS}/{conf.get('aigle_gpkg')}"
 FILE_SURFACE = f"{DATAS}/{conf.get('aigle_xls')}"
