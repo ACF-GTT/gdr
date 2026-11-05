@@ -2,6 +2,8 @@
 pour suivi de chantiers routiers d'innovation
 """
 import argparse
+from dataclasses import dataclass
+from typing import ClassVar, Any
 
 import inquirer
 import matplotlib.patches as mpatches
@@ -11,8 +13,7 @@ from helpers.consts import (
     UPPER, LOWER,
     LEVELS, LEGENDS,
     COLORS, get_color,
-    LOGGER,
-    Aigle
+    LOGGER
 )
 from helpers.shared import which_measure, CheckForFiles
 from helpers.apo import get_apo_datas
@@ -25,9 +26,17 @@ from helpers.graph_tools import draw_objects, init_single_column_plt, habille, r
 from helpers.iq3d import GraphStates
 from helpers.consts_etat_surface import surface_state_legend
 
-
-
 YAML_CONF = CheckConf()
+
+@dataclass
+class Aigle :
+    """aigle3D dataclass"""
+    active = YAML_CONF.yaml.get("aigle_3d")
+    route = YAML_CONF.yaml.get("aigle_route", "N0088")
+    dep = YAML_CONF.yaml.get("aigle_dep", 43)
+    sens_list = YAML_CONF.yaml.get("aigle_sens", ["P"]) # par défaut "P" si rien
+    cinetique_yscale = YAML_CONF.yaml.get("aigle_cinetique_yscale", 100)
+    section: ClassVar[dict[str, Any]] = YAML_CONF.yaml.get("section", {})
 
 PRECISION = {
     100: 0,
