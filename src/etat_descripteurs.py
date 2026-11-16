@@ -43,7 +43,7 @@ def main(
     # 1) Création de la figure :
     # 1 ligne = 1 (descripteur, sens)
     n_rows = len(descripteurs) * len(sens_list)
-    fig, axes = init_single_column_plt(n_rows)
+    _, axes = init_single_column_plt(n_rows)
 
     analyzer = DescripteurAnalyzer()
     row_idx = 0
