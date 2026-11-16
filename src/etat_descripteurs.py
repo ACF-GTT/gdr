@@ -44,7 +44,6 @@ def main(
     # 1 ligne = 1 (descripteur, sens)
     n_rows = len(descripteurs) * len(sens_list)
     fig, axes = init_single_column_plt(n_rows)
-    fig.set_size_inches(16.5, 11.7)
 
     analyzer = DescripteurAnalyzer()
     row_idx = 0
