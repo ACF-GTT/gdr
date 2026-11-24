@@ -220,30 +220,25 @@ class DescripteurAnalyzer:
             except ValueError:
                 tron = tron[tron[DEP].astype(str).str.strip() == str(dep).strip()]
 
-        if DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp:
-            # on garde juste la colonne cft_moyen déjà présente dans le troncon (Excel)
-            sa = SurfaceAnalyzer(df=tron)
-            sa.compute_pr()
-            sa.filter(**kwargs)
-            return sa.compute_curviligne(sens)
+        if not (DESCRIPTEURS[desc_key].is_score or DESCRIPTEURS[desc_key].is_iqp):
 
-        tron = tron.merge(self.levels_pct_by_troncon(desc_key), on=CLE_TRONCON, how="left")
+            tron = tron.merge(self.levels_pct_by_troncon(desc_key), on=CLE_TRONCON, how="left")
 
-        nlv = DESCRIPTEURS[desc_key].nb_levels
-        pct_cols = [pct_name(desc_key, lvl) for lvl in range(nlv)]
+            nlv = DESCRIPTEURS[desc_key].nb_levels
+            pct_cols = [pct_name(desc_key, lvl) for lvl in range(nlv)]
 
-        # Cas 1: S_evaluee vide : on laisse les % à NaN (affichage blanc)
-        mask_no_eval = tron[SURF_EVAL].isna()
-        tron.loc[mask_no_eval, pct_cols] = float("nan")
+            # Cas 1: S_evaluee vide : on laisse les % à NaN (affichage blanc)
+            mask_no_eval = tron[SURF_EVAL].isna()
+            tron.loc[mask_no_eval, pct_cols] = float("nan")
 
-        # Cas 2: tronçon évalué mais aucune donnée du descripteur -> 100% niveau 0, 0% le reste
-        mask_eval = tron[SURF_EVAL].notna()
-        mask_no_desc = tron[pct_name(desc_key, 0)].isna() & mask_eval
-        tron.loc[mask_no_desc, pct_name(desc_key, 0)] = 100.0
-        tron.loc[mask_no_desc, [pct_name(desc_key, lvl) for lvl in range(1, nlv)]] = 0.0
+            # Cas 2: tronçon évalué mais aucune donnée du descripteur -> 100% niveau 0, 0% le reste
+            mask_eval = tron[SURF_EVAL].notna()
+            mask_no_desc = tron[pct_name(desc_key, 0)].isna() & mask_eval
+            tron.loc[mask_no_desc, pct_name(desc_key, 0)] = 100.0
+            tron.loc[mask_no_desc, [pct_name(desc_key, lvl) for lvl in range(1, nlv)]] = 0.0
 
-        # Cas 3: tronçon évalué -> les niveaux de gravités pas remplis = "0% à ce niveau"
-        tron.loc[mask_eval, pct_cols] = tron.loc[mask_eval, pct_cols].fillna(0.0)
+            # Cas 3: tronçon évalué -> les niveaux de gravités pas remplis = "0% à ce niveau"
+            tron.loc[mask_eval, pct_cols] = tron.loc[mask_eval, pct_cols].fillna(0.0)
 
         sa = SurfaceAnalyzer(df=tron)
         sa.compute_pr()
